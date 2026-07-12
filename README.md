@@ -52,7 +52,7 @@ All numbers below are from live runs on 2026-07-12 against the full corpus (283 
 
 | faithfulness | answer relevancy | context precision | context recall |
 |---|---|---|---|
-| 0.886 | 0.880 | 0.860 | 0.969 |
+| 0.964 | 0.863 | 0.867 | 0.961 |
 
 **Retrieval ablation** (hit-rate@6 / MRR / article recall, 38 questions):
 
@@ -70,9 +70,10 @@ The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden da
 
 ### What eval-driven iteration caught during development
 
-1. The grounding judge originally audited against 300-char snippets and flagged **correct** enumerations as unsupported — the judge now sees full chunk content.
-2. Top-k search returns fragments of long articles; "list all prohibited practices" was systematically incomplete. Fix: a `read_article` tool the agent calls on the controlling article before enumerating — search finds the article, reading covers it.
-3. With only a partial corpus ingested, the model padded enumerations from parametric memory — and the grounding audit caught exactly that. The flag is a feature.
+1. **Fragments break enumerations.** Top-k search returns *parts* of long articles, so "list all prohibited practices" was systematically incomplete. Fix: a `read_article` tool the agent calls on the controlling article before enumerating. Together with the grounding-window fix below this lifted RAGAS faithfulness from 0.886 to 0.964.
+2. **The grounding judge needs full text.** It originally audited against 300-char snippets and flagged **correct** enumerations (list items past the cutoff) as unsupported; it now sees full chunk content and judges factual support, not citation-number exactness.
+3. **Partial corpus exposed parametric padding.** With only part of the corpus ingested, the model padded enumerations from memory — and the grounding audit caught exactly that. The flag is a feature.
+4. **Refusal boundaries are probabilistic.** An adversarial-review pass plus a red-team re-run each surfaced a *different* out-of-scope question (HIPAA once, specific legal advice once) that the model answered instead of deflecting. Both are now firm prompt rules with regression cases, not hopeful phrasing.
 
 ## Regulatory accuracy
 
