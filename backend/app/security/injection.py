@@ -13,7 +13,11 @@ from dataclasses import dataclass
 _SIGNALS: list[tuple[str, re.Pattern[str]]] = [
     (
         "override_instructions",
-        re.compile(r"ignore (all|any|previous|prior|above) (instructions?|prompts?|rules?)", re.I),
+        re.compile(
+            r"(ignore|disregard|forget|override)\s+(?:\w+\s+){0,3}"
+            r"(instructions?|prompts?|rules?|guidelines?)",
+            re.I,
+        ),
     ),
     (
         "role_hijack",
