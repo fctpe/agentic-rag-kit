@@ -36,6 +36,11 @@ jobs:
         run: uv run alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://rag:rag@localhost:5434/ragkit
+      - name: Eval suites validate and compile (no provider key needed)
+        run: |
+          uv run --group evals python -m py_compile \
+            ../evals/run_evals.py ../evals/run_redteam.py ../evals/run_retrieval_eval.py
+          uv run --group evals python ../evals/validate_golden.py
 
   frontend:
     runs-on: ubuntu-latest

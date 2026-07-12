@@ -7,7 +7,7 @@ flowchart TD
     G --> N1[guard_input<br/>PII redaction + injection heuristics]
     N1 --> N2[router<br/>qa vs report]
     N2 --> N3[agent LLM]
-    N3 <--> T[tools<br/>search_corpus · compare_regulations]
+    N3 <--> T[tools<br/>search_corpus · read_article · compare_regulations]
     T --> R[Hybrid retrieval<br/>pgvector + FTS + RRF]
     N3 --> N4{report?}
     N4 -->|yes| N5[approval_gate<br/>interrupt — durable in Postgres]
