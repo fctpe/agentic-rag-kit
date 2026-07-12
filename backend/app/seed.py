@@ -14,9 +14,9 @@ from app.models.tables import Role, User
 from app.security.rbac import hash_password
 
 DEMO_USERS = [
-    ("viewer@demo.local", Role.viewer),
-    ("analyst@demo.local", Role.analyst),
-    ("admin@demo.local", Role.admin),
+    ("viewer@example.com", Role.viewer),
+    ("analyst@example.com", Role.analyst),
+    ("admin@example.com", Role.admin),
 ]
 
 
