@@ -19,8 +19,6 @@ out/
 
 # data
 data/corpus/
-evals/results/*.json
-!evals/results/.gitkeep
 
 # misc
 .DS_Store
