@@ -9,8 +9,10 @@ the user come from it, never from the model's memory.
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.tables import Chunk, Document
 from app.retrieval.hybrid import RetrievedChunk, hybrid_search, to_citation_dicts
 
 
@@ -41,9 +43,11 @@ class CitationCollector:
         ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
         return to_citation_dicts(ordered)
 
-    def source_excerpts(self, max_chars: int = 900) -> str:
-        """Fuller excerpts for the grounding check — the 300-char UI snippet
-        is too little context to judge faithfulness against."""
+    def source_excerpts(self, max_chars: int = 4000) -> str:
+        """Full-content excerpts for the grounding check. Chunks are already
+        bounded at ~700 tokens, so the window must cover the whole chunk:
+        judging against a truncated excerpt flags correct claims as
+        unsupported (list items beyond the cutoff)."""
         ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
         return "\n".join(
             f"[{self._index[chunk.chunk_id]}] {chunk.article_ref}: {chunk.content[:max_chars]}"
@@ -65,6 +69,42 @@ def build_tools(session: AsyncSession, collector: CitationCollector) -> list[Bas
         return collector.numbered(chunks)
 
     @tool
+    async def read_article(regulation: str, article_number: str) -> str:
+        """Read ONE article in full (all its chunks, in order). Use after
+        search_corpus identifies the controlling article, especially before
+        enumerating list-type content (prohibitions, obligations, rights) —
+        top-k search may return only part of a long article. regulation is
+        "ai_act" or "gdpr"; article_number like "5" or "22"."""
+        if regulation not in ("ai_act", "gdpr"):
+            return 'Invalid regulation — use "ai_act" or "gdpr".'
+        rows = await session.execute(
+            select(Chunk, Document)
+            .join(Document, Document.id == Chunk.document_id)
+            .where(Document.regulation == regulation)
+            .where(Chunk.article_ref == f"Art. {article_number.strip()}")
+            .order_by(Chunk.idx)
+        )
+        pairs = rows.all()
+        if not pairs:
+            return f"No Art. {article_number} found in {regulation}."
+        chunks = [
+            RetrievedChunk(
+                chunk_id=str(chunk.id),
+                regulation=document.regulation,
+                document_title=document.title,
+                source_url=document.source_url,
+                article_ref=chunk.article_ref,
+                heading=chunk.heading,
+                content=chunk.content,
+                score=1.0,
+                vector_rank=None,
+                text_rank=None,
+            )
+            for chunk, document in pairs
+        ]
+        return collector.numbered(chunks)
+
+    @tool
     async def compare_regulations(topic: str) -> str:
         """Retrieve what the AI Act AND the GDPR each say about a topic, side
         by side. Use for overlap/conflict questions (e.g. automated
@@ -80,4 +120,4 @@ def build_tools(session: AsyncSession, collector: CitationCollector) -> list[Bas
             parts.append(f"GDPR sources:\n{collector.numbered(gdpr)}")
         return "\n\n".join(parts)
 
-    return [search_corpus, compare_regulations]
+    return [search_corpus, read_article, compare_regulations]
