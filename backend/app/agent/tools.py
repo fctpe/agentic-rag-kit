@@ -41,6 +41,15 @@ class CitationCollector:
         ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
         return to_citation_dicts(ordered)
 
+    def source_excerpts(self, max_chars: int = 900) -> str:
+        """Fuller excerpts for the grounding check — the 300-char UI snippet
+        is too little context to judge faithfulness against."""
+        ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
+        return "\n".join(
+            f"[{self._index[chunk.chunk_id]}] {chunk.article_ref}: {chunk.content[:max_chars]}"
+            for chunk in ordered
+        )
+
 
 def build_tools(session: AsyncSession, collector: CitationCollector) -> list[BaseTool]:
     @tool

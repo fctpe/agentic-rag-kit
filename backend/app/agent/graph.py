@@ -133,12 +133,9 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
         citations = collector.citations()
         if not citations:
             return {"citations": [], "grounded": True, "grounding_issues": []}
-        sources = "\n".join(
-            f"[{citation['index']}] {citation['article']}: {citation['snippet']}"
-            for citation in citations
-        )
+        sources = collector.source_excerpts()
         response = await model.ainvoke(
-            GROUNDING_PROMPT.format(sources=sources[:12000], answer=answer[:8000])
+            GROUNDING_PROMPT.format(sources=sources[:16000], answer=answer[:8000])
         )
         grounded, issues = True, []
         try:
