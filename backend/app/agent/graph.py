@@ -135,7 +135,7 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             return {"citations": [], "grounded": True, "grounding_issues": []}
         sources = collector.source_excerpts()
         response = await model.ainvoke(
-            GROUNDING_PROMPT.format(sources=sources[:16000], answer=answer[:8000])
+            GROUNDING_PROMPT.format(sources=sources[:60000], answer=answer[:8000])
         )
         grounded, issues = True, []
         try:
