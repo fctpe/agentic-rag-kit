@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: theme(--color-slate-50);
+  color: theme(--color-slate-900);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Hand-rolled typography for markdown-rendered assistant content. */
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown table,
+.markdown blockquote,
+.markdown pre {
+  margin: 0.6em 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  margin: 1em 0 0.4em;
+  font-weight: 600;
+  color: theme(--color-slate-900);
+}
+
+.markdown h1 {
+  font-size: 1.15em;
+}
+
+.markdown h2 {
+  font-size: 1.1em;
+}
+
+.markdown h3,
+.markdown h4 {
+  font-size: 1em;
+}
+
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+
+.markdown ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+
+.markdown li {
+  margin: 0.2em 0;
+}
+
+.markdown a {
+  color: theme(--color-blue-700);
+  text-decoration: underline;
+}
+
+.markdown code {
+  background: theme(--color-slate-100);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  background: theme(--color-slate-100);
+  border-radius: 6px;
+  padding: 0.75em;
+  overflow-x: auto;
+}
+
+.markdown pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown blockquote {
+  border-left: 3px solid theme(--color-slate-300);
+  padding-left: 0.8em;
+  color: theme(--color-slate-600);
+}
+
+.markdown table {
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid theme(--color-slate-200);
+  padding: 0.35em 0.6em;
+  text-align: left;
+}
+
+.markdown th {
+  background: theme(--color-slate-50);
+  font-weight: 600;
+}
