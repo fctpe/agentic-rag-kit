@@ -1,0 +1,28 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+
+# node
+node_modules/
+.next/
+out/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# data
+data/corpus/
+evals/results/*.json
+!evals/results/.gitkeep
+
+# misc
+.DS_Store
+*.log
+.claude/
