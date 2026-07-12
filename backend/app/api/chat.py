@@ -14,7 +14,7 @@ import uuid
 from collections.abc import AsyncIterator
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from langgraph.types import Command
@@ -36,6 +36,7 @@ from app.models.tables import (
 from app.observability import get_trace_callbacks, trace_metadata
 from app.security.audit import record_audit
 from app.security.rbac import require_role
+from app.security.redaction import redact_pii
 
 router = APIRouter(tags=["chat"])
 
@@ -66,7 +67,7 @@ async def _stream_graph(
         graph = build_graph(session, collector, checkpointer=checkpointer)
         config: dict[str, Any] = {
             "configurable": {"thread_id": thread_id},
-            "callbacks": get_trace_callbacks(str(user.id), thread_id),
+            "callbacks": get_trace_callbacks(),
             "metadata": trace_metadata(str(user.id), thread_id),
         }
 
@@ -153,6 +154,9 @@ async def chat(
     user: User = Depends(require_role(Role.viewer)),
 ) -> StreamingResponse:
     thread_id = body.thread_id or uuid.uuid4().hex
+    # Redact before the raw message is persisted anywhere — the same guarantee
+    # the agent graph makes, applied at the DB boundary too.
+    stored_content = redact_pii(body.message).text
     factory = get_session_factory()
     async with factory() as session:
         conversation = await session.scalar(
@@ -160,11 +164,15 @@ async def chat(
         )
         if conversation is None:
             conversation = Conversation(
-                user_id=user.id, thread_id=thread_id, title=body.message[:120]
+                user_id=user.id, thread_id=thread_id, title=stored_content[:120]
             )
             session.add(conversation)
+        elif conversation.user_id != user.id:
+            # Object-level ownership: a valid thread_id belonging to someone
+            # else must not be readable or extendable.
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your conversation")
         await session.flush()
-        session.add(Message(conversation_id=conversation.id, role="user", content=body.message))
+        session.add(Message(conversation_id=conversation.id, role="user", content=stored_content))
         await session.commit()
         await record_audit(session, "chat.query", user_id=user.id, resource=thread_id)
 
@@ -185,6 +193,11 @@ async def resume(
 ) -> StreamingResponse:
     factory = get_session_factory()
     async with factory() as session:
+        conversation = await session.scalar(
+            select(Conversation).where(Conversation.thread_id == thread_id)
+        )
+        if conversation is not None and conversation.user_id != user.id:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your conversation")
         approval = await session.scalar(
             select(Approval)
             .where(Approval.thread_id == thread_id)

@@ -151,13 +151,3 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, index=True
     )
-
-
-class EvalRun(Base):
-    __tablename__ = "eval_runs"
-
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    suite: Mapped[str] = mapped_column(String(64))
-    scores: Mapped[Any] = mapped_column(JSONVariant)
-    git_sha: Mapped[str] = mapped_column(String(40), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

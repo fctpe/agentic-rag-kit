@@ -18,10 +18,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.prompts import GROUNDING_PROMPT, REFUSAL_MESSAGE, ROUTER_PROMPT, SYSTEM_PROMPT
 from app.agent.state import AgentState
-from app.agent.tools import CitationCollector, build_tools
+from app.agent.tools import (
+    CitationCollector,
+    build_tools,
+    sources_to_citations,
+    sources_to_excerpts,
+)
 from app.config import get_settings
 from app.security.injection import assess_injection
 from app.security.redaction import redact_pii
+
+TOOL_BUDGET_MESSAGE = (
+    "Tool-call budget reached. Answer the user now using only the sources already retrieved; "
+    "do not request more tools."
+)
 
 MAX_TOOL_ROUNDS = 6
 
@@ -49,13 +59,16 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             "pii_found": redaction.found,
             "injection_signals": injection.signals,
         }
+        # Replace the raw message with the redacted text whenever PII was found,
+        # on BOTH the refusal and the pass branch — otherwise a message that is
+        # both PII-bearing and injection-flagged leaves raw PII in the checkpoint.
+        if redaction.found:
+            updates["messages"] = [HumanMessage(content=redaction.text, id=last.id)]
         if injection.flagged:
             updates["refused"] = True
-            updates["messages"] = [AIMessage(content=REFUSAL_MESSAGE)]
-        elif redaction.found:
-            # Replace the raw message so PII never reaches the model or checkpoints.
             updates["messages"] = [
-                HumanMessage(content=redaction.text, id=last.id),
+                *updates.get("messages", []),
+                AIMessage(content=REFUSAL_MESSAGE),
             ]
         return updates
 
@@ -75,14 +88,16 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
         response = await model_with_tools.ainvoke(messages)
         return {"messages": [response]}
 
-    def after_agent(state: AgentState) -> Literal["tools", "approval_gate", "verify"]:
+    def after_agent(state: AgentState) -> Literal["tools", "finalize", "approval_gate", "verify"]:
         last = state["messages"][-1]
         if isinstance(last, AIMessage) and last.tool_calls:
             tool_rounds = sum(
                 1 for message in state["messages"] if isinstance(message, ToolMessage)
             )
-            if tool_rounds < MAX_TOOL_ROUNDS:
-                return "tools"
+            # Over budget but the model still wants tools: never leave a dangling
+            # tool_use (it corrupts the next turn on the thread). Force a clean
+            # tool-free answer via the finalize node instead.
+            return "tools" if tool_rounds < MAX_TOOL_ROUNDS else "finalize"
         return "approval_gate" if state.get("task_type") == "report" else "verify"
 
     async def tools_node(state: AgentState) -> dict[str, Any]:
@@ -99,7 +114,23 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
                 except Exception as err:  # surfaced to the model for self-correction
                     output = f"Tool {call['name']} failed: {err}"
             results.append(ToolMessage(content=str(output), tool_call_id=call["id"]))
-        return {"messages": results}
+        # Persist retrieved chunks into checkpointed state so verify() and the
+        # approval interrupt can read them even on a resume that skips tools.
+        return {"messages": results, "retrieved_sources": collector.export_sources()}
+
+    async def finalize(state: AgentState) -> dict[str, Any]:
+        """Budget exhausted with pending tool calls: satisfy the dangling
+        tool_calls, then answer once with tools unbound so no invalid
+        tool_use/tool_result pair is ever checkpointed."""
+        last = state["messages"][-1]
+        assert isinstance(last, AIMessage)
+        stubs = [
+            ToolMessage(content=TOOL_BUDGET_MESSAGE, tool_call_id=call["id"])
+            for call in last.tool_calls
+        ]
+        history = [SystemMessage(content=SYSTEM_PROMPT), *state["messages"], *stubs]
+        answer = await model.ainvoke(history)
+        return {"messages": [*stubs, answer]}
 
     async def approval_gate(state: AgentState) -> dict[str, Any]:
         draft = str(state["messages"][-1].content)
@@ -107,7 +138,7 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             {
                 "type": "approval_required",
                 "draft": draft,
-                "citations": collector.citations(),
+                "citations": sources_to_citations(state.get("retrieved_sources", [])),
             }
         )
         status = decision.get("status", "rejected") if isinstance(decision, dict) else "rejected"
@@ -130,12 +161,15 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
 
     async def verify(state: AgentState) -> dict[str, Any]:
         answer = str(state["messages"][-1].content)
-        citations = collector.citations()
+        # Read from checkpointed state, not the per-request collector, so a
+        # resumed approval still has its citations and grounding context.
+        retrieved = state.get("retrieved_sources", [])
+        citations = sources_to_citations(retrieved)
         if not citations:
             return {"citations": [], "grounded": True, "grounding_issues": []}
-        sources = collector.source_excerpts()
+        excerpts = sources_to_excerpts(retrieved)
         response = await model.ainvoke(
-            GROUNDING_PROMPT.format(sources=sources[:60000], answer=answer[:8000])
+            GROUNDING_PROMPT.format(sources=excerpts[:60000], answer=answer[:8000])
         )
         grounded, issues = True, []
         try:
@@ -156,11 +190,15 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             ]
         return updates
 
+    def after_finalize(state: AgentState) -> Literal["approval_gate", "verify"]:
+        return "approval_gate" if state.get("task_type") == "report" else "verify"
+
     builder = StateGraph(AgentState)
     builder.add_node("guard_input", guard_input)
     builder.add_node("router", router)
     builder.add_node("agent", agent)
     builder.add_node("tools", tools_node)
+    builder.add_node("finalize", finalize)
     builder.add_node("approval_gate", approval_gate)
     builder.add_node("verify", verify)
 
@@ -170,9 +208,17 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
     builder.add_conditional_edges(
         "agent",
         after_agent,
-        {"tools": "tools", "approval_gate": "approval_gate", "verify": "verify"},
+        {
+            "tools": "tools",
+            "finalize": "finalize",
+            "approval_gate": "approval_gate",
+            "verify": "verify",
+        },
     )
     builder.add_edge("tools", "agent")
+    builder.add_conditional_edges(
+        "finalize", after_finalize, {"approval_gate": "approval_gate", "verify": "verify"}
+    )
     builder.add_conditional_edges(
         "approval_gate", after_approval, {"verify": "verify", "__end__": END}
     )

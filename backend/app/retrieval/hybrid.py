@@ -34,7 +34,8 @@ text_arm AS (
     -- lexical/citation queries ("data protection impact assessment").
     -- OR-semantics over stemmed lexemes was measured and rejected — generic
     -- legal vocabulary matches everywhere and the noise leaks through RRF
-    -- (hybrid MRR 0.891 -> 0.772 on the golden set; see evals/results).
+    -- (hybrid MRR fell 0.891 -> 0.772 on the golden set; see the README
+    -- Results section for the committed hybrid/vector/text ablation numbers).
     SELECT c.id, row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
     FROM chunks c
     JOIN documents d ON d.id = c.document_id,
@@ -51,7 +52,7 @@ fused AS (
     FROM vector_arm v
     FULL OUTER JOIN text_arm t USING (id)
 )
-SELECT c.id, c.article_ref, c.heading, c.idx, c.content, c.context_prefix,
+SELECT c.id, c.article_ref, c.heading, c.idx, c.content,
        d.regulation, d.title AS document_title, d.source_url,
        f.score, f.vector_rank, f.text_rank
 FROM fused f
@@ -122,18 +123,6 @@ async def hybrid_search(
             )
         )
     return results
-
-
-def rows_to_context(chunks: list[RetrievedChunk]) -> str:
-    """Render retrieved chunks for the prompt, delimited as untrusted data."""
-    blocks: list[str] = []
-    for index, chunk in enumerate(chunks, start=1):
-        blocks.append(
-            f'<source id="{index}" regulation="{chunk.regulation}" ref="{chunk.article_ref}">\n'
-            f"{chunk.content}\n"
-            f"</source>"
-        )
-    return "\n\n".join(blocks)
 
 
 def to_citation_dicts(chunks: list[RetrievedChunk]) -> list[dict[str, Any]]:
