@@ -69,9 +69,7 @@ SELECT c.id, c.article_ref, d.regulation,
        row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
 FROM chunks c
 JOIN documents d ON d.id = c.document_id,
-to_tsquery('english',
-    array_to_string(tsvector_to_array(to_tsvector('english', CAST(:query AS text))), ' | ')
-) query
+plainto_tsquery('english', CAST(:query AS text)) query
 WHERE c.tsv @@ query
   AND (CAST(:regulation AS text) IS NULL OR d.regulation = :regulation)
 ORDER BY ts_rank_cd(c.tsv, query) DESC
