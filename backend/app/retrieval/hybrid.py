@@ -29,6 +29,12 @@ vector_arm AS (
     LIMIT :arm_size
 ),
 text_arm AS (
+    -- Deliberately AND-semantics (plainto_tsquery): the arm stays silent on
+    -- most natural-language questions and fires with high precision on
+    -- lexical/citation queries ("data protection impact assessment").
+    -- OR-semantics over stemmed lexemes was measured and rejected — generic
+    -- legal vocabulary matches everywhere and the noise leaks through RRF
+    -- (hybrid MRR 0.891 -> 0.772 on the golden set; see evals/results).
     SELECT c.id, row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
     FROM chunks c
     JOIN documents d ON d.id = c.document_id,

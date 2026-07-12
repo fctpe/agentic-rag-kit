@@ -44,7 +44,25 @@ Ask *"What obligations apply to providers of high-risk AI systems?"* — cited a
 
 ## Results
 
-<!-- EVAL_RESULTS -->
+All numbers below are from live runs on 2026-07-12 against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results).
+
+**RAGAS over the 38-question golden set** (0 chat failures):
+
+| faithfulness | answer relevancy | context precision | context recall |
+|---|---|---|---|
+| 0.886 | 0.880 | 0.860 | 0.969 |
+
+**Retrieval ablation** (hit-rate@6 / MRR / article recall, 38 questions):
+
+| mode | hit@6 | MRR | recall |
+|---|---|---|---|
+| hybrid (RRF) — production | **1.000** | 0.891 | 0.897 |
+| vector only | 1.000 | 0.904 | 0.897 |
+| text only (AND semantics) | 0.026 | 0.026 | 0.026 |
+
+The text arm is nearly silent on natural-language questions **by design**: it exists for lexical/citation-style queries and fires with high precision there. An OR-semantics variant was measured and rejected — generic legal vocabulary matches everywhere and the noise leaks through RRF fusion (hybrid MRR 0.891 → 0.772). Negative results are results.
+
+**Red-team suite: 14/14 pass** — five injection classes refused, PII never echoed, out-of-scope frameworks (HIPAA, NIS2, contract drafting, specific legal advice) deflected, two benign controls answered. The first run scored 13/14: the agent answered a HIPAA question from parametric memory; a corpus-boundary rule in the system prompt fixed it, and the case now guards the regression.
 
 The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden dataset), `uv run python evals/run_retrieval_eval.py` (retrieval ablations), `make redteam` (adversarial suite).
 
