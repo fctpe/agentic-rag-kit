@@ -10,7 +10,9 @@ from typing import Any
 from app.config import get_settings
 
 
-def get_trace_callbacks(user_id: str, thread_id: str) -> list[Any]:
+def get_trace_callbacks() -> list[Any]:
+    """LangChain callback handlers for tracing. Per-run identity (user, thread)
+    is attached separately via trace_metadata() on the graph config."""
     settings = get_settings()
     if not (settings.langfuse_public_key and settings.langfuse_secret_key):
         return []

@@ -13,7 +13,35 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tables import Chunk, Document
-from app.retrieval.hybrid import RetrievedChunk, hybrid_search, to_citation_dicts
+from app.retrieval.citations import citation_url
+from app.retrieval.hybrid import RetrievedChunk, hybrid_search
+
+_CITATION_KEYS = (
+    "index",
+    "regulation",
+    "document",
+    "article",
+    "heading",
+    "url",
+    "snippet",
+    "score",
+)
+
+
+def sources_to_citations(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """UI citation dicts (no full content) from persisted retrieved_sources."""
+    return [{key: source[key] for key in _CITATION_KEYS} for source in sources]
+
+
+def sources_to_excerpts(sources: list[dict[str, Any]], max_chars: int = 4000) -> str:
+    """Full-content excerpts for the grounding check. Chunks are bounded at
+    ~700 tokens, so the window covers the whole chunk — judging against a
+    truncated excerpt flags correct claims (list items past the cutoff) as
+    unsupported."""
+    return "\n".join(
+        f"[{source['index']}] {source['article']}: {source['content'][:max_chars]}"
+        for source in sources
+    )
 
 
 class CitationCollector:
@@ -39,20 +67,25 @@ class CitationCollector:
             )
         return "\n\n".join(blocks)
 
-    def citations(self) -> list[dict[str, Any]]:
+    def export_sources(self) -> list[dict[str, Any]]:
+        """JSON-serializable snapshot of everything retrieved so far, written
+        into graph state so it survives checkpointing (and a resumed
+        approval, which never re-runs the tools node)."""
         ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
-        return to_citation_dicts(ordered)
-
-    def source_excerpts(self, max_chars: int = 4000) -> str:
-        """Full-content excerpts for the grounding check. Chunks are already
-        bounded at ~700 tokens, so the window must cover the whole chunk:
-        judging against a truncated excerpt flags correct claims as
-        unsupported (list items beyond the cutoff)."""
-        ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
-        return "\n".join(
-            f"[{self._index[chunk.chunk_id]}] {chunk.article_ref}: {chunk.content[:max_chars]}"
+        return [
+            {
+                "index": self._index[chunk.chunk_id],
+                "regulation": chunk.regulation,
+                "document": chunk.document_title,
+                "article": chunk.article_ref,
+                "heading": chunk.heading,
+                "url": citation_url(chunk.regulation, chunk.article_ref),
+                "snippet": chunk.content[:300],
+                "content": chunk.content,
+                "score": round(chunk.score, 5),
+            }
             for chunk in ordered
-        )
+        ]
 
 
 def build_tools(session: AsyncSession, collector: CitationCollector) -> list[BaseTool]:

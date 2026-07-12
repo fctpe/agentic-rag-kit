@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     embedding_model: str = "text-embedding-3-small"
     embedding_dimensions: int = 1536
 
-    jwt_secret: str = "change-me"
+    # No usable default: an empty/placeholder secret is rejected at startup so a
+    # forgeable "change-me" JWT signing key can never ship (see main.lifespan).
+    jwt_secret: str = ""
     jwt_ttl_hours: int = 12
 
     langfuse_public_key: str = ""

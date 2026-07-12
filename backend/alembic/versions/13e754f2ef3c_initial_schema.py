@@ -31,14 +31,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_documents_regulation'), 'documents', ['regulation'], unique=False)
-    op.create_table('eval_runs',
-    sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('suite', sa.String(length=64), nullable=False),
-    sa.Column('scores', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
-    sa.Column('git_sha', sa.String(length=40), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('users',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
@@ -132,7 +124,6 @@ def downgrade() -> None:
     op.drop_table('approvals')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
-    op.drop_table('eval_runs')
     op.drop_index(op.f('ix_documents_regulation'), table_name='documents')
     op.drop_table('documents')
     # ### end Alembic commands ###

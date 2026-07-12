@@ -8,6 +8,8 @@ from app.api import admin, auth, chat, search
 from app.config import get_settings
 from app.db import dispose_engine
 
+_WEAK_JWT_SECRETS = {"", "change-me", "changeme", "secret", "dev"}
+
 
 def _checkpointer_url() -> str:
     # The LangGraph Postgres saver speaks psycopg, not asyncpg.
@@ -16,6 +18,11 @@ def _checkpointer_url() -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    settings = get_settings()
+    if settings.jwt_secret.strip().lower() in _WEAK_JWT_SECRETS or len(settings.jwt_secret) < 16:
+        raise RuntimeError(
+            "JWT_SECRET is unset or too weak. Set a strong secret: openssl rand -hex 32"
+        )
     async with AsyncPostgresSaver.from_conn_string(_checkpointer_url()) as checkpointer:
         await checkpointer.setup()
         app.state.checkpointer = checkpointer
