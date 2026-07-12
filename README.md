@@ -44,6 +44,8 @@ Ask *"What obligations apply to providers of high-risk AI systems?"* — cited a
 
 ## Results
 
+![demo: backend test suite, retrieval ablation, RAGAS, and red-team results](docs/demo.gif)
+
 All numbers below are from live runs on 2026-07-12 against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results).
 
 **RAGAS over the 38-question golden set** (0 chat failures):
