@@ -426,7 +426,7 @@ questions:
     difficulty: hard
 
   - id: G13
-    question: "How quickly must a personal data breach be reported under the GDPR, and to whom?"
+    question: "How quickly must a controller notify a personal data breach under the GDPR, and to whom?"
     expected_articles: ["GDPR Art. 33", "GDPR Art. 34"]
     reference_answer: >-
       Under Article 33, the controller must notify a personal data breach to

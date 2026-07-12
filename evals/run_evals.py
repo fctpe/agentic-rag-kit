@@ -59,6 +59,7 @@ def _shim_vertexai() -> None:
     """Make `import ragas` survive the removed langchain_community vertexai module."""
     try:
         import langchain_community.chat_models.vertexai  # noqa: F401
+
         return
     except Exception:
         pass
@@ -86,9 +87,9 @@ def parse_sse(raw: str) -> list[tuple[str, dict]]:
     for line in raw.split("\n"):
         line = line.rstrip("\r")
         if line.startswith("event:"):
-            event_name = line[len("event:"):].strip()
+            event_name = line[len("event:") :].strip()
         elif line.startswith("data:"):
-            data_lines.append(line[len("data:"):].strip())
+            data_lines.append(line[len("data:") :].strip())
         elif line == "" and event_name is not None:
             try:
                 payload = json.loads("\n".join(data_lines)) if data_lines else {}
@@ -107,8 +108,14 @@ def digest_events(events: list[tuple[str, dict]]) -> dict:
     concatenated `token` events (defensive fallback).
     """
     tokens: list[str] = []
-    out = {"answer": "", "citations": [], "grounded": None, "grounding_issues": [],
-           "approval_interrupted": False, "error": None}
+    out = {
+        "answer": "",
+        "citations": [],
+        "grounded": None,
+        "grounding_issues": [],
+        "approval_interrupted": False,
+        "error": None,
+    }
     for name, data in events:
         if name == "token":
             tokens.append(data.get("text", ""))
@@ -141,7 +148,10 @@ async def login(client: httpx.AsyncClient, api_base: str) -> str:
 async def ask_chat(client: httpx.AsyncClient, api_base: str, token: str, message: str) -> dict:
     headers = {"Authorization": f"Bearer {token}"}
     async with client.stream(
-        "POST", f"{api_base}/chat", json={"message": message}, headers=headers,
+        "POST",
+        f"{api_base}/chat",
+        json={"message": message},
+        headers=headers,
         timeout=httpx.Timeout(10.0, read=300.0),
     ) as response:
         response.raise_for_status()
@@ -241,11 +251,11 @@ async def collect_sample(
         chat = await ask_chat(client, api_base, token, question["question"])
         async with session_factory() as session:
             chunks = await hybrid_search(session, question["question"], final_k=k)
-        contexts = [
-            f"[{chunk.regulation} {chunk.article_ref}] {chunk.content}" for chunk in chunks
-        ]
-        print(f"  [{question['id']}] answer: {len(chat['answer'])} chars, "
-              f"citations: {len(chat['citations'])}, contexts: {len(contexts)}")
+        contexts = [f"[{chunk.regulation} {chunk.article_ref}] {chunk.content}" for chunk in chunks]
+        print(
+            f"  [{question['id']}] answer: {len(chat['answer'])} chars, "
+            f"citations: {len(chat['citations'])}, contexts: {len(contexts)}"
+        )
         return {
             "id": question["id"],
             "question": question["question"],
@@ -272,8 +282,7 @@ async def main() -> int:
         raise SystemExit("OPENAI_API_KEY is required (RAGAS judges + query embedding).")
 
     questions = load_questions(args.smoke, args.questions)
-    print(f"Evaluating {len(questions)} questions against {args.api_base} "
-          f"(judge: {JUDGE_MODEL})")
+    print(f"Evaluating {len(questions)} questions against {args.api_base} (judge: {JUDGE_MODEL})")
 
     from app.db import dispose_engine, get_session_factory
 
@@ -298,8 +307,11 @@ async def main() -> int:
 
     failed_chats = [s for s in samples if s["chat_error"] or not s["answer"]]
     for sample in failed_chats:
-        print(f"  [{sample['id']}] chat failed, excluded from scoring: "
-              f"{sample['chat_error'] or 'empty answer'}", file=sys.stderr)
+        print(
+            f"  [{sample['id']}] chat failed, excluded from scoring: "
+            f"{sample['chat_error'] or 'empty answer'}",
+            file=sys.stderr,
+        )
     scorable = [s for s in samples if s not in failed_chats]
 
     metrics = build_judges()
@@ -330,8 +342,9 @@ async def main() -> int:
             for name in METRIC_NAMES
         ]
         print(f"| {sample['id']} | " + " | ".join(cells) + " |")
-    mean_cells = [f"{summary[name]:.3f}" if summary[name] is not None else "-"
-                  for name in METRIC_NAMES]
+    mean_cells = [
+        f"{summary[name]:.3f}" if summary[name] is not None else "-" for name in METRIC_NAMES
+    ]
     print("| **mean** | " + " | ".join(f"**{c}**" for c in mean_cells) + " |")
 
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")

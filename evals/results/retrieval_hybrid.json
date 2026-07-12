@@ -1,0 +1,948 @@
+{
+  "summary": {
+    "mode": "hybrid",
+    "k": 6,
+    "regulation_filter": "on",
+    "smoke": false,
+    "n_questions": 38,
+    "hit_rate_at_k": 1.0,
+    "mrr": 0.8912,
+    "mean_article_recall": 0.8969,
+    "timestamp": "2026-07-12T17:57:24.116021+00:00"
+  },
+  "questions": [
+    {
+      "id": "A01",
+      "query_type": "definition",
+      "difficulty": "easy",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:3"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:3"
+      ],
+      "retrieved": [
+        "ai_act:3",
+        "ai_act:113",
+        "ai_act:3",
+        "ai_act:7",
+        "ai_act:113",
+        "ai_act:1"
+      ]
+    },
+    {
+      "id": "A02",
+      "query_type": "prohibition",
+      "difficulty": "easy",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:5"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:5"
+      ],
+      "retrieved": [
+        "ai_act:5",
+        "ai_act:2",
+        "ai_act:113",
+        "ai_act:50",
+        "ai_act:4",
+        "ai_act:1"
+      ]
+    },
+    {
+      "id": "A03",
+      "query_type": "scope",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:2"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:2"
+      ],
+      "retrieved": [
+        "ai_act:2",
+        "ai_act:2",
+        "ai_act:1",
+        "ai_act:59",
+        "ai_act:64",
+        "ai_act:94"
+      ]
+    },
+    {
+      "id": "A04",
+      "query_type": "prohibition",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:5"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:5"
+      ],
+      "retrieved": [
+        "ai_act:5",
+        "ai_act:5",
+        "ai_act:5",
+        "ai_act:3",
+        "ai_act:26",
+        "ai_act:5"
+      ]
+    },
+    {
+      "id": "A05",
+      "query_type": "definition",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:3"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 0.3333333333333333,
+      "first_hit_rank": 3,
+      "matched_articles": [
+        "ai_act:3"
+      ],
+      "retrieved": [
+        "ai_act:25",
+        "ai_act:26",
+        "ai_act:3",
+        "ai_act:26",
+        "ai_act:3",
+        "ai_act:49"
+      ]
+    },
+    {
+      "id": "A06",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:6"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:6"
+      ],
+      "retrieved": [
+        "ai_act:6",
+        "ai_act:7",
+        "ai_act:51",
+        "ai_act:9",
+        "ai_act:113",
+        "ai_act:9"
+      ]
+    },
+    {
+      "id": "A07",
+      "query_type": "obligation",
+      "difficulty": "easy",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:4"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 0.5,
+      "first_hit_rank": 2,
+      "matched_articles": [
+        "ai_act:4"
+      ],
+      "retrieved": [
+        "ai_act:66",
+        "ai_act:4",
+        "ai_act:50",
+        "ai_act:50",
+        "ai_act:64",
+        "ai_act:61"
+      ]
+    },
+    {
+      "id": "A08",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:7"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:7"
+      ],
+      "retrieved": [
+        "ai_act:7",
+        "ai_act:6",
+        "ai_act:6",
+        "ai_act:43",
+        "ai_act:7",
+        "ai_act:82"
+      ]
+    },
+    {
+      "id": "A09",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:9"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:9"
+      ],
+      "retrieved": [
+        "ai_act:9",
+        "ai_act:9",
+        "ai_act:7",
+        "ai_act:8",
+        "ai_act:15",
+        "ai_act:16"
+      ]
+    },
+    {
+      "id": "A10",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:10"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 0.5,
+      "first_hit_rank": 2,
+      "matched_articles": [
+        "ai_act:10"
+      ],
+      "retrieved": [
+        "ai_act:26",
+        "ai_act:10",
+        "ai_act:15",
+        "ai_act:10",
+        "ai_act:13",
+        "ai_act:7"
+      ]
+    },
+    {
+      "id": "A11",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:14"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:14"
+      ],
+      "retrieved": [
+        "ai_act:14",
+        "ai_act:7",
+        "ai_act:9",
+        "ai_act:26",
+        "ai_act:82",
+        "ai_act:8"
+      ]
+    },
+    {
+      "id": "A12",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:50"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:50"
+      ],
+      "retrieved": [
+        "ai_act:50",
+        "ai_act:4",
+        "ai_act:50",
+        "ai_act:26",
+        "ai_act:5",
+        "ai_act:21"
+      ]
+    },
+    {
+      "id": "A13",
+      "query_type": "obligation",
+      "difficulty": "hard",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:51",
+        "ai_act:55"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:51",
+        "ai_act:55"
+      ],
+      "retrieved": [
+        "ai_act:51",
+        "ai_act:55",
+        "ai_act:52",
+        "ai_act:113",
+        "ai_act:90",
+        "ai_act:93"
+      ]
+    },
+    {
+      "id": "A14",
+      "query_type": "scope",
+      "difficulty": "medium",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:2"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:2"
+      ],
+      "retrieved": [
+        "ai_act:2",
+        "ai_act:5",
+        "ai_act:113",
+        "ai_act:2",
+        "ai_act:113",
+        "ai_act:50"
+      ]
+    },
+    {
+      "id": "A15",
+      "query_type": "obligation",
+      "difficulty": "hard",
+      "regulation_filter": "ai_act",
+      "expected": [
+        "ai_act:99"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:99"
+      ],
+      "retrieved": [
+        "ai_act:99",
+        "ai_act:101",
+        "ai_act:100",
+        "ai_act:5",
+        "ai_act:99",
+        "ai_act:80"
+      ]
+    },
+    {
+      "id": "G01",
+      "query_type": "definition",
+      "difficulty": "easy",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:4"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:4"
+      ],
+      "retrieved": [
+        "gdpr:4",
+        "gdpr:4",
+        "gdpr:9",
+        "gdpr:5",
+        "gdpr:6",
+        "gdpr:2"
+      ]
+    },
+    {
+      "id": "G02",
+      "query_type": "definition",
+      "difficulty": "easy",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:4"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 0.2,
+      "first_hit_rank": 5,
+      "matched_articles": [
+        "gdpr:4"
+      ],
+      "retrieved": [
+        "gdpr:29",
+        "gdpr:28",
+        "gdpr:28",
+        "gdpr:23",
+        "gdpr:4",
+        "gdpr:30"
+      ]
+    },
+    {
+      "id": "G03",
+      "query_type": "obligation",
+      "difficulty": "easy",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:6"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:6"
+      ],
+      "retrieved": [
+        "gdpr:6",
+        "gdpr:5",
+        "gdpr:6",
+        "gdpr:9",
+        "gdpr:4",
+        "gdpr:4"
+      ]
+    },
+    {
+      "id": "G04",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:7",
+        "gdpr:4"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:7",
+        "gdpr:4"
+      ],
+      "retrieved": [
+        "gdpr:7",
+        "gdpr:8",
+        "gdpr:6",
+        "gdpr:4",
+        "gdpr:49",
+        "gdpr:49"
+      ]
+    },
+    {
+      "id": "G05",
+      "query_type": "scope",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:3"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:3"
+      ],
+      "retrieved": [
+        "gdpr:3",
+        "gdpr:4",
+        "gdpr:4",
+        "gdpr:96",
+        "gdpr:49",
+        "gdpr:44"
+      ]
+    },
+    {
+      "id": "G06",
+      "query_type": "obligation",
+      "difficulty": "easy",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:5"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:5"
+      ],
+      "retrieved": [
+        "gdpr:5",
+        "gdpr:25",
+        "gdpr:32",
+        "gdpr:6",
+        "gdpr:24",
+        "gdpr:1"
+      ]
+    },
+    {
+      "id": "G07",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:8"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:8"
+      ],
+      "retrieved": [
+        "gdpr:8",
+        "gdpr:7",
+        "gdpr:96",
+        "gdpr:49",
+        "gdpr:46",
+        "gdpr:22"
+      ]
+    },
+    {
+      "id": "G08",
+      "query_type": "definition",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:4"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 0.3333333333333333,
+      "first_hit_rank": 3,
+      "matched_articles": [
+        "gdpr:4"
+      ],
+      "retrieved": [
+        "gdpr:6",
+        "gdpr:25",
+        "gdpr:4",
+        "gdpr:32",
+        "gdpr:9",
+        "gdpr:22"
+      ]
+    },
+    {
+      "id": "G09",
+      "query_type": "prohibition",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:9"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:9"
+      ],
+      "retrieved": [
+        "gdpr:9",
+        "gdpr:9",
+        "gdpr:88",
+        "gdpr:6",
+        "gdpr:49",
+        "gdpr:10"
+      ]
+    },
+    {
+      "id": "G10",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:15"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:15"
+      ],
+      "retrieved": [
+        "gdpr:15",
+        "gdpr:12",
+        "gdpr:20",
+        "gdpr:14",
+        "gdpr:11",
+        "gdpr:13"
+      ]
+    },
+    {
+      "id": "G11",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:17"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:17"
+      ],
+      "retrieved": [
+        "gdpr:17",
+        "gdpr:18",
+        "gdpr:15",
+        "gdpr:19",
+        "gdpr:20",
+        "gdpr:23"
+      ]
+    },
+    {
+      "id": "G12",
+      "query_type": "prohibition",
+      "difficulty": "hard",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:22"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:22"
+      ],
+      "retrieved": [
+        "gdpr:22",
+        "gdpr:20",
+        "gdpr:21",
+        "gdpr:15",
+        "gdpr:18",
+        "gdpr:79"
+      ]
+    },
+    {
+      "id": "G13",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:33",
+        "gdpr:34"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:33",
+        "gdpr:34"
+      ],
+      "retrieved": [
+        "gdpr:33",
+        "gdpr:34",
+        "gdpr:19",
+        "gdpr:14",
+        "gdpr:90",
+        "gdpr:36"
+      ]
+    },
+    {
+      "id": "G14",
+      "query_type": "obligation",
+      "difficulty": "medium",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:35"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:35"
+      ],
+      "retrieved": [
+        "gdpr:35",
+        "gdpr:35",
+        "gdpr:36",
+        "gdpr:34",
+        "gdpr:25",
+        "gdpr:14"
+      ]
+    },
+    {
+      "id": "G15",
+      "query_type": "obligation",
+      "difficulty": "hard",
+      "regulation_filter": "gdpr",
+      "expected": [
+        "gdpr:83"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "gdpr:83"
+      ],
+      "retrieved": [
+        "gdpr:83",
+        "gdpr:83",
+        "gdpr:84",
+        "gdpr:58",
+        "gdpr:57",
+        "gdpr:58"
+      ]
+    },
+    {
+      "id": "X01",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:6",
+        "ai_act:14",
+        "gdpr:22"
+      ],
+      "hit": 1,
+      "article_recall": 0.3333333333333333,
+      "mrr": 0.5,
+      "first_hit_rank": 2,
+      "matched_articles": [
+        "gdpr:22"
+      ],
+      "retrieved": [
+        "ai_act:86",
+        "gdpr:22",
+        "ai_act:5",
+        "ai_act:7",
+        "ai_act:1",
+        "ai_act:113"
+      ]
+    },
+    {
+      "id": "X02",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:3",
+        "ai_act:5",
+        "gdpr:4",
+        "gdpr:9"
+      ],
+      "hit": 1,
+      "article_recall": 0.5,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:3",
+        "ai_act:5"
+      ],
+      "retrieved": [
+        "ai_act:3",
+        "ai_act:10",
+        "ai_act:5",
+        "ai_act:5",
+        "ai_act:10",
+        "ai_act:26"
+      ]
+    },
+    {
+      "id": "X03",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:10",
+        "gdpr:6"
+      ],
+      "hit": 1,
+      "article_recall": 0.5,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:10"
+      ],
+      "retrieved": [
+        "ai_act:10",
+        "ai_act:53",
+        "ai_act:59",
+        "ai_act:50",
+        "ai_act:10",
+        "ai_act:42"
+      ]
+    },
+    {
+      "id": "X04",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:13",
+        "ai_act:50",
+        "gdpr:12",
+        "gdpr:13"
+      ],
+      "hit": 1,
+      "article_recall": 0.25,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:50"
+      ],
+      "retrieved": [
+        "ai_act:50",
+        "ai_act:50",
+        "ai_act:78",
+        "ai_act:53",
+        "ai_act:75",
+        "ai_act:21"
+      ]
+    },
+    {
+      "id": "X05",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:5",
+        "gdpr:22"
+      ],
+      "hit": 1,
+      "article_recall": 0.5,
+      "mrr": 0.5,
+      "first_hit_rank": 2,
+      "matched_articles": [
+        "ai_act:5"
+      ],
+      "retrieved": [
+        "ai_act:50",
+        "ai_act:5",
+        "ai_act:94",
+        "ai_act:87",
+        "ai_act:113",
+        "ai_act:5"
+      ]
+    },
+    {
+      "id": "X06",
+      "query_type": "cross_regulation",
+      "difficulty": "hard",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:27",
+        "gdpr:35"
+      ],
+      "hit": 1,
+      "article_recall": 0.5,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:27"
+      ],
+      "retrieved": [
+        "ai_act:27",
+        "ai_act:94",
+        "ai_act:77",
+        "ai_act:113",
+        "ai_act:59",
+        "ai_act:87"
+      ]
+    },
+    {
+      "id": "X07",
+      "query_type": "cross_regulation",
+      "difficulty": "medium",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:99",
+        "gdpr:83"
+      ],
+      "hit": 1,
+      "article_recall": 1.0,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:99",
+        "gdpr:83"
+      ],
+      "retrieved": [
+        "ai_act:99",
+        "ai_act:101",
+        "ai_act:100",
+        "ai_act:99",
+        "gdpr:83",
+        "gdpr:83"
+      ]
+    },
+    {
+      "id": "X08",
+      "query_type": "cross_regulation",
+      "difficulty": "medium",
+      "regulation_filter": null,
+      "expected": [
+        "ai_act:2",
+        "gdpr:3"
+      ],
+      "hit": 1,
+      "article_recall": 0.5,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
+      "matched_articles": [
+        "ai_act:2"
+      ],
+      "retrieved": [
+        "ai_act:2",
+        "ai_act:113",
+        "ai_act:2",
+        "ai_act:94",
+        "ai_act:59",
+        "ai_act:100"
+      ]
+    }
+  ]
+}

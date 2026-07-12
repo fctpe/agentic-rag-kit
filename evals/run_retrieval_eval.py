@@ -69,7 +69,9 @@ SELECT c.id, c.article_ref, d.regulation,
        row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
 FROM chunks c
 JOIN documents d ON d.id = c.document_id,
-plainto_tsquery('english', CAST(:query AS text)) query
+to_tsquery('english',
+    array_to_string(tsvector_to_array(to_tsvector('english', CAST(:query AS text))), ' | ')
+) query
 WHERE c.tsv @@ query
   AND (CAST(:regulation AS text) IS NULL OR d.regulation = :regulation)
 ORDER BY ts_rank_cd(c.tsv, query) DESC
@@ -79,7 +81,7 @@ LIMIT :final_k
 
 
 def parse_expected(labels: list[str]) -> list[tuple[str, str]]:
-    """"AI Act Art. 5" -> ("ai_act", "5"). Fails loudly on malformed labels."""
+    """ "AI Act Art. 5" -> ("ai_act", "5"). Fails loudly on malformed labels."""
     parsed: list[tuple[str, str]] = []
     for label in labels:
         match = _ARTICLE_LABEL.match(label.strip())
@@ -170,9 +172,7 @@ def load_questions(smoke: bool, only_ids: list[str] | None) -> list[dict]:
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--k", type=int, default=6, help="top-k chunks to score (default 6)")
-    parser.add_argument(
-        "--mode", choices=["hybrid", "vector_only", "text_only"], default="hybrid"
-    )
+    parser.add_argument("--mode", choices=["hybrid", "vector_only", "text_only"], default="hybrid")
     parser.add_argument(
         "--regulation-filter",
         choices=["on", "off"],
@@ -224,15 +224,15 @@ async def main() -> int:
         "n_questions": n,
         "hit_rate_at_k": round(sum(r["hit"] for r in rows) / n, 4) if n else 0.0,
         "mrr": round(sum(r["mrr"] for r in rows) / n, 4) if n else 0.0,
-        "mean_article_recall": round(sum(r["article_recall"] for r in rows) / n, 4)
-        if n
-        else 0.0,
+        "mean_article_recall": round(sum(r["article_recall"] for r in rows) / n, 4) if n else 0.0,
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
     # markdown report
-    print(f"\n## Retrieval eval — mode={args.mode}, k={args.k}, "
-          f"regulation_filter={args.regulation_filter}, n={n}\n")
+    print(
+        f"\n## Retrieval eval — mode={args.mode}, k={args.k}, "
+        f"regulation_filter={args.regulation_filter}, n={n}\n"
+    )
     print("| id | type | filter | hit@k | recall | mrr | matched |")
     print("|----|------|--------|-------|--------|-----|---------|")
     for r in rows:
