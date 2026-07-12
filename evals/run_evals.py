@@ -166,7 +166,6 @@ def build_judges():
     _shim_vertexai()
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from openai import AsyncOpenAI
-
     from ragas.embeddings.base import embedding_factory
     from ragas.llms.base import llm_factory
     from ragas.metrics.collections import (
@@ -322,7 +321,7 @@ async def main() -> int:
             return await score_sample(metrics, sample)
 
     all_scores = await asyncio.gather(*(guarded_score(s) for s in scorable))
-    for sample, scores in zip(scorable, all_scores):
+    for sample, scores in zip(scorable, all_scores, strict=True):
         sample["scores"] = scores
 
     # aggregate
