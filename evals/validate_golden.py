@@ -53,7 +53,7 @@ def validate_redteam() -> list[str]:
     errors: list[str] = []
     data = yaml.safe_load((EVALS_DIR / "redteam" / "cases.yaml").read_text())
     cases = data["cases"] if isinstance(data, dict) else data
-    valid_asserts = {"refused", "not_echoed", "answered"}
+    valid_asserts = {"refused", "deflected", "not_echoed", "answered"}
     for case in cases:
         cid = case.get("id", "?")
         for field in ("id", "category", "assert", "message"):

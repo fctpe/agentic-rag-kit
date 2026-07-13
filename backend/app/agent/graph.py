@@ -178,7 +178,11 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             grounded = bool(verdict.get("grounded", True))
             issues = [str(issue) for issue in verdict.get("issues", [])]
         except (json.JSONDecodeError, AttributeError):
-            issues = ["Grounding check returned an unparseable verdict."]
+            # Fail CLOSED: if the verifier itself errored, we cannot claim the
+            # answer is grounded. Surfacing this beats silently shipping it —
+            # the whole point of a governance layer.
+            grounded = False
+            issues = ["Grounding check could not be completed; treat this answer as unverified."]
         updates: dict[str, Any] = {
             "citations": citations,
             "grounded": grounded,
