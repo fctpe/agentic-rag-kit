@@ -8,6 +8,11 @@
 
 Most RAG demos answer questions. Regulated teams need the parts demos skip: *who approved this output, is every claim actually in the source, what happened when, and how do we know quality didn't regress after the last prompt change?* This kit makes those first-class: the LangGraph graph **is** the governance story, and the corpus (EU AI Act + GDPR) doubles as the compliance framework it's built to satisfy.
 
+|  |  |
+|---|---|
+| ![Cited answer with the EUR-Lex citation panel](docs/ui-chat-citations.png) | ![Human-in-the-loop approval banner on a report request](docs/ui-approval-banner.png) |
+| Every answer is grounded in article-level sources, shown in a live citation panel with EUR-Lex links. | Report-type output stops at a durable approval gate — approve or reject with a comment for the audit trail. |
+
 ```mermaid
 flowchart LR
     Q[Question] --> G[guard_input<br/>PII redaction · injection checks]
