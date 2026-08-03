@@ -31,6 +31,7 @@ jobs:
       - run: uv sync --group dev
       - run: uv run ruff check app tests
       - run: uv run ruff format --check app tests
+      - run: uv run mypy app
       - run: uv run pytest
       - name: Migrations apply cleanly against pgvector
         run: uv run alembic upgrade head
@@ -56,4 +57,5 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint --if-present
+      - run: npm test
       - run: npm run build
