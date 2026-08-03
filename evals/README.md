@@ -55,11 +55,12 @@ Cost: `text_only` is completely free (pure Postgres). `hybrid` and
 a cent for the whole set). Deterministic given a fixed corpus and embedding
 model.
 
-**Corpus caveat:** with the demo ingest (29 chunks, Articles 1–8 of each
-regulation) questions targeting later articles (e.g. AI Act Art. 50, GDPR
-Art. 33) cannot be hit — low absolute scores are expected. Compare modes and
-filters against each other, not against 1.0. After a full ingest the same
-golden set exercises the entire corpus.
+**Corpus caveat:** with the smoke ingest (`make ingest-smoke` — 36 chunks,
+Articles 1–10 of each regulation) questions targeting later articles (e.g. AI
+Act Art. 50, GDPR Art. 33) cannot be hit — low absolute scores are expected.
+Compare modes and filters against each other, not against 1.0. The committed
+results come from the full 283-chunk corpus (`make ingest-fixture`), which the
+same golden set exercises end to end.
 
 ## 2. RAGAS eval — `run_evals.py`
 

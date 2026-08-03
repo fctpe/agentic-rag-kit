@@ -21,7 +21,7 @@ flowchart TD
 
 ## Request flow
 
-1. **Ingestion (offline)** — `app/ingestion/pipeline.py` fetches the EU AI Act and GDPR from EUR-Lex, parses them into articles via the `ti-art`/`sti-art` markup, chunks on article boundaries (≤700 tokens), prepends deterministic + optional LLM context prefixes, embeds, and stores everything in one Postgres.
+1. **Ingestion (offline)** — `app/ingestion/pipeline.py` fetches the EU AI Act and GDPR from EUR-Lex and parses them into articles via the `ti-art`/`sti-art` markup, or reads the same articles from the committed `data/fixtures/` with `--source fixture`. From there both paths are identical: chunk on article boundaries (≤700 tokens), prepend deterministic + optional LLM context prefixes, embed, and store everything in one Postgres.
 2. **Chat** — `POST /chat` streams SSE: `token` events from the agent node only, `approval_required` when the graph interrupts, `citations` + `grounding` from the verify node, `done` with the authoritative final text. The response header `X-Thread-Id` carries the LangGraph thread.
 3. **Retrieval** — both arms always run (cosine top-20 + `ts_rank_cd` top-20), RRF (k=60) fuses, final 6 reach the model wrapped in `<source id=…>` tags that the system prompt declares to be data, not instructions.
 4. **Approvals** — report-type answers hit `interrupt()`. The checkpoint lives in Postgres (`AsyncPostgresSaver`), so the pending approval survives restarts; `POST /chat/{thread}/resume` continues the same graph with `Command(resume=…)`. Verified by killing uvicorn mid-approval and resuming after restart.

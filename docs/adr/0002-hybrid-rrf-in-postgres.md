@@ -17,3 +17,4 @@ Reranking (Cohere v4 / local cross-encoder) is a documented flag, off by default
 - `docker compose up` is the entire retrieval infrastructure.
 - RRF constants and arm sizes are config, and the retrieval eval (`evals/run_retrieval_eval.py`) measures hybrid vs single-arm ablations to keep the choice honest.
 - Postgres FTS is English-configured; a German corpus needs a second `tsvector` column (known limitation).
+- **The ablation does not yet justify the decision.** Measured on the 38 scored golden questions, hybrid ties vector-only on hit@6 and recall and trails it by 0.013 MRR, the whole difference being three questions. The premise above — that lexical queries exist and vector search misses them — is untested, because exactly one golden question cites an article number. The decision stands on the argument, not on the numbers, until the golden set carries citation-shaped questions.

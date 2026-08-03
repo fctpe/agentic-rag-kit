@@ -56,9 +56,12 @@ jobs:
       - run: uv run python -m app.seed
 
       - name: Ingest the full corpus
-        # Separate step so an upstream EUR-Lex hiccup is legible as a fetch
-        # failure rather than an eval regression.
-        run: uv run python -m app.ingestion.pipeline
+        # From the committed fixture, not live EUR-Lex: the endpoint
+        # intermittently answers 202 with an empty body, and a weekly scored run
+        # must not go red because an upstream had a bad minute. The fixture is
+        # the same 212 articles / 283 chunks the committed baselines were
+        # measured against — tests/test_corpus_fixture.py holds it to that.
+        run: uv run python -m app.ingestion.pipeline --source fixture
 
       - name: Start the API
         run: |

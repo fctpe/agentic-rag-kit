@@ -1,8 +1,19 @@
-.PHONY: db up migrate seed ingest ingest-smoke api dev test lint eval redteam require-env
+.PHONY: db up migrate seed ingest ingest-fixture ingest-smoke api dev test lint eval eval-retrieval redteam promote gate require-env
+
+# Every app target runs from backend/, which puts the repo-root .env out of
+# reach of both pydantic-settings (it resolves env_file against the working
+# directory) and the provider SDKs (they read the process environment). uv
+# loads it for them, so `cp .env.example .env` is the only setup step there is.
+# Every target runs from backend/, so the repo-root .env is out of reach of both
+# pydantic-settings (which resolves env_file against cwd) and the provider SDKs.
+UV = uv run --env-file ../.env
+# Same, but the file is optional: uv aborts on a missing --env-file, and the two
+# targets that need no secret must still work before anyone has written one.
+UV_OPTENV = uv run $(if $(wildcard .env),--env-file ../.env,)
 
 require-env:
 	@test -f .env || { \
-	  echo "Missing .env — the backend service reads it via compose env_file."; \
+	  echo "Missing .env — compose reads it via env_file, and the host targets load it with uv."; \
 	  echo "  cp .env.example .env"; \
 	  echo "  # then set OPENAI_API_KEY, and JWT_SECRET=\$$(openssl rand -hex 32)"; \
 	  exit 1; \
@@ -14,20 +25,28 @@ db:              ## start postgres only (local dev)
 up: require-env  ## full stack in docker
 	docker compose --profile full up -d --build
 
+# No require-env on these two deliberately. They need DATABASE_URL and no
+# secret, and its default is the database `make db` just started — so a missing
+# .env cannot make them do the wrong thing, only the documented thing. The gate
+# belongs where running without configuration would actually be wrong (ingest,
+# api, up); putting it everywhere teaches people to ignore it.
 migrate:
-	cd backend && uv run alembic upgrade head
+	cd backend && $(UV_OPTENV) alembic upgrade head
 
 seed:
-	cd backend && uv run python -m app.seed
+	cd backend && $(UV_OPTENV) python -m app.seed
 
-ingest:          ## full corpus with contextual prefixes (needs OPENAI_API_KEY)
-	cd backend && uv run python -m app.ingestion.pipeline
+ingest: require-env          ## full corpus from live EUR-Lex, contextual prefixes (needs OPENAI_API_KEY)
+	cd backend && $(UV) python -m app.ingestion.pipeline
 
-ingest-smoke:    ## 10 articles per regulation, no LLM prefixes
-	cd backend && uv run python -m app.ingestion.pipeline --no-contextual --max-articles 10
+ingest-fixture: require-env  ## same corpus as `ingest`, read offline (needs OPENAI_API_KEY)
+	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture
 
-api:
-	cd backend && uv run uvicorn app.main:app --reload --port 8000
+ingest-smoke: require-env    ## 10 articles per regulation from data/fixtures/, no LLM prefixes
+	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture --no-contextual --max-articles 10
+
+api: require-env
+	cd backend && $(UV) uvicorn app.main:app --reload --port 8000
 
 dev:
 	cd frontend && npm run dev
@@ -38,16 +57,16 @@ test:
 lint:
 	cd backend && uv run ruff check app tests && uv run ruff format --check app tests
 
-eval:            ## RAGAS metrics over the golden dataset (needs running stack + key)
-	cd backend && uv run --group evals python ../evals/run_evals.py
+eval: require-env            ## RAGAS metrics over the golden dataset (needs running stack + key)
+	cd backend && $(UV) --group evals python ../evals/run_evals.py
 
-eval-retrieval:  ## retrieval ablation: hybrid vs vector-only vs text-only (no judge)
-	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode hybrid
-	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode vector_only
-	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode text_only
+eval-retrieval: require-env  ## retrieval ablation: hybrid vs vector-only vs text-only (no judge)
+	cd backend && $(UV) --group evals python ../evals/run_retrieval_eval.py --mode hybrid
+	cd backend && $(UV) --group evals python ../evals/run_retrieval_eval.py --mode vector_only
+	cd backend && $(UV) --group evals python ../evals/run_retrieval_eval.py --mode text_only
 
-redteam:         ## prompt-injection / PII / refusal suite
-	cd backend && uv run --group evals python ../evals/run_redteam.py
+redteam: require-env         ## prompt-injection / PII / refusal suite
+	cd backend && $(UV) --group evals python ../evals/run_redteam.py
 
 promote:         ## promote the newest passing run to the committed baseline (SUITE=ragas|redteam)
 	cd backend && uv run --group evals python ../evals/promote.py $(SUITE)

@@ -1,6 +1,8 @@
-"""Ingestion CLI: EUR-Lex -> articles -> chunks -> embeddings -> Postgres.
+"""Ingestion CLI: EUR-Lex (or the committed corpus) -> articles -> chunks ->
+embeddings -> Postgres.
 
     uv run python -m app.ingestion.pipeline --regulations ai_act gdpr
+    uv run python -m app.ingestion.pipeline --source fixture                    # offline
     uv run python -m app.ingestion.pipeline --no-contextual --max-articles 10   # fast smoke
 
 Re-running replaces a regulation's document and chunks atomically, so the
@@ -17,7 +19,7 @@ from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
 from app.ingestion.chunker import ArticleChunk, chunk_article
 from app.ingestion.contextual import deterministic_prefix, llm_prefixes
-from app.ingestion.eurlex import REGULATIONS, fetch_html, parse_articles
+from app.ingestion.eurlex import REGULATIONS, fetch_html, load_fixture, parse_articles
 from app.models.tables import Chunk, Document
 from app.retrieval.embedder import embed_texts
 
@@ -26,13 +28,18 @@ async def ingest_regulation(
     regulation: str,
     contextual: bool,
     max_articles: int | None,
+    source: str,
 ) -> tuple[int, int]:
     meta = REGULATIONS[regulation]
     settings = get_settings()
 
-    print(f"[{regulation}] fetching {meta['url']}", file=sys.stderr)
-    html = fetch_html(meta["url"])
-    articles = parse_articles(html)
+    if source == "fixture":
+        print(f"[{regulation}] reading committed corpus", file=sys.stderr)
+        articles = load_fixture(regulation)
+    else:
+        print(f"[{regulation}] fetching {meta['url']}", file=sys.stderr)
+        html = fetch_html(meta["url"])
+        articles = parse_articles(html)
     if max_articles:
         articles = articles[:max_articles]
     if not articles:
@@ -101,12 +108,21 @@ async def main() -> None:
         help="Add an LLM-written context sentence per chunk (one model call per chunk)",
     )
     parser.add_argument("--max-articles", type=int, default=None)
+    parser.add_argument(
+        "--source",
+        choices=["network", "fixture"],
+        default="network",
+        help=(
+            "network: fetch and parse live EUR-Lex (default). "
+            "fixture: read the corpus committed under data/fixtures/"
+        ),
+    )
     args = parser.parse_args()
 
     try:
         for regulation in args.regulations:
             articles, chunks = await ingest_regulation(
-                regulation, args.contextual, args.max_articles
+                regulation, args.contextual, args.max_articles, args.source
             )
             print(f"[{regulation}] done: {articles} articles, {chunks} chunks")
     finally:

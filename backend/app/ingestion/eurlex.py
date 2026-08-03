@@ -3,9 +3,14 @@
 EUR-Lex marks articles with `ti-art` / `sti-art` paragraph classes (newer
 documents prefix them with `oj-`), which makes structure-aware parsing far
 more reliable than generic text splitting for statutory text.
+
+The same articles are also committed under `data/fixtures/` so ingestion runs
+without EUR-Lex; `load_fixture` reads those and `parse_articles` is bypassed.
 """
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import httpx
 from bs4 import BeautifulSoup, Tag
@@ -69,6 +74,48 @@ def fetch_html(url: str, timeout: float = 60.0) -> str:
             "parsing problem. Retry later; the parser is untouched."
         )
     return response.text
+
+
+# Repo root: backend/app/ingestion/eurlex.py -> parents[3]. Resolved from the
+# module rather than the working directory so `make ingest-smoke` (which cds
+# into backend/) and the eval workflow find the same files.
+FIXTURE_DIR = Path(__file__).resolve().parents[3] / "data" / "fixtures"
+
+
+class FixtureError(RuntimeError):
+    """The committed corpus is missing or malformed. Distinct from a fetch failure."""
+
+
+def load_fixture(regulation: str) -> list[Article]:
+    """Read a regulation's articles from the committed corpus instead of EUR-Lex.
+
+    The fixture holds what `parse_articles` returned on the date recorded in
+    it, so the two sources feed the pipeline the same `Article` objects.
+    """
+    path = FIXTURE_DIR / f"{regulation}.json"
+    if not path.is_file():
+        raise FixtureError(
+            f"No corpus fixture at {path}. Expected one committed per regulation; "
+            "run without --source fixture to ingest from EUR-Lex instead."
+        )
+
+    document = json.loads(path.read_text())
+    if document.get("regulation") != regulation:
+        raise FixtureError(
+            f"{path} declares regulation {document.get('regulation')!r}, expected {regulation!r}."
+        )
+
+    articles = [
+        Article(
+            number=str(article["number"]),
+            heading=article["heading"],
+            paragraphs=list(article["paragraphs"]),
+        )
+        for article in document["articles"]
+    ]
+    if not articles:
+        raise FixtureError(f"{path} contains no articles.")
+    return articles
 
 
 def _has_class(node: Tag, classes: tuple[str, ...]) -> bool:

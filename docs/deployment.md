@@ -6,7 +6,7 @@
 cp .env.example .env            # set OPENAI_API_KEY, JWT_SECRET
 make db                         # postgres + pgvector on :5434
 make migrate && make seed
-make ingest                     # full corpus (or: make ingest-smoke)
+make ingest-fixture             # full corpus, offline (or: make ingest-smoke / make ingest)
 make api                        # FastAPI on :8000
 make dev                        # Next.js on :3000
 ```
@@ -19,6 +19,11 @@ docker compose exec backend uv run --no-sync alembic upgrade head
 docker compose exec backend uv run --no-sync python -m app.seed
 docker compose exec backend uv run --no-sync python -m app.ingestion.pipeline
 ```
+
+The image build context is `backend/`, so `data/fixtures/` is not in the image and
+`--source fixture` has nothing to read there. In-container ingestion goes to live
+EUR-Lex; run `make ingest-fixture` on the host against the same database if the
+endpoint is refusing to serve (see the README limitation).
 
 ## Kubernetes
 

@@ -41,10 +41,12 @@ flowchart LR
 git clone https://github.com/fctpe/agentic-rag-kit && cd agentic-rag-kit
 cp .env.example .env          # set OPENAI_API_KEY, JWT_SECRET
 make db migrate seed
-make ingest-smoke             # or `make ingest` for the full corpus + contextual prefixes
+make ingest-smoke             # 10 articles per regulation, straight from the committed corpus
 make api                      # :8000
 make dev                      # :3000 — login as analyst@example.com / demo1234
 ```
+
+The corpus is committed under [`data/fixtures/`](data/fixtures) — the EU AI Act and GDPR articles as this repo's parser produced them — so a clean clone ingests without depending on EUR-Lex being in a good mood. `make ingest-fixture` loads all 212 articles from it, which is the corpus every number below was measured against; `make ingest` re-fetches the same articles from live EUR-Lex and adds the LLM contextual prefixes. All three still need a provider key: the text is committed, the embeddings are not.
 
 Ask *"What obligations apply to providers of high-risk AI systems?"* — cited answer. Ask for *"a compliance report on prohibited practices"* — the approval banner appears; approve or reject with a comment.
 
@@ -68,15 +70,27 @@ That is the same lesson [`voice-desk-agent`](https://github.com/fctpe/voice-desk
 
 | mode | hit@6 | MRR | recall |
 |---|---|---|---|
-| hybrid (RRF) — production | **1.000** | 0.891 | 0.897 |
-| vector only | 1.000 | 0.904 | 0.897 |
+| hybrid (RRF) — production | 1.000 | 0.891 | 0.897 |
+| vector only | 1.000 | **0.904** | 0.897 |
 | text only (AND semantics) | 0.026 | 0.026 | 0.026 |
 
-The text arm is nearly silent on natural-language questions **by design**: it exists for lexical/citation-style queries and fires with high precision there. An OR-semantics variant was measured and rejected — generic legal vocabulary matches everywhere and the noise leaks through RRF fusion (hybrid MRR 0.891 → 0.772). Negative results are results.
+**On this question distribution hybrid is not better than vector-only.** It ties on hit@6 and on recall, and loses 0.013 MRR. The entire gap is three questions: hybrid ranks the expected article first on A01 where vector-only ranks it second, and second on A07 and A10 where vector-only ranks it first. Three of 38 is not evidence in either direction — and it is certainly not grounds for bolding hybrid's numbers, which an earlier version of this table did.
+
+Hybrid stays in production because the golden set cannot measure the thing the text arm exists for. Exactly one of the 45 golden questions cites an article number (G06, *"…principles in Article 5 GDPR?"*), so lexical and citation-shaped queries — the shape dense retrieval handles worst — are effectively absent from the distribution these numbers describe. What the run does show is the arm staying silent: it returns no rows at all for 35 of the 38 scored questions, and its one hit is A01, not G06. That is silence on natural-language questions, not precision on citation ones. The precision claim is untested here, so it is not made here. Adding citation-shaped questions and re-running is what would settle it (roadmap below).
+
+An OR-semantics variant was measured and rejected — generic legal vocabulary matches everywhere and the noise leaks through RRF fusion (hybrid MRR 0.891 → 0.772). Negative results are results.
+
+The three-question delta comes straight out of the committed runs:
+
+```bash
+jq -n --slurpfile h evals/results/retrieval_hybrid.json --slurpfile v evals/results/retrieval_vector.json \
+  '($v[0].questions | map({(.id): .mrr}) | add) as $vm
+   | $h[0].questions | map(select(.mrr != $vm[.id]) | {id, hybrid: .mrr, vector: $vm[.id]})'
+```
 
 **Red-team suite: 14/14 pass** — five injection classes refused, PII never echoed, out-of-scope frameworks (HIPAA, NIS2, contract drafting, specific legal advice) deflected, two benign controls answered. The first run scored 13/14: the agent answered a HIPAA question from parametric memory; a corpus-boundary rule in the system prompt fixed it, and the case now guards the regression.
 
-The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden dataset), `uv run python evals/run_retrieval_eval.py` (retrieval ablations), `make redteam` (adversarial suite).
+The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden dataset), `make eval-retrieval` (the three ablation arms above), `make redteam` (adversarial suite).
 
 ### What eval-driven iteration caught during development
 
@@ -87,7 +101,7 @@ The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden da
 
 ## Regulatory accuracy
 
-Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex III high-risk obligations apply from 2 Dec 2027; Art. 50 transparency largely from Aug 2026. Recitals and annexes are not ingested in v1 (see limitations).
+Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex III high-risk obligations apply from 2 Dec 2027; Art. 50 transparency largely from Aug 2026. Recitals are not ingested in v1, and annex text is only present mislabelled under the last article (see limitations).
 
 ## Design decisions
 
@@ -95,8 +109,8 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 
 ## Limitations
 
-- **Ingestion from live EUR-Lex is currently blocked upstream.** As of 2026-08-03 EUR-Lex answers the document URLs with `HTTP 202` and an empty body — bot protection or a queued render, not an error status. `make ingest` therefore fails with a `FetchError` naming the cause. The parser is unchanged and the committed corpus and eval results were produced on 2026-07-12 when the endpoint still served HTML. Working around the block is not something this repo does; retry later, or point `eurlex.py` at a local copy.
-- Corpus is articles-only (no recitals/annexes) and English-only; Annex III questions answer from Art. 6 references, not the annex text itself.
+- **Live EUR-Lex is intermittent.** It sometimes answers the document URLs with `HTTP 202` and an empty body — bot protection or a queued render, not an error status, so `raise_for_status()` waves it through. `fetch_html` rejects any body under 20 KB and `make ingest` fails with a `FetchError` naming the cause, rather than handing an empty string to the parser and blaming the markup. On 2026-08-03 the endpoint returned 202/0 bytes twice and then served the full 1.26 MB document on the next twelve requests. That flakiness is why the corpus is committed: `make ingest-smoke` and `make ingest-fixture` never touch the network. The two sources agree — checked on 2026-08-03, live EUR-Lex and `data/fixtures/` both yield 113 AI Act articles → 164 chunks and 99 GDPR articles → 119 chunks.
+- Corpus is articles-only (no recitals) and English-only. One parser wart survives into it: annexes and the OJ trailer follow the last article title without carrying an article marker of their own, so the parser sweeps them into the last article. AI Act "Art. 113" is consequently a 19-chunk blob that is almost entirely Annex text, and it lands in the top 6 for 9 of the 38 scored questions, cited as Art. 113. Fixing it re-cuts the corpus and invalidates every number above, so it is recorded here rather than quietly patched.
 - The router's report-detection is heuristic-first; unusual phrasings can miss the approval gate. The gate is policy, not a security boundary — RBAC is.
 - PII redaction is structural (emails, phones, IBANs, cards); free-text names need the documented Presidio swap.
 - Grounding audit adds one model call of latency to every answer, and rejected reports end the run — there is no revision loop yet.
@@ -106,6 +120,8 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 
 ## Roadmap
 
+- Citation- and lexical-shaped golden questions, so the text arm's precision is measured instead of asserted and the hybrid-vs-vector choice rests on something.
+- Article-boundary fix for the trailing annexes, re-ingest, and a re-run of every suite against the re-cut corpus.
 - Style-matching RAG over previously **approved** reports, so drafts converge on the reviewing team's voice.
 - Revision loop on rejection (reviewer comment feeds a redraft pass).
 - German corpus variant (second `tsvector` configuration).
