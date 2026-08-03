@@ -32,7 +32,7 @@ jobs:
           docker build --build-arg NEXT_PUBLIC_API_BASE=http://api.ragkit.localtest.me \
             -t ragkit-frontend:dev frontend
 
-      - uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@v5
         with:
           # `apply -k` renders with the kustomize built into kubectl, so the
           # version is part of what this job reproduces.
