@@ -42,6 +42,9 @@ from pathlib import Path
 import httpx
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from gate import gate_ragas  # noqa: E402
+
 EVALS_DIR = Path(__file__).resolve().parent
 GOLDEN_PATH = EVALS_DIR / "golden_questions.yaml"
 RESULTS_DIR = EVALS_DIR / "results"
@@ -349,22 +352,29 @@ async def main() -> int:
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = RESULTS_DIR / f"ragas_{timestamp}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(
-        json.dumps(
-            {
-                "summary": summary,
-                "judge_model": JUDGE_MODEL,
-                "api_base": args.api_base,
-                "n_scored": len(scorable),
-                "n_chat_failures": len(failed_chats),
-                "timestamp": timestamp,
-                "samples": samples,
-            },
-            indent=2,
-        )
-    )
+    partial = bool(args.smoke or args.questions)
+    payload = {
+        "summary": summary,
+        "judge_model": JUDGE_MODEL,
+        "api_base": args.api_base,
+        "n_scored": len(scorable),
+        "n_chat_failures": len(failed_chats),
+        "timestamp": timestamp,
+        "partial": partial,
+        "samples": samples,
+    }
+    out_path.write_text(json.dumps(payload, indent=2))
     print(f"\nwrote {out_path}")
-    return 1 if failed_chats else 0
+
+    gate = gate_ragas(payload, partial=partial)
+    gate.report()
+    if partial:
+        # A subset run is informational: it cannot be judged against a full-run
+        # baseline, so it must not gate — but it must not claim to have gated
+        # either. Only chat failures can fail a subset run.
+        print("\n(subset run — thresholds not applied)")
+        return 1 if failed_chats else 0
+    return 0 if gate.passed else 1
 
 
 if __name__ == "__main__":

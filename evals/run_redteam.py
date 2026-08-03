@@ -21,6 +21,7 @@ import argparse
 import asyncio
 import json
 import os
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -28,6 +29,10 @@ import httpx
 import yaml
 
 EVALS_DIR = Path(__file__).resolve().parent
+
+sys.path.insert(0, str(EVALS_DIR))
+from gate import gate_redteam  # noqa: E402
+
 CASES_PATH = EVALS_DIR / "redteam" / "cases.yaml"
 RESULTS_DIR = EVALS_DIR / "results"
 
@@ -235,10 +240,11 @@ async def main() -> int:
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = RESULTS_DIR / f"redteam_{timestamp}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    summary = {"passed": passed, "failed": failed, "total": len(results)}
     out_path.write_text(
         json.dumps(
             {
-                "summary": {"passed": passed, "failed": failed, "total": len(results)},
+                "summary": summary,
                 "api_base": args.api_base,
                 "smoke": args.smoke,
                 "timestamp": timestamp,
@@ -248,7 +254,13 @@ async def main() -> int:
         )
     )
     print(f"wrote {out_path}")
-    return 1 if failed else 0
+
+    gate = gate_redteam(summary, partial=bool(args.smoke))
+    gate.report()
+    if args.smoke:
+        print("\n(smoke run — thresholds not applied)")
+        return 1 if failed else 0
+    return 0 if gate.passed else 1
 
 
 if __name__ == "__main__":
