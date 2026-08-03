@@ -33,6 +33,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 import types
 import warnings
@@ -56,6 +57,14 @@ JUDGE_MODEL = os.environ.get("RAGAS_JUDGE_MODEL", "gpt-4o-mini")
 JUDGE_EMBEDDING_MODEL = os.environ.get("RAGAS_EMBEDDING_MODEL", "text-embedding-3-small")
 
 METRIC_NAMES = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
+
+# The inline source marker the system prompt requires. The frontend turns each
+# [n] into the link between a sentence and the source panel entry it came from,
+# so an answer that cites in prose instead ("(AI Act, Art. 50(1))") ships its
+# sources unlinked. None of the RAGAS metrics can see that: faithfulness judges
+# whether the claim is supported, not whether the answer said where from — which
+# is how free-form answers drifted to prose with four green metrics above them.
+INLINE_CITATION = re.compile(r"\[\d+\]")
 
 
 def _shim_vertexai() -> None:
@@ -349,6 +358,12 @@ async def main() -> int:
     ]
     print("| **mean** | " + " | ".join(f"**{c}**" for c in mean_cells) + " |")
 
+    unmarked = [s["id"] for s in scorable if not INLINE_CITATION.search(s["answer"])]
+    print(
+        f"\ninline citations: {len(scorable) - len(unmarked)}/{len(scorable)} answers carry an "
+        "[n] marker" + (f" — missing: {', '.join(unmarked)}" if unmarked else "")
+    )
+
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = RESULTS_DIR / f"ragas_{timestamp}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -359,6 +374,7 @@ async def main() -> int:
         "api_base": args.api_base,
         "n_scored": len(scorable),
         "n_chat_failures": len(failed_chats),
+        "answers_without_inline_citation": unmarked,
         "timestamp": timestamp,
         "partial": partial,
         "samples": samples,

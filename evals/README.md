@@ -20,7 +20,10 @@ table.
 Retrieval-only metrics, no LLM judges. For every non-out-of-scope golden
 question it retrieves top-k chunks and matches them against
 `expected_articles` (a hit = retrieved chunk with the same regulation and
-article number).
+unit). A label may name either shape the corpus stores — `AI Act Art. 6` or
+`AI Act Annex III` — since the high-risk list Art. 6(2) classifies against
+lives in the annex. The two never cross-match: an expected `Art. III` is not
+satisfied by `Annex III`.
 
 ```bash
 uv run --group evals python ../evals/run_retrieval_eval.py                  # hybrid, k=6
@@ -55,12 +58,14 @@ Cost: `text_only` is completely free (pure Postgres). `hybrid` and
 a cent for the whole set). Deterministic given a fixed corpus and embedding
 model.
 
-**Corpus caveat:** with the smoke ingest (`make ingest-smoke` — 36 chunks,
-Articles 1–10 of each regulation) questions targeting later articles (e.g. AI
+**Corpus caveat:** with the smoke ingest (`make ingest-smoke` — Articles 1–10
+of each regulation, no annexes) questions targeting later articles (e.g. AI
 Act Art. 50, GDPR Art. 33) cannot be hit — low absolute scores are expected.
-Compare modes and filters against each other, not against 1.0. The committed
-results come from the full 283-chunk corpus (`make ingest-fixture`), which the
-same golden set exercises end to end.
+Compare modes and filters against each other, not against 1.0. Run the full
+corpus (`make ingest-fixture` — 212 articles + 13 annexes → 280 chunks), which
+the same golden set exercises end to end. The committed results predate the
+annexes and were measured on a 283-chunk corpus that mislabelled them; they
+have not been re-run.
 
 ## 2. RAGAS eval — `run_evals.py`
 
@@ -93,6 +98,14 @@ Metrics (all 0–1, higher is better):
   irrelevant ones, judged against the reference answer? (retrieval ranking)
 - **context_recall** — is everything the reference answer needs present in
   the retrieved contexts? (retrieval coverage)
+
+Also recorded, and gated at zero: **answers carrying no inline `[n]` marker**.
+Not a judged metric — a format check the four metrics above are blind to. An
+answer that cites in prose ("as set out in AI Act, Art. 50(1)") is just as
+faithful and just as relevant, and arrives in the UI with every source
+unlinked, because `[n]` is what the citation panel binds to. A run recorded
+before this check existed has no such field, and the gate fails it rather than
+assume the answers were clean.
 
 RAGAS 0.4.x API notes (verified against the installed 0.4.3): metrics come
 from `ragas.metrics.collections` (`Faithfulness`, `AnswerRelevancy`,

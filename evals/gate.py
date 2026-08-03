@@ -102,6 +102,24 @@ def gate_ragas(payload: dict[str, Any], *, partial: bool) -> GateResult:
         failures <= spec["max_chat_failures"],
         f"{failures}, max {spec['max_chat_failures']}",
     )
+    # A run recorded before this check existed carries no field. Reading that as
+    # "none missing" would pass every pre-fix run — the same silent green the
+    # None-metric rule above refuses.
+    unmarked = payload.get("answers_without_inline_citation")
+    if unmarked is None:
+        result.add(
+            "inline citations",
+            False,
+            "not measured — this run predates the check; re-run run_evals.py",
+        )
+    else:
+        allowed = spec["max_answers_without_inline_citation"]
+        detail = f"{len(unmarked)} answer(s) carry no [n] marker, max {allowed}"
+        result.add(
+            "inline citations",
+            len(unmarked) <= allowed,
+            detail + (f" — {', '.join(unmarked)}" if unmarked else ""),
+        )
     summary = payload.get("summary", {})
     for metric, mspec in spec["metrics"].items():
         _check_metric(result, metric, summary.get(metric), mspec)

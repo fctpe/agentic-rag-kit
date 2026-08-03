@@ -27,6 +27,12 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so TestProvenanceStampsStillResolve can actually run.
+          # At the default depth of 1 it can only skip, and a provenance check
+          # that always skips is the same as not having one — which is how the
+          # committed ragas.json ended up pointing at a rebased-away commit.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --group dev --group evals
       # ../evals was never linted; the eval scripts are real code and the gate

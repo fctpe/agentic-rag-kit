@@ -2,9 +2,11 @@
 
 No LLM judges — cheap and deterministic (modulo the embedding call for the
 vector arm). For every non-out-of-scope golden question the script retrieves
-top-k chunks and checks whether the expected articles ("AI Act Art. 5",
-"GDPR Art. 6", ...) appear among them. A chunk counts as a hit for an
-expected article when its document regulation AND article_ref both match.
+top-k chunks and checks whether the expected units ("AI Act Art. 5",
+"GDPR Art. 6", "AI Act Annex III", ...) appear among them. A chunk counts as a
+hit for an expected unit when its document regulation AND article_ref both
+match. `expected_articles` keeps its name in the golden set; it may name an
+annex, which is where the AI Act's high-risk list actually lives.
 
 Modes:
   hybrid       app.retrieval.hybrid.hybrid_search (RRF fusion, production path)
@@ -46,7 +48,9 @@ RESULTS_DIR = EVALS_DIR / "results"
 sys.path.insert(0, str(EVALS_DIR))
 from gate import gate_retrieval  # noqa: E402
 
-_ARTICLE_LABEL = re.compile(r"^(AI Act|GDPR)\s+Art\.?\s*(\S+)$", re.IGNORECASE)
+# The corpus holds two citable shapes, "Art. 5" and "Annex III", so the golden
+# set can name either. Both sides of the comparison go through unit_key().
+_EXPECTED_LABEL = re.compile(r"^(AI Act|GDPR)\s+((?:Art\.?|Annex)\s*\S+)$", re.IGNORECASE)
 _REGULATION_KEYS = {"ai act": "ai_act", "gdpr": "gdpr"}
 
 # --- single-arm SQL variants -------------------------------------------------
@@ -81,14 +85,31 @@ LIMIT :final_k
 )
 
 
+def unit_key(article_ref: str) -> str:
+    """Comparison key shared by golden labels and chunks.article_ref values.
+
+    "Art. 5" / "Article 5" -> "5"; "Annex III" -> "Annex III". The annex key
+    keeps its word (see app/ingestion/eurlex.py, which stores both shapes in
+    the one column) so that an expected article can never be scored as a hit
+    by an annex that happens to carry the same numeral.
+    """
+    stripped = article_ref.strip()
+    if stripped.lower().startswith("annex"):
+        return f"Annex {stripped.split(maxsplit=1)[-1].strip().upper()}"
+    return stripped.replace("Art.", "").replace("Article", "").strip()
+
+
 def parse_expected(labels: list[str]) -> list[tuple[str, str]]:
-    """ "AI Act Art. 5" -> ("ai_act", "5"). Fails loudly on malformed labels."""
+    """ "AI Act Art. 5" -> ("ai_act", "5"); "AI Act Annex III" -> ("ai_act",
+    "Annex III"). Both sides of the match run through unit_key, so the golden
+    set and the retrieved refs cannot normalise differently. Fails loudly on
+    malformed labels."""
     parsed: list[tuple[str, str]] = []
     for label in labels:
-        match = _ARTICLE_LABEL.match(label.strip())
+        match = _EXPECTED_LABEL.match(label.strip())
         if not match:
             raise ValueError(f"Cannot parse expected article label: {label!r}")
-        parsed.append((_REGULATION_KEYS[match.group(1).lower()], match.group(2)))
+        parsed.append((_REGULATION_KEYS[match.group(1).lower()], unit_key(match.group(2))))
     return parsed
 
 
@@ -97,18 +118,11 @@ def implied_regulation(expected: list[tuple[str, str]]) -> str | None:
     return regulations.pop() if len(regulations) == 1 else None
 
 
-def article_number(article_ref: str) -> str:
-    """chunks.article_ref is "Art. 5" (see app/ingestion/eurlex.py Article.ref)."""
-    return article_ref.replace("Art.", "").replace("Article", "").strip()
-
-
 def score_question(
     expected: list[tuple[str, str]],
     retrieved: list[tuple[str, str]],  # ordered (regulation, article_ref)
 ) -> dict:
-    retrieved_keys = [
-        (regulation, article_number(article_ref)) for regulation, article_ref in retrieved
-    ]
+    retrieved_keys = [(regulation, unit_key(article_ref)) for regulation, article_ref in retrieved]
     matched = [exp for exp in expected if exp in retrieved_keys]
     first_rank = 0
     for rank, key in enumerate(retrieved_keys, start=1):

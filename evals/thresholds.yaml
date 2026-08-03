@@ -31,6 +31,12 @@ ragas:
   # — the floors below are sized for that spread, not for the best draw.
   expect_n_scored: 38
   max_chat_failures: 0
+  # Not a judged metric and so no headroom: the [n] markers are either there or
+  # the answer's sources are unlinked in the UI. Zero, because "most answers
+  # cite properly" is not a property you can ship a citation panel on. The
+  # committed run predates the check and does not carry the field — see
+  # backend/tests/test_eval_gate.py.
+  max_answers_without_inline_citation: 0
   metrics:
     faithfulness: { baseline: 0.9316, floor: 0.90 }
     answer_relevancy: { baseline: 0.8805, floor: 0.78 }

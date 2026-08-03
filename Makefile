@@ -45,8 +45,8 @@ ingest: require-env          ## full corpus from live EUR-Lex, contextual prefix
 ingest-fixture: require-env  ## same corpus as `ingest`, read offline (needs OPENAI_API_KEY)
 	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture
 
-ingest-smoke: require-env    ## 10 articles per regulation from data/fixtures/, no LLM prefixes
-	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture --no-contextual --max-articles 10
+ingest-smoke: require-env    ## 10 units per regulation from data/fixtures/, no LLM prefixes
+	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture --no-contextual --max-units 10
 
 api: require-env
 	cd backend && $(UV) uvicorn app.main:app --reload --port 8000
