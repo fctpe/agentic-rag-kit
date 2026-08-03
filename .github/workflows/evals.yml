@@ -59,8 +59,10 @@ jobs:
         # From the committed fixture, not live EUR-Lex: the endpoint
         # intermittently answers 202 with an empty body, and a weekly scored run
         # must not go red because an upstream had a bad minute. The fixture is
-        # the same 212 articles / 283 chunks the committed baselines were
-        # measured against — tests/test_corpus_fixture.py holds it to that.
+        # 212 articles + 13 annexes / 280 chunks — tests/test_corpus_fixture.py
+        # holds it to that. The committed baselines were measured on an earlier
+        # corpus (212 articles / 283 chunks, annexes mislabelled under the last
+        # article) and are stale until this workflow re-runs them.
         run: uv run python -m app.ingestion.pipeline --source fixture
 
       - name: Start the API
