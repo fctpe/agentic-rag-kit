@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     otel_exporter_otlp_headers: str = ""
 
     log_level: str = "INFO"
+    # Comma-separated. Hardcoded before, which meant the app could not be
+    # deployed anywhere — or run against a frontend on any other port —
+    # without editing main.py. The default is the documented dev setup.
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # USD per million tokens for llm_model. Left at 0 the spans carry token
     # counts and no cost: a price table baked into the repo goes stale without
