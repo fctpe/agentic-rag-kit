@@ -26,6 +26,7 @@ flowchart TD
 3. **Retrieval** — both arms always run (cosine top-20 + `ts_rank_cd` top-20), RRF (k=60) fuses, final 6 reach the model wrapped in `<source id=…>` tags that the system prompt declares to be data, not instructions.
 4. **Approvals** — report-type answers hit `interrupt()`. The checkpoint lives in Postgres (`AsyncPostgresSaver`), so the pending approval survives restarts; `POST /chat/{thread}/resume` continues the same graph with `Command(resume=…)`. Verified by killing uvicorn mid-approval and resuming after restart.
 5. **Verification** — a grounding pass audits the answer against the retrieved excerpts and flags unsupported claims to the user rather than silently shipping them.
+6. **Telemetry** — one OTel span per graph node, tool call, retrieval and grounding check, on the GenAI semantic conventions, with tokens and cost from `usage_metadata`; JSON logs on stdout correlated by request id and, when tracing is on, trace id. Both sinks are inert until configured — ADR 0006.
 
 ## SSE protocol
 

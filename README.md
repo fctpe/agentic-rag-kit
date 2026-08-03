@@ -31,7 +31,8 @@ flowchart LR
 - **Grounding verification** — after every answer, a judge audits each claim against the retrieved article text and flags unsupported ones *to the user* instead of shipping them silently.
 - **Hybrid retrieval in one SQL statement** — pgvector cosine + Postgres FTS fused with RRF (k=60), with `hnsw.iterative_scan` guarding against the classic filtered-query overfiltering failure. No second search engine.
 - **Structure-aware ingestion** — chunks never cross article boundaries; every chunk carries `Art. N` metadata, so citations deep-link into EUR-Lex. Anthropic-style contextual prefixes are one flag away.
-- **Security you can point at** — OWASP LLM Top 10 (2025) mapping ([docs/security.md](docs/security.md)), PII redaction before model/trace/checkpoint, JWT RBAC, append-only audit log framed against AI Act Art. 12/14.
+- **Security you can point at** — OWASP LLM Top 10 (2025) mapping ([docs/security.md](docs/security.md)), PII redaction before model/trace/checkpoint, JWT RBAC, and a hash-chained audit log framed against AI Act Art. 12/14: `GET /audit/verify` walks the chain and names the first entry an edit — or a deletion between two others — broke. It is tamper-*evidence*, not tamper-proofing; [docs/security.md](docs/security.md#audit-trail-eu-ai-act-art-12-framing) states exactly what it does not catch.
+- **Telemetry that survives the request** — OpenTelemetry spans on the GenAI semantic conventions around every graph node, tool call, retrieval and the grounding verifier, with token and cost accounting from `usage_metadata`, plus JSON logs correlated by request and trace id. Exports OTLP to any collector — Langfuse included, which is why it stays. Unset endpoint means no exporter at all ([ADR 0006](docs/adr/0006-otel-genai-spans-and-structured-logs.md)).
 - **Evals built to gate merges** — golden dataset with expected articles, retrieval ablations (vector-only vs hybrid), RAGAS metrics, and a red-team suite for injection/PII/refusal behavior. CI validates the dataset and compiles the suites on every push; wiring the scored runs in as a blocking gate needs a provider key and is a one-line CI change (documented in [docs/deployment.md](docs/deployment.md)).
 
 ## Quickstart
@@ -86,7 +87,7 @@ Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex 
 
 ## Design decisions
 
-Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents, hybrid RRF inside Postgres, structural chunking (+ why late chunking was rejected), SQLAlchemy over SQLModel, SSE over WebSockets, regex redaction with a Presidio seam. Architecture walkthrough in [docs/architecture.md](docs/architecture.md), deployment in [docs/deployment.md](docs/deployment.md).
+Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents, hybrid RRF inside Postgres, structural chunking (+ why late chunking was rejected), SQLAlchemy over SQLModel, SSE over WebSockets, regex redaction with a Presidio seam, per-request budgets and the audit hash chain, OTel GenAI spans against conventions that are not stable yet. Architecture walkthrough in [docs/architecture.md](docs/architecture.md), deployment in [docs/deployment.md](docs/deployment.md).
 
 ## Limitations
 
@@ -95,6 +96,8 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 - PII redaction is structural (emails, phones, IBANs, cards); free-text names need the documented Presidio swap.
 - Grounding audit adds one model call of latency to every answer, and rejected reports end the run — there is no revision loop yet.
 - Single-tenant by design; per-document ACLs and SSO are out of scope for the kit.
+- The audit chain is unkeyed sha256 over columns the database can rewrite, so it detects edits made *around* the application, not an attacker who recomputes the chain — and deleting the newest entries leaves the rest walking clean (ADR 0005).
+- The GenAI semantic conventions are still Development status, so the span attribute names can move; the OTel packages are pinned exactly and a test holds the names to the generated constants (ADR 0006). Span cost is whatever you configure — the repo ships no price table.
 
 ## Roadmap
 

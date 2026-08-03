@@ -17,7 +17,15 @@ class AgentState(TypedDict, total=False):
     # never the per-request collector — otherwise a resumed approval (which
     # does not re-run tools) would lose every citation.
     retrieved_sources: list[dict[str, Any]]
+    # Total tokens spent by every model call in this request, from
+    # usage_metadata. Reset by guard_input so a long-running thread does not
+    # inherit the previous turn's spend, and carried across an approval resume,
+    # which is the same run.
+    tokens_used: int
     citations: list[dict[str, Any]]
+    # False until a grounding check actually passes. guard_input seeds it so a
+    # run that never reaches verify() — refused, rejected, out of budget — cannot
+    # report a verdict nobody produced; grounding_issues says which case it was.
     grounded: bool
     grounding_issues: list[str]
     approval_decision: str
