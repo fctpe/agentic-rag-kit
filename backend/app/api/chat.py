@@ -219,7 +219,7 @@ async def resume(
             detail={"status": body.status, "comment": body.comment},
         )
 
-    command = Command(resume={"status": body.status, "comment": body.comment})
+    command: Command = Command(resume={"status": body.status, "comment": body.comment})
     return StreamingResponse(
         _stream_graph(command, thread_id, user, request.app.state.checkpointer),
         media_type="text/event-stream",
