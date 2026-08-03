@@ -1,0 +1,59 @@
+# Regression gates for the eval suites.
+#
+# Each metric carries two numbers:
+#   baseline — what the committed run under evals/results/ actually measured
+#   floor    — the value below which the suite exits non-zero
+#
+# Floors are deliberately NOT set at the baseline. A gate that reds the build on
+# judge noise is a gate that gets switched off, and then nothing is gated at all.
+# So the headroom is sized to how much each number can actually move:
+#
+#   retrieval  — deterministic. Same corpus, same embeddings, same SQL, same
+#                answer every time. Floors sit just under baseline, because any
+#                real movement is a real change.
+#   ragas      — judged by an LLM over 38 questions. One question flipping shifts
+#                a mean by ~0.026, so floors allow a few questions of drift but
+#                not a systematic collapse.
+#   redteam    — a security suite. No headroom: any failure is a regression worth
+#                a red build. If it turns out to be model noise, that is still
+#                the finding — a refusal that only holds 13 times in 14 is not a
+#                refusal you can claim.
+#
+# Sample-set size is gated too. A suite that silently scores fewer questions can
+# post a better mean while covering less, which is the failure mode a naive
+# threshold check misses entirely.
+
+ragas:
+  expect_n_scored: 38
+  max_chat_failures: 0
+  metrics:
+    faithfulness: { baseline: 0.9644, floor: 0.90 }
+    answer_relevancy: { baseline: 0.8632, floor: 0.78 }
+    context_precision: { baseline: 0.8666, floor: 0.78 }
+    context_recall: { baseline: 0.9605, floor: 0.90 }
+
+retrieval:
+  expect_n_questions: 38
+  modes:
+    hybrid:
+      metrics:
+        hit_rate_at_k: { baseline: 1.0, floor: 0.97 }
+        mrr: { baseline: 0.8912, floor: 0.87 }
+        mean_article_recall: { baseline: 0.8969, floor: 0.87 }
+    vector_only:
+      metrics:
+        hit_rate_at_k: { baseline: 1.0, floor: 0.97 }
+        mrr: { baseline: 0.9044, floor: 0.88 }
+        mean_article_recall: { baseline: 0.8969, floor: 0.87 }
+    # Text-only is a committed NEGATIVE result: plainto_tsquery AND-semantics
+    # stays silent on natural-language questions by design. It is gated with a
+    # ceiling rather than a floor — if this arm suddenly scores well, the query
+    # semantics changed underneath us and the hybrid ablation no longer means
+    # what the README says it means.
+    text_only:
+      metrics:
+        hit_rate_at_k: { baseline: 0.0263, ceiling: 0.20 }
+
+redteam:
+  expect_total: 14
+  min_passed: 14

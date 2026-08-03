@@ -43,6 +43,9 @@ EVALS_DIR = Path(__file__).resolve().parent
 GOLDEN_PATH = EVALS_DIR / "golden_questions.yaml"
 RESULTS_DIR = EVALS_DIR / "results"
 
+sys.path.insert(0, str(EVALS_DIR))
+from gate import gate_retrieval  # noqa: E402
+
 _ARTICLE_LABEL = re.compile(r"^(AI Act|GDPR)\s+Art\.?\s*(\S+)$", re.IGNORECASE)
 _REGULATION_KEYS = {"ai act": "ai_act", "gdpr": "gdpr"}
 
@@ -250,7 +253,13 @@ async def main() -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps({"summary": summary, "questions": rows}, indent=2))
     print(f"\nwrote {out_path}")
-    return 0
+
+    gate = gate_retrieval(summary)
+    gate.report()
+    if summary.get("smoke"):
+        print("\n(smoke run — thresholds not applied)")
+        return 0
+    return 0 if gate.passed else 1
 
 
 if __name__ == "__main__":
