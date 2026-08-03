@@ -1,12 +1,20 @@
 """Chat over SSE, with resumable human-in-the-loop approvals.
 
 Events emitted:
-  token              {"text": "..."}                 model output as it streams
+  token              {"text": "..."}                 model output as it streams (qa only)
+  drafting           {"reason": "awaiting_approval"}  report run; tokens suppressed
   approval_required  {"draft": ..., "citations": []} graph interrupted at the gate
   citations          {"citations": [...]}
   grounding          {"grounded": bool, "issues": []}
   done               {"thread_id": ..., "content": ...}
   error              {"message": ...}
+
+Ordering guarantee, stated exactly: a *report* never reaches the user before
+its approval decision — no tokens are streamed for one, and the draft is
+carried in `approval_required`. A *qa* answer does stream, and its grounding
+verdict lands afterwards, so until `grounding` arrives the answer is unverified
+and the UI says so. "Verified before it is shown" holds for reports; for qa the
+honest claim is "shown unverified, then verified before the run completes".
 """
 
 import json
@@ -50,7 +58,7 @@ from app.observability import (
     tracer,
 )
 from app.security.audit import record_audit
-from app.security.rbac import require_role
+from app.security.rbac import may_decide_approval, require_role
 from app.security.redaction import redact_pii
 
 router = APIRouter(tags=["chat"])
@@ -99,6 +107,17 @@ async def _stream_graph(
                 "recursion_limit": RECURSION_LIMIT,
             }
 
+            # Report-type runs do not stream. The router node settles task_type
+            # before the agent node produces its first token, so this is known
+            # in time to suppress them.
+            #
+            # It used to stream the draft, and the frontend deleted the bubble
+            # when `approval_required` arrived — so the unapproved draft was
+            # rendered, then withdrawn. Harmless while author and reviewer were
+            # the same person; not harmless now that an admin can decide someone
+            # else's report, and never what ADR 0001 said the gate did. A report
+            # reaches the user in the approval payload or not at all.
+            streaming_suppressed = False
             try:
                 async for mode, payload in graph.astream(
                     graph_input, config, stream_mode=["messages", "updates"]
@@ -109,9 +128,14 @@ async def _stream_graph(
                             isinstance(chunk, AIMessageChunk)
                             and chunk.content
                             and metadata.get("langgraph_node") == "agent"
+                            and not streaming_suppressed
                         ):
                             yield _sse("token", {"text": str(chunk.content)})
                     elif mode == "updates":
+                        router_update = payload.get("router")
+                        if router_update and router_update.get("task_type") == "report":
+                            streaming_suppressed = True
+                            yield _sse("drafting", {"reason": "awaiting_approval"})
                         if "__interrupt__" in payload:
                             interrupt_value = payload["__interrupt__"][0].value
                             yield _sse("approval_required", interrupt_value)
@@ -212,9 +236,19 @@ async def chat(
     user: User = Depends(require_role(Role.viewer)),
 ) -> StreamingResponse:
     thread_id = body.thread_id or uuid.uuid4().hex
-    # Redact before the raw message is persisted anywhere — the same guarantee
-    # the agent graph makes, applied at the DB boundary too.
-    stored_content = redact_pii(body.message).text
+    # Redact ONCE, here, before the text is handed to anything that persists it.
+    #
+    # This used to redact only `stored_content` and pass `body.message` raw into
+    # the graph, on the theory that guard_input redacts before any node sees it.
+    # It does — but the checkpointer writes the *input* super-step before the
+    # first node runs, so the raw message landed in `checkpoints` at steps -1
+    # and 0 and only became redacted at step 1. docs/security.md promises
+    # redaction "before the model, the checkpointer, or a trace"; two of those
+    # three held. The graph input is the boundary, so redaction belongs here.
+    # tests/test_security.py::TestRedactionBeforeCheckpoint walks the whole
+    # checkpoint history for a canary.
+    redaction = redact_pii(body.message)
+    stored_content = redaction.text
     factory = get_session_factory()
     async with factory() as session:
         conversation = await session.scalar(
@@ -234,7 +268,14 @@ async def chat(
         await session.commit()
         await record_audit(session, "chat.query", user_id=user.id, resource=thread_id)
 
-    graph_input = {"messages": [HumanMessage(content=body.message)]}
+    # `pii_found` rides along because guard_input can no longer discover it:
+    # the text it receives is already clean. It still re-runs redact_pii as
+    # defence in depth (idempotent — the placeholders carry no digits), so the
+    # node keeps its guarantee for any caller that drives the graph directly.
+    graph_input = {
+        "messages": [HumanMessage(content=stored_content)],
+        "pii_found": redaction.found,
+    }
     return StreamingResponse(
         _stream_graph(graph_input, thread_id, user, request.app.state.checkpointer),
         media_type="text/event-stream",
@@ -255,10 +296,14 @@ async def resume(
             select(Conversation).where(Conversation.thread_id == thread_id)
         )
         # Fail closed. A missing Conversation row used to skip the ownership
-        # check entirely, so an unknown thread_id was resumable by any analyst.
-        # Every resumable thread has a Conversation — /chat creates it before the
-        # graph ever runs — so absence means the thread is not this user's.
-        if conversation is None or conversation.user_id != user.id:
+        # check entirely, so an unknown thread_id was resumable by any analyst;
+        # `may_decide_approval` treats absence as denial.
+        #
+        # It is also what /admin/approvals filters by, so the queue an admin is
+        # shown is exactly the queue an admin can act on. Those two had drifted:
+        # the listing was admin-wide, the decision was owner-only, and every
+        # cross-user item in an admin's queue returned 403.
+        if not may_decide_approval(conversation.user_id if conversation else None, user):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your conversation")
         approval = await session.scalar(
             select(Approval)
