@@ -82,7 +82,29 @@ jobs:
             --from-literal=DATABASE_URL="postgresql+asyncpg://rag:${PG_PASSWORD}@postgres:5432/ragkit" \
             --from-literal=JWT_SECRET="$(openssl rand -hex 32)"
 
-      - run: kubectl apply -k deploy/overlays/local
+      - name: Apply the overlay
+        # The admission webhook is reachable only once its Service has a ready
+        # endpoint — a Ready controller pod is not sufficient, and waiting on
+        # the pod alone still lost the race. Wait for the endpoint, then retry:
+        # the failure mode is a transient "connection refused" from the API
+        # server calling the webhook, not a bad manifest.
+        run: |
+          for i in $(seq 1 60); do
+            addr=$(kubectl -n ingress-nginx get endpointslice \
+              -l kubernetes.io/service-name=ingress-nginx-controller-admission \
+              -o jsonpath='{.items[*].endpoints[*].addresses[0]}' 2>/dev/null || true)
+            [ -n "$addr" ] && break
+            sleep 2
+          done
+          echo "admission endpoint: ${addr:-<none>}"
+          for i in 1 2 3 4 5; do
+            kubectl apply -k deploy/overlays/local && exit 0
+            echo "apply failed (attempt $i) — retrying in 10s"
+            sleep 10
+          done
+          echo "overlay did not apply after 5 attempts"
+          kubectl -n ingress-nginx get pods,svc,endpointslice
+          exit 1
 
       - name: Migrations complete
         # The Job also creates the pgvector extension, because that is the
