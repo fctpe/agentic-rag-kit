@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ragkit
+  labels:
+    # Admission enforces what base/*.yaml only declares. Without this the
+    # securityContext blocks are a promise nothing checks; with it, a pod that
+    # loses `runAsNonRoot` or picks a capability back up is rejected at apply
+    # time and the CI job that applies this overlay goes red.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest

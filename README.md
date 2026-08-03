@@ -52,13 +52,17 @@ Ask *"What obligations apply to providers of high-risk AI systems?"* — cited a
 
 ![demo: backend test suite, retrieval ablation, RAGAS, and red-team results](docs/demo.gif)
 
-All numbers below are from live runs on 2026-07-12 against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results).
+All numbers below are from live runs against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results), stamped with the run that produced them.
 
-**RAGAS over the 38-question golden set** (0 chat failures):
+**RAGAS over the 38-question golden set** (0 chat failures, 2026-08-03):
 
 | faithfulness | answer relevancy | context precision | context recall |
 |---|---|---|---|
-| 0.964 | 0.863 | 0.867 | 0.961 |
+| 0.932 | 0.881 | 0.849 | 0.961 |
+
+An earlier single run on 2026-07-12 scored faithfulness **0.964**. Re-running it twice on 2026-08-03 — same corpus, same `ragas` 0.4.3, retrieval byte-identical — gave **0.918** and **0.932**. On 38 questions that gap is one or two flipping, and with one sample in July against two in August there is no way to tell a lucky draw from a small real shift. So the honest figure is a range, not the best draw: **faithfulness 0.918–0.932 over two runs**.
+
+That is the same lesson [`voice-desk-agent`](https://github.com/fctpe/voice-desk-agent) already encodes with `--runs 5` — an LLM-judged number from a single run is not an estimate. It had simply never been applied here. The thresholds in [`evals/thresholds.yaml`](evals/thresholds.yaml) are sized for that spread, which is why the gate passed on both runs rather than crying wolf.
 
 **Retrieval ablation** (hit-rate@6 / MRR / article recall, 38 questions):
 
@@ -87,7 +91,7 @@ Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex 
 
 ## Design decisions
 
-Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents, hybrid RRF inside Postgres, structural chunking (+ why late chunking was rejected), SQLAlchemy over SQLModel, SSE over WebSockets, regex redaction with a Presidio seam, per-request budgets and the audit hash chain, OTel GenAI spans against conventions that are not stable yet. Architecture walkthrough in [docs/architecture.md](docs/architecture.md), deployment in [docs/deployment.md](docs/deployment.md).
+Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents, hybrid RRF inside Postgres, structural chunking (+ why late chunking was rejected), SQLAlchemy over SQLModel, SSE over WebSockets, regex redaction with a Presidio seam, per-request budgets and the audit hash chain, OTel GenAI spans against conventions that are not stable yet. Architecture walkthrough in [docs/architecture.md](docs/architecture.md), deployment in [docs/deployment.md](docs/deployment.md) — compose, a kustomize base + local overlay under [`deploy/`](deploy), and a Terraform module for the managed Postgres, secrets and DNS. Security posture (RBAC and object-level authz, redaction scope, what the audit chain does not prove, request budgets) is summarised in [SECURITY.md](SECURITY.md) and covered in full in [docs/security.md](docs/security.md).
 
 ## Limitations
 

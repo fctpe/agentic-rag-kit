@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ragkit-backend
+  labels:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ragkit
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ragkit
+        app.kubernetes.io/component: backend
+    spec:
+      securityContext:
+        # The image already creates uid 1001 and USERs it (backend/Dockerfile);
+        # this is the cluster refusing to run it any other way.
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # The rollout blocker. Kubernetes applies a Job and a Deployment at the
+        # same time, so without this the new pods come up against the old
+        # schema and serve errors until job/ragkit-migrate happens to land.
+        # `alembic current` prints "(head)" only once the upgrade is in, and
+        # exits non-zero while Postgres is still unreachable, so the same loop
+        # covers both waits. It is unbounded on purpose: a pod stuck in Init is
+        # a legible state, and `kubectl rollout status --timeout` is what
+        # decides how long a deploy may hang.
+        - name: wait-for-schema
+          image: ghcr.io/fctpe/agentic-rag-kit-backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            - |
+              until uv run --no-sync alembic current | grep -q '(head)'; do
+                echo "schema is not at head — waiting for job/ragkit-migrate"
+                sleep 3
+              done
+          envFrom:
+            - secretRef:
+                name: ragkit-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      containers:
+        - name: backend
+          image: ghcr.io/fctpe/agentic-rag-kit-backend:latest
+          # Overlays pin the tag (kustomize `images:`). IfNotPresent so a
+          # locally built or kind-loaded image is used as-is instead of being
+          # chased in a registry that has never seen it.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          # Every value the app needs beyond its defaults is a credential:
+          # DATABASE_URL carries the password, JWT_SECRET signs tokens,
+          # OPENAI_API_KEY buys inference. The Secret is created out of band
+          # (docs/deployment.md) and is not optional — a pod with no secret
+          # must fail to start, not start with defaults.
+          envFrom:
+            - secretRef:
+                name: ragkit-secrets
+          startupProbe:
+            # Boot does real work: the lifespan opens the Postgres checkpointer
+            # and runs its setup DDL. Until this passes, liveness cannot fire —
+            # which is the whole reason it exists as a separate probe.
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            # Process check only. Pointing this at /health would restart every
+            # replica during a database failover — see backend/app/api/health.py.
+            httpGet:
+              path: /health/live
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            # /health opens a connection and runs SELECT 1. A pod that cannot
+            # reach Postgres leaves the Service and comes back on its own.
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          # Unmeasured starting points, not a sizing recommendation: this repo
+          # ships no load test, so quoting a number as if it were measured
+          # would be inventing one. Watch actual usage and set them.
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

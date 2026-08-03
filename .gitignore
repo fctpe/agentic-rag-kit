@@ -17,6 +17,14 @@ out/
 .env.*
 !.env.example
 
+# terraform — provider binaries and state. .terraform.lock.hcl IS committed:
+# it is what makes `terraform init` in CI resolve the same provider build.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
 # data
 data/corpus/
 

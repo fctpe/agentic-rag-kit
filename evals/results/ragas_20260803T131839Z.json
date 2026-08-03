@@ -3712,8 +3712,5 @@
         "context_recall": 1.0
       }
     }
-  ],
-  "promoted_from": "ragas_20260803T131839Z.json",
-  "promoted_at": "2026-08-03T13:19:56+00:00",
-  "promoted_git_sha": "79f3c3c"
+  ]
 }

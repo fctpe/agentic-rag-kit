@@ -1,0 +1,157 @@
+# deploy/ against a real cluster.
+#
+# `kubectl --dry-run` proves the YAML parses and nothing else: not that the
+# images start as uid 1001, not that the migration Job finishes before the
+# backend serves traffic, not that the probes point at handlers that exist. So
+# this brings up kind, applies the overlay, and waits for the rollout — every
+# one of those was a real failure caught here first.
+#
+# It also holds the thing docs/deployment.md now promises about health: with
+# Postgres scaled to zero, readiness must go 503 and liveness must stay 200,
+# and the pod must not be restarted. A readiness probe that cannot fail is a
+# readiness probe that means nothing.
+name: Kubernetes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  kind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the images the cluster will run
+        # Same two commands as docs/deployment.md. NEXT_PUBLIC_API_BASE is a
+        # build arg because Next.js inlines it into the browser bundle — the
+        # Deployment cannot set it afterwards (frontend/Dockerfile).
+        run: |
+          docker build -t ragkit-backend:dev backend
+          docker build --build-arg NEXT_PUBLIC_API_BASE=http://api.ragkit.localtest.me \
+            -t ragkit-frontend:dev frontend
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          # `apply -k` renders with the kustomize built into kubectl, so the
+          # version is part of what this job reproduces.
+          version: v1.32.3
+
+      - uses: helm/kind-action@v1
+        with:
+          cluster_name: ragkit
+          config: deploy/kind-cluster.yaml
+
+      - name: Load the images into the node
+        # Base sets imagePullPolicy: IfNotPresent, so nothing goes looking for
+        # these tags in a registry that has never seen them.
+        run: kind load docker-image ragkit-backend:dev ragkit-frontend:dev --name ragkit
+
+      - name: Ingress controller
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/kind/deploy.yaml
+          kubectl -n ingress-nginx wait --for=condition=available deploy/ingress-nginx-controller --timeout=300s
+
+      - name: Namespace and secrets
+        # The namespace first, because its pod-security label has to be in
+        # place before any pod is admitted, and the secrets before the overlay,
+        # because envFrom is not optional — a backend pod with no secret must
+        # fail to start rather than come up on defaults.
+        #
+        # Created here with `--from-literal`, never committed: this is exactly
+        # the out-of-band step deploy/base refuses to do for you. No
+        # OPENAI_API_KEY, and nothing here pretends otherwise — no code path
+        # this job touches calls a model. Chat would fail; chat is
+        # .github/workflows/evals.yml's job.
+        run: |
+          kubectl apply -f deploy/overlays/local/namespace.yaml
+          PG_PASSWORD="$(openssl rand -hex 16)"
+          kubectl -n ragkit create secret generic ragkit-postgres \
+            --from-literal=POSTGRES_USER=rag \
+            --from-literal=POSTGRES_PASSWORD="$PG_PASSWORD" \
+            --from-literal=POSTGRES_DB=ragkit
+          kubectl -n ragkit create secret generic ragkit-secrets \
+            --from-literal=DATABASE_URL="postgresql+asyncpg://rag:${PG_PASSWORD}@postgres:5432/ragkit" \
+            --from-literal=JWT_SECRET="$(openssl rand -hex 32)"
+
+      - run: kubectl apply -k deploy/overlays/local
+
+      - name: Migrations complete
+        # The Job also creates the pgvector extension, because that is the
+        # first statement of the first migration.
+        run: kubectl -n ragkit wait --for=condition=complete job/ragkit-migrate --timeout=300s
+
+      - name: Rollout
+        # Green here means the backend's wait-for-schema init container saw
+        # "(head)" and the readiness probe then got a real SELECT 1 through.
+        run: |
+          kubectl -n ragkit rollout status deploy/ragkit-backend --timeout=300s
+          kubectl -n ragkit rollout status deploy/ragkit-frontend --timeout=300s
+
+      - name: Health through the Ingress
+        run: |
+          curl --fail --silent --show-error --retry 10 --retry-delay 3 --retry-all-errors \
+            -H "Host: api.ragkit.localtest.me" http://127.0.0.1/health | tee /dev/stderr | grep -q '"database":"ok"'
+          curl --fail --silent --show-error \
+            -H "Host: api.ragkit.localtest.me" http://127.0.0.1/health/live
+          curl --fail --silent --show-error -o /dev/null \
+            -H "Host: ragkit.localtest.me" http://127.0.0.1/login
+
+      - name: Readiness fails on a dead database, liveness does not
+        # Straight to the pod, not through the Service: once readiness drops
+        # the endpoint, the ingress returns its own 503 and the two are
+        # indistinguishable from outside.
+        run: |
+          set -euo pipefail
+          POD=$(kubectl -n ragkit get pod -l app.kubernetes.io/component=backend \
+            -o jsonpath='{.items[0].metadata.name}')
+          kubectl -n ragkit scale deploy/postgres --replicas=0
+          kubectl -n ragkit wait --for=delete pod -l app.kubernetes.io/component=postgres --timeout=120s
+
+          kubectl -n ragkit port-forward "pod/$POD" 18000:8000 &
+          sleep 5
+          ready=$(curl -s -o /dev/stderr -w '%{http_code}' http://127.0.0.1:18000/health)
+          live=$(curl -s -o /dev/stderr -w '%{http_code}' http://127.0.0.1:18000/health/live)
+          test "$ready" = "503" || { echo "readiness returned $ready with no database"; exit 1; }
+          test "$live" = "200" || { echo "liveness returned $live over a database outage"; exit 1; }
+
+          # Longer than livenessProbe periodSeconds (10) x failureThreshold (3),
+          # so a liveness probe wired to the database would have restarted this
+          # container by now.
+          sleep 45
+          restarts=$(kubectl -n ragkit get pod "$POD" \
+            -o jsonpath='{.status.containerStatuses[0].restartCount}')
+          test "$restarts" = "0" || { echo "the pod was restarted $restarts times by a database outage"; exit 1; }
+
+          kubectl -n ragkit scale deploy/postgres --replicas=1
+          kubectl -n ragkit wait --for=condition=ready pod "$POD" --timeout=180s
+          echo "same pod, no restart, ready again"
+
+      - name: What the cluster saw
+        if: failure()
+        run: |
+          kubectl -n ragkit get pods -o wide
+          kubectl -n ragkit describe pods
+          kubectl -n ragkit logs job/ragkit-migrate --tail=50 || true
+          kubectl -n ragkit logs deploy/ragkit-backend --all-containers --tail=50 || true
+
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.4
+      - run: terraform fmt -check -recursive
+      - name: Validates with no cloud credentials
+        # -backend=false and no provider block: this is a module, so there is
+        # nothing to authenticate against and nothing to plan. It catches the
+        # arguments that stopped existing under a provider bump, which is the
+        # failure that otherwise shows up mid-apply.
+        run: |
+          terraform init -backend=false
+          terraform validate

@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# No namespace and no Secret here. The namespace is the overlay's call, and the
+# only Secret this app needs is created out of band by whoever holds the values
+# (docs/deployment.md) — a kustomize secretGenerator would put them in the tree
+# or in a file next to it, which is the thing to avoid.
+resources:
+  - migrate-job.yaml
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+  - ingress.yaml

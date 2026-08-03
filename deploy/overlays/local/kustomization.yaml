@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ragkit
+
+resources:
+  - namespace.yaml
+  - ../../base
+  - postgres.yaml
+
+# Locally built, never pushed: docs/deployment.md builds these two tags and
+# kind loads them into the node. Base sets imagePullPolicy: IfNotPresent so
+# nothing goes looking for them in a registry.
+images:
+  - name: ghcr.io/fctpe/agentic-rag-kit-backend
+    newName: ragkit-backend
+    newTag: dev
+  - name: ghcr.io/fctpe/agentic-rag-kit-frontend
+    newName: ragkit-frontend
+    newTag: dev
+
+# One of each: a second replica on a one-node cluster proves nothing and
+# doubles the pull.
+replicas:
+  - name: ragkit-backend
+    count: 1
+  - name: ragkit-frontend
+    count: 1
+
+patches:
+  - path: ingress-hosts.yaml
