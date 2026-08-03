@@ -44,7 +44,7 @@ jobs:
       JWT_SECRET: ${{ secrets.EVAL_JWT_SECRET }}
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
 
       - name: Refuse to report a green run without a key
         run: |
