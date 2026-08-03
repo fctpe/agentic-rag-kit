@@ -196,7 +196,11 @@ async def resume(
         conversation = await session.scalar(
             select(Conversation).where(Conversation.thread_id == thread_id)
         )
-        if conversation is not None and conversation.user_id != user.id:
+        # Fail closed. A missing Conversation row used to skip the ownership
+        # check entirely, so an unknown thread_id was resumable by any analyst.
+        # Every resumable thread has a Conversation — /chat creates it before the
+        # graph ever runs — so absence means the thread is not this user's.
+        if conversation is None or conversation.user_id != user.id:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Not your conversation")
         approval = await session.scalar(
             select(Approval)
