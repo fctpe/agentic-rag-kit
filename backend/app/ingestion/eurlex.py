@@ -50,7 +50,11 @@ def fetch_html(url: str, timeout: float = 60.0) -> str:
 
 
 def _has_class(node: Tag, classes: tuple[str, ...]) -> bool:
-    node_classes = node.get("class") or []
+    # bs4 returns a list for multi-valued attributes but a bare str when the
+    # parser saw a single value; normalise so `in` never falls back to
+    # substring matching against a string.
+    raw: str | list[str] = node.get("class") or []
+    node_classes: list[str] = raw if isinstance(raw, list) else [raw]
     return any(cls in node_classes for cls in classes)
 
 
