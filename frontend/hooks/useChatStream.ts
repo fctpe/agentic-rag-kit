@@ -53,9 +53,20 @@ export function useChatStream({ token, onUnauthorized }: ChatStreamOptions) {
             text += data.text as string;
             patchMessage(assistantId, { content: text });
             break;
+          case "drafting":
+            // Report run: the backend suppresses tokens, so nothing will fill
+            // this bubble. Say what is happening rather than sitting on
+            // "Thinking…" until the banner appears.
+            patchMessage(assistantId, {
+              content: "",
+              drafting: true,
+            });
+            break;
           case "approval_required":
             // The stream ends here; the draft lives in the banner until a
-            // decision is made, so drop the partially streamed bubble.
+            // decision is made. The bubble is empty by construction now — the
+            // backend never streamed a report — but it is still dropped, since
+            // the banner owns the draft.
             setMessages((prev) => prev.filter((m) => m.id !== assistantId));
             setApproval({
               draft: (data.draft as string) ?? "",

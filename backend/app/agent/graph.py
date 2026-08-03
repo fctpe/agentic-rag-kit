@@ -126,8 +126,14 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             }
         redaction = redact_pii(text)
         injection = assess_injection(redaction.text)
+        # /chat redacts at the API boundary (so nothing raw reaches the
+        # checkpointer) and passes what it stripped in as `pii_found`. Redacting
+        # again here finds nothing and would erase that record, so union the two:
+        # this node stays a real boundary for any caller that drives the graph
+        # directly, without dropping the labels the route already found.
+        pii_found = list(dict.fromkeys([*state.get("pii_found", []), *redaction.found]))
         updates: dict[str, Any] = {
-            "pii_found": redaction.found,
+            "pii_found": pii_found,
             "injection_signals": injection.signals,
             # A new turn on an existing thread starts its own budget; only a
             # resumed approval (which re-enters after this node) keeps the total.

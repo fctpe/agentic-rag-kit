@@ -26,19 +26,19 @@ export default function CitationCard({ citation, active }: CitationCardProps) {
       <p className="mt-1 line-clamp-3 text-[13px] leading-snug text-slate-500">
         {citation.snippet}
       </p>
-      <div className="mt-2 flex items-center justify-between">
-        <a
-          href={citation.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[13px] font-medium text-blue-700 hover:underline"
-        >
-          View on EUR-Lex
-        </a>
-        <span className="text-[11px] tabular-nums text-slate-400">
-          score {citation.score.toFixed(3)}
-        </span>
-      </div>
+      {/*
+        `citation.score` is deliberately not rendered — see lib/types.ts. The
+        number a reader can use is the source id in the badge above, which is
+        the [n] the answer cites.
+      */}
+      <a
+        href={citation.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-block text-[13px] font-medium text-blue-700 hover:underline"
+      >
+        View on EUR-Lex
+      </a>
     </div>
   );
 }

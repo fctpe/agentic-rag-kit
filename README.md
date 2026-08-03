@@ -27,11 +27,11 @@ flowchart LR
 
 ## What makes it production-shaped
 
-- **Durable human-in-the-loop** — report-type output stops at a LangGraph `interrupt()` checkpointed in Postgres. Kill the backend mid-approval, restart, approve — the run resumes. (Verified exactly that way; try it.)
-- **Grounding verification** — after every answer, a judge audits each claim against the retrieved article text and flags unsupported ones *to the user* instead of shipping them silently.
+- **Durable human-in-the-loop** — report-type output stops at a LangGraph `interrupt()` checkpointed in Postgres. Kill the backend mid-approval, restart, approve — the run resumes. (Verified exactly that way; try it.) A report is never streamed: the draft reaches the user in the approval payload or not at all, and an admin can decide another user's approval, so reviewer and author need not be the same person ([ADR 0001 addendum](docs/adr/0001-langgraph-explicit-stategraph.md)).
+- **Grounding verification** — after every answer, a judge checks each claim against the retrieved article text and reports the ones **no** source supports *to the user* instead of shipping them silently. It verifies support, not attribution: a claim that cites the wrong article passes as long as some retrieved source backs the claim itself. That is deliberate — checking the numbers made it flag correct enumerations — and [docs/security.md](docs/security.md) states the boundary. A qa answer streams before the verdict exists, and the UI shows that window as unverified rather than rendering an unchecked answer identically to a checked one.
 - **Hybrid retrieval in one SQL statement** — pgvector cosine + Postgres FTS fused with RRF (k=60), with `hnsw.iterative_scan` guarding against the classic filtered-query overfiltering failure. No second search engine.
-- **Structure-aware ingestion** — chunks never cross article boundaries; every chunk carries `Art. N` metadata, so citations deep-link into EUR-Lex. Anthropic-style contextual prefixes are one flag away.
-- **Security you can point at** — OWASP LLM Top 10 (2025) mapping ([docs/security.md](docs/security.md)), PII redaction before model/trace/checkpoint, JWT RBAC, and a hash-chained audit log framed against AI Act Art. 12/14: `GET /audit/verify` walks the chain and names the first entry an edit — or a deletion between two others — broke. It is tamper-*evidence*, not tamper-proofing; [docs/security.md](docs/security.md#audit-trail-eu-ai-act-art-12-framing) states exactly what it does not catch.
+- **Structure-aware ingestion** — chunks never cross the boundary of the unit they came from, and every chunk carries that unit's ref (`Art. 6`, `Annex III`), so citations deep-link into the right place in EUR-Lex (`#art_6`, `#anx_III`). Annexes are ingested and chunked as units in their own right, not folded into the last article: the AI Act's high-risk list is Annex III, and Art. 6(2) only points at it. Anthropic-style contextual prefixes are one flag away.
+- **Security you can point at** — OWASP LLM Top 10 (2025) mapping ([docs/security.md](docs/security.md)), PII redaction at the API boundary — before the model, a trace, *and* the checkpointer, which is the one that took a test against real checkpoint contents to get right ([ADR 0004](docs/adr/0004-sqlalchemy-sse-redaction-choices.md)) — JWT RBAC, and a hash-chained audit log framed against AI Act Art. 12/14: `GET /audit/verify` walks the chain and names the first entry an edit — or a deletion between two others — broke. It is tamper-*evidence*, not tamper-proofing; [docs/security.md](docs/security.md#audit-trail-eu-ai-act-art-12-framing) states exactly what it does not catch.
 - **Telemetry that survives the request** — OpenTelemetry spans on the GenAI semantic conventions around every graph node, tool call, retrieval and the grounding verifier, with token and cost accounting from `usage_metadata`, plus JSON logs correlated by request and trace id. Exports OTLP to any collector — Langfuse included, which is why it stays. Unset endpoint means no exporter at all ([ADR 0006](docs/adr/0006-otel-genai-spans-and-structured-logs.md)).
 - **Evals built to gate merges** — golden dataset with expected articles, retrieval ablations (vector-only vs hybrid), RAGAS metrics, and a red-team suite for injection/PII/refusal behavior. CI validates the dataset and compiles the suites on every push; wiring the scored runs in as a blocking gate needs a provider key and is a one-line CI change (documented in [docs/deployment.md](docs/deployment.md)).
 
@@ -41,12 +41,12 @@ flowchart LR
 git clone https://github.com/fctpe/agentic-rag-kit && cd agentic-rag-kit
 cp .env.example .env          # set OPENAI_API_KEY, JWT_SECRET
 make db migrate seed
-make ingest-smoke             # 10 articles per regulation, straight from the committed corpus
+make ingest-smoke             # 10 units per regulation, straight from the committed corpus
 make api                      # :8000
 make dev                      # :3000 — login as analyst@example.com / demo1234
 ```
 
-The corpus is committed under [`data/fixtures/`](data/fixtures) — the EU AI Act and GDPR articles as this repo's parser produced them — so a clean clone ingests without depending on EUR-Lex being in a good mood. `make ingest-fixture` loads all 212 articles from it, which is the corpus every number below was measured against; `make ingest` re-fetches the same articles from live EUR-Lex and adds the LLM contextual prefixes. All three still need a provider key: the text is committed, the embeddings are not.
+The corpus is committed under [`data/fixtures/`](data/fixtures) — the EU AI Act and GDPR as this repo's parser produced them — so a clean clone ingests without depending on EUR-Lex being in a good mood. It holds **212 articles and 13 annexes → 280 chunks**: articles (`Art. 6`) and annexes (`Annex III`) are separate citable units, because Art. 6(2) makes an AI system high-risk by pointing at the list in Annex III and the list exists nowhere else. `make ingest-fixture` loads all of it; `make ingest` re-fetches the same units from live EUR-Lex and adds the LLM contextual prefixes. All three still need a provider key: the text is committed, the embeddings are not.
 
 Ask *"What obligations apply to providers of high-risk AI systems?"* — cited answer. Ask for *"a compliance report on prohibited practices"* — the approval banner appears; approve or reject with a comment.
 
@@ -54,7 +54,11 @@ Ask *"What obligations apply to providers of high-risk AI systems?"* — cited a
 
 ![demo: backend test suite, retrieval ablation, RAGAS, and red-team results](docs/demo.gif)
 
-All numbers below are from live runs against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results), stamped with the run that produced them.
+All numbers below are from live runs against the full corpus (283 chunks, 212 articles), `gpt-4o-mini` as agent and judge. Raw outputs are committed under [`evals/results/`](evals/results), stamped with the run that produced them and with the commit that promoted them — a stamp `backend/tests/test_eval_gate.py` now checks is still reachable from `HEAD`, after one of them turned out to name a commit a rebase had orphaned.
+
+> **These figures predate the current corpus and have not been re-measured.** They were run on a 283-chunk corpus in which annexes and the OJ trailer were swept into whichever article came last; the corpus is now 280 chunks over 212 articles and 13 separately addressable annexes. Nothing below has been rerun against it, and the retrieval numbers in particular will move — annex chunks that used to rank as "Art. 113" now rank as `Annex III`. They are left as measured rather than adjusted, because a number nobody re-ran is not a number.
+
+**Read the RAGAS numbers with that agent-is-also-judge caveat in front of you.** A judge scoring output from its own model family grades leniently on exactly the failure it shares — phrasing that sounds supported. The retrieval ablation below does not have this problem (deterministic, no judge), which is part of why the thresholds in [`evals/thresholds.yaml`](evals/thresholds.yaml) give it tight floors and give RAGAS loose ones. Treating these as an independent audit rather than as the author's own instrumentation would be a mistake; a cross-family judge is on the roadmap.
 
 **RAGAS over the 38-question golden set** (0 chat failures, 2026-08-03):
 
@@ -101,7 +105,7 @@ The eval suites live in [`evals/`](evals): `make eval` (RAGAS over the golden da
 
 ## Regulatory accuracy
 
-Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex III high-risk obligations apply from 2 Dec 2027; Art. 50 transparency largely from Aug 2026. Recitals are not ingested in v1, and annex text is only present mislabelled under the last article (see limitations).
+Docs and corpus reflect the **2026 Digital Omnibus** (adopted June 2026): Annex III high-risk obligations apply from 2 Dec 2027; Art. 50 transparency largely from Aug 2026. Articles and annexes are both ingested; recitals are not (see limitations).
 
 ## Design decisions
 
@@ -109,11 +113,11 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 
 ## Limitations
 
-- **Live EUR-Lex is intermittent.** It sometimes answers the document URLs with `HTTP 202` and an empty body — bot protection or a queued render, not an error status, so `raise_for_status()` waves it through. `fetch_html` rejects any body under 20 KB and `make ingest` fails with a `FetchError` naming the cause, rather than handing an empty string to the parser and blaming the markup. On 2026-08-03 the endpoint returned 202/0 bytes twice and then served the full 1.26 MB document on the next twelve requests. That flakiness is why the corpus is committed: `make ingest-smoke` and `make ingest-fixture` never touch the network. The two sources agree — checked on 2026-08-03, live EUR-Lex and `data/fixtures/` both yield 113 AI Act articles → 164 chunks and 99 GDPR articles → 119 chunks.
-- Corpus is articles-only (no recitals) and English-only. One parser wart survives into it: annexes and the OJ trailer follow the last article title without carrying an article marker of their own, so the parser sweeps them into the last article. AI Act "Art. 113" is consequently a 19-chunk blob that is almost entirely Annex text, and it lands in the top 6 for 9 of the 38 scored questions, cited as Art. 113. Fixing it re-cuts the corpus and invalidates every number above, so it is recorded here rather than quietly patched.
+- **Live EUR-Lex is intermittent.** It sometimes answers the document URLs with `HTTP 202` and an empty body — bot protection or a queued render, not an error status, so `raise_for_status()` waves it through. `fetch_html` rejects any body under 20 KB and `make ingest` fails with a `FetchError` naming the cause, rather than handing an empty string to the parser and blaming the markup. On 2026-08-03 the endpoint returned 202/0 bytes twice and then served the full 1.26 MB document on the next twelve requests. That flakiness is why the corpus is committed: `make ingest-smoke` and `make ingest-fixture` never touch the network. The two sources agree — checked on 2026-08-04, live EUR-Lex and `data/fixtures/` both yield 113 AI Act articles + 13 annexes → 163 chunks, and 99 GDPR articles + 0 annexes → 117 chunks.
+- Corpus is articles and annexes, no recitals, and English-only. Both kinds are addressed and cited under their own ref, which is a deliberate reversal of the previous behaviour: annexes carry no article marker, so a paragraph-level parser swept all thirteen of them plus the OJ trailer into the last article, and AI Act "Art. 113" was a 19-chunk blob of mostly Annex III served to users as *Entry into force*. Nothing outside the enacting terms attaches itself to an article now, and content that belongs to no container makes the parser refuse rather than guess. The GDPR has no annexes at all; zero is an ordinary result there, not a failure.
 - The router's report-detection is heuristic-first; unusual phrasings can miss the approval gate. The gate is policy, not a security boundary — RBAC is.
 - PII redaction is structural (emails, phones, IBANs, cards); free-text names need the documented Presidio swap.
-- Grounding audit adds one model call of latency to every answer, and rejected reports end the run — there is no revision loop yet.
+- Grounding audit adds one model call of latency to every answer, and rejected reports end the run — there is no revision loop yet. It also does not check *which* source a claim cites, so a misattributed claim passes: "All AI systems must process personal data in accordance with the GDPR (AI Act, Art. 50(3))" was judged grounded, though Art. 50(3) is about emotion-recognition disclosure. Reading a citation as proof that *that* article says it is the mistake this check does not protect you from.
 - Single-tenant by design; per-document ACLs and SSO are out of scope for the kit.
 - The audit chain is unkeyed sha256 over columns the database can rewrite, so it detects edits made *around* the application, not an attacker who recomputes the chain — and deleting the newest entries leaves the rest walking clean (ADR 0005).
 - The GenAI semantic conventions are still Development status, so the span attribute names can move; the OTel packages are pinned exactly and a test holds the names to the generated constants (ADR 0006). Span cost is whatever you configure — the repo ships no price table.
@@ -121,7 +125,7 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 ## Roadmap
 
 - Citation- and lexical-shaped golden questions, so the text arm's precision is measured instead of asserted and the hybrid-vs-vector choice rests on something.
-- Article-boundary fix for the trailing annexes, re-ingest, and a re-run of every suite against the re-cut corpus.
+- Re-ingest and a re-run of every suite against the re-cut corpus, so the Results tables describe the articles-plus-annexes corpus instead of the one that predates it. Golden questions whose answer is an annex (high-risk classification) should name it in `expected_articles` once that run exists — the harness already scores `AI Act Annex III` as an expected unit.
 - Style-matching RAG over previously **approved** reports, so drafts converge on the reviewing team's voice.
 - Revision loop on rejection (reviewer comment feeds a redraft pass).
 - German corpus variant (second `tsvector` configuration).
