@@ -1,0 +1,88 @@
+# Scored eval suites against a live stack.
+#
+# Kept out of ci.yml deliberately. These runs need Postgres, an ingested corpus,
+# and a provider key, and they cost real money per run — so they are not a
+# per-push gate. The per-push gate is the offline threshold check in ci.yml,
+# which validates the committed baselines without a key.
+#
+# Weekly rather than nightly: the corpus and prompts do not change daily, and a
+# weekly run is enough to catch model-side drift without burning credit. Runs on
+# demand too, which is the mode that matters after a prompt or retrieval change.
+name: Evals
+
+on:
+  schedule:
+    - cron: "17 4 * * 1" # Mondays, 04:17 UTC
+  workflow_dispatch:
+
+jobs:
+  scored:
+    runs-on: ubuntu-latest
+    # A fork PR has no secret, and a run without a key would report a
+    # meaningless green. Skip loudly instead.
+    if: github.repository == 'fctpe/agentic-rag-kit'
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: rag
+          POSTGRES_PASSWORD: rag
+          POSTGRES_DB: ragkit
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U rag -d ragkit"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+asyncpg://rag:rag@localhost:5434/ragkit
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      JWT_SECRET: ${{ secrets.EVAL_JWT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Refuse to report a green run without a key
+        run: |
+          test -n "$OPENAI_API_KEY" || { echo "OPENAI_API_KEY secret is empty"; exit 1; }
+          test -n "$JWT_SECRET" || { echo "EVAL_JWT_SECRET secret is empty"; exit 1; }
+
+      - run: uv sync --group dev --group evals
+      - run: uv run alembic upgrade head
+      - run: uv run python -m app.seed
+
+      - name: Ingest the full corpus
+        # Separate step so an upstream EUR-Lex hiccup is legible as a fetch
+        # failure rather than an eval regression.
+        run: uv run python -m app.ingestion.pipeline
+
+      - name: Start the API
+        run: |
+          uv run uvicorn app.main:app --port 8000 &
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8000/health && break
+            sleep 2
+          done
+
+      - name: Retrieval ablation (deterministic, no judge)
+        run: |
+          uv run --group evals python ../evals/run_retrieval_eval.py --mode hybrid
+          uv run --group evals python ../evals/run_retrieval_eval.py --mode vector_only
+          uv run --group evals python ../evals/run_retrieval_eval.py --mode text_only
+
+      - name: Red team
+        run: uv run --group evals python ../evals/run_redteam.py
+
+      - name: RAGAS
+        run: uv run --group evals python ../evals/run_evals.py
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: evals/results/

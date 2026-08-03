@@ -28,9 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --group dev
-      - run: uv run ruff check app tests
-      - run: uv run ruff format --check app tests
+      - run: uv sync --group dev --group evals
+      # ../evals was never linted; the eval scripts are real code and the gate
+      # they now carry decides whether a merge is green.
+      - run: uv run ruff check app tests ../evals
+      - run: uv run ruff format --check app tests ../evals
       - run: uv run mypy app
       - run: uv run pytest
       - name: Migrations apply cleanly against pgvector
@@ -40,8 +42,16 @@ jobs:
       - name: Eval suites validate and compile (no provider key needed)
         run: |
           uv run --group evals python -m py_compile \
-            ../evals/run_evals.py ../evals/run_redteam.py ../evals/run_retrieval_eval.py
+            ../evals/run_evals.py ../evals/run_redteam.py \
+            ../evals/run_retrieval_eval.py ../evals/promote.py ../evals/gate.py
           uv run --group evals python ../evals/validate_golden.py
+      - name: Eval gate holds against the committed baselines (offline)
+        # Runs the real threshold logic over the committed results on every PR,
+        # with no provider key and no cost. Catches a gate that has stopped
+        # gating, and a thresholds.yaml edited out of step with the numbers the
+        # README cites. The scored runs themselves need a live stack — see
+        # .github/workflows/evals.yml.
+        run: uv run --group dev --group evals pytest tests/test_eval_gate.py -q
 
   frontend:
     runs-on: ubuntu-latest

@@ -41,5 +41,16 @@ lint:
 eval:            ## RAGAS metrics over the golden dataset (needs running stack + key)
 	cd backend && uv run --group evals python ../evals/run_evals.py
 
+eval-retrieval:  ## retrieval ablation: hybrid vs vector-only vs text-only (no judge)
+	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode hybrid
+	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode vector_only
+	cd backend && uv run --group evals python ../evals/run_retrieval_eval.py --mode text_only
+
 redteam:         ## prompt-injection / PII / refusal suite
 	cd backend && uv run --group evals python ../evals/run_redteam.py
+
+promote:         ## promote the newest passing run to the committed baseline (SUITE=ragas|redteam)
+	cd backend && uv run --group evals python ../evals/promote.py $(SUITE)
+
+gate:            ## check the committed baselines against evals/thresholds.yaml (offline, free)
+	cd backend && uv run --group dev --group evals pytest tests/test_eval_gate.py -q
