@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Pinned: `uv:latest` makes the image non-reproducible across rebuilds.
 COPY --from=ghcr.io/astral-sh/uv:0.12.1 /uv /usr/local/bin/uv
