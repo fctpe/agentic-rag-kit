@@ -20,7 +20,10 @@ require-env:
 	}
 
 db:              ## start postgres only (local dev)
-	docker compose up -d postgres
+	# --wait, because `up -d` returns when the container is created, not when
+	# Postgres accepts connections. Without it `make db migrate` races and the
+	# migration dies on connection refused.
+	docker compose up -d --wait postgres
 
 up: require-env  ## full stack in docker
 	docker compose --profile full up -d --build
