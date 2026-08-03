@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+build
+coverage
+.git
+.gitignore
+Dockerfile
+.dockerignore
+npm-debug.log*
+tsconfig.tsbuildinfo
+.DS_Store
+.env*

@@ -1,9 +1,17 @@
-.PHONY: db up migrate seed ingest ingest-smoke api dev test lint eval redteam
+.PHONY: db up migrate seed ingest ingest-smoke api dev test lint eval redteam require-env
+
+require-env:
+	@test -f .env || { \
+	  echo "Missing .env — the backend service reads it via compose env_file."; \
+	  echo "  cp .env.example .env"; \
+	  echo "  # then set OPENAI_API_KEY, and JWT_SECRET=\$$(openssl rand -hex 32)"; \
+	  exit 1; \
+	}
 
 db:              ## start postgres only (local dev)
 	docker compose up -d postgres
 
-up:              ## full stack in docker
+up: require-env  ## full stack in docker
 	docker compose --profile full up -d --build
 
 migrate:

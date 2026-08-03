@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Standalone output bundles only the traced runtime dependencies, so the
+  // container image does not need node_modules. Required by ./Dockerfile.
+  output: "standalone",
   reactCompiler: true,
 };
 
