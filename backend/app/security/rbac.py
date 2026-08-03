@@ -73,3 +73,21 @@ def require_role(minimum: Role):
         return user
 
     return dependency
+
+
+def may_decide_approval(conversation_owner_id, user: User) -> bool:
+    """Whether `user` may approve or reject the pending approval on a thread
+    owned by `conversation_owner_id`.
+
+    The single rule behind two surfaces that had drifted apart: GET /admin/approvals
+    listed every pending approval to an admin, while POST /chat/{id}/resume
+    rejected any thread the caller did not own — so an admin's queue was a list
+    of drafts nobody could act on. Anything the listing shows a user, this must
+    return True for; tests/test_api_authz.py asserts exactly that correspondence.
+
+    `None` owner means no Conversation row, which means the thread is not
+    resumable at all — fail closed rather than treating absence as permission.
+    """
+    if conversation_owner_id is None:
+        return False
+    return user.role == Role.admin or conversation_owner_id == user.id

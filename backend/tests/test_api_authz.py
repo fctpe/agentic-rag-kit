@@ -33,7 +33,11 @@ from app.models.tables import (  # noqa: E402
     Role,
     User,
 )
-from app.security.rbac import hash_password, issue_token  # noqa: E402
+from app.security.rbac import (  # noqa: E402
+    hash_password,
+    issue_token,
+    may_decide_approval,
+)
 
 _TABLES = [
     Base.metadata.tables[name] for name in ("users", "conversations", "approvals", "audit_log")
@@ -112,3 +116,53 @@ async def test_admin_sees_every_pending_approval(env):
 async def test_unauthenticated_request_is_rejected(env):
     client, _ = env
     assert (await client.get("/approvals")).status_code == 401
+
+
+class TestListingAndDecisionAgree:
+    """The two surfaces had drifted: /approvals was admin-wide, /chat/{id}/resume
+    was owner-only, so every cross-user row in an admin's queue was a 403 waiting
+    to happen. Both now derive from `may_decide_approval`, and this pins the
+    correspondence rather than restating either rule.
+    """
+
+    async def test_every_listed_approval_is_one_the_caller_can_decide(self, env):
+        client, users = env
+        owners = {"thread-alice": users["alice"].id, "thread-bob": users["bob"].id}
+
+        for name in ("alice", "bob", "root"):
+            caller = users[name]
+            body = (await client.get("/approvals", headers=_auth(caller))).json()
+            listed = [row["thread_id"] for row in body["pending"]]
+            assert listed, f"{name} was shown an empty queue"
+            for thread in listed:
+                assert may_decide_approval(owners[thread], caller), (
+                    f"{name} was shown {thread} but cannot decide it"
+                )
+
+    async def test_every_unlisted_approval_is_one_the_caller_cannot_decide(self, env):
+        client, users = env
+        owners = {"thread-alice": users["alice"].id, "thread-bob": users["bob"].id}
+
+        for name in ("alice", "bob", "root"):
+            caller = users[name]
+            body = (await client.get("/approvals", headers=_auth(caller))).json()
+            listed = {row["thread_id"] for row in body["pending"]}
+            for thread in set(owners) - listed:
+                assert not may_decide_approval(owners[thread], caller), (
+                    f"{name} can decide {thread} but was never shown it"
+                )
+
+    async def test_an_admin_can_decide_another_users_report(self, env):
+        _, users = env
+        assert may_decide_approval(users["alice"].id, users["root"])
+
+    async def test_an_analyst_cannot_decide_another_analysts_report(self, env):
+        _, users = env
+        assert not may_decide_approval(users["alice"].id, users["bob"])
+
+    async def test_a_missing_conversation_is_denied_to_everyone(self, env):
+        _, users = env
+        # Absence is not permission: an unknown thread_id was once resumable
+        # by any analyst because the ownership check was skipped entirely.
+        assert not may_decide_approval(None, users["root"])
+        assert not may_decide_approval(None, users["alice"])
