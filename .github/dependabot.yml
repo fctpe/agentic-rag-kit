@@ -1,44 +1,57 @@
 version: 2
-
-# Weekly, and minor+patch grouped into one PR per ecosystem. Ungrouped weekly
-# updates on a repo this size produce more noise than anyone reads, and a
-# dependency bot nobody reads is worse than none. Majors stay separate on
-# purpose — those are the ones that need a human.
+# Bewusst zurückhaltend: dieses Repo wird gepflegt, nicht bewacht. Ein Schwall
+# einzelner PRs wird ignoriert und ist damit schlechter als monatlich einer.
+# Major-Sprünge bei Runtimes und Toolchain sind ausgenommen — genau die haben
+# schon einmal die CI zerlegt (TypeScript 7, Node 26, Python 3.14).
 updates:
-  - package-ecosystem: "uv"
-    directory: "/backend"
-    schedule:
-      interval: "weekly"
-    groups:
-      minor-and-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "npm"
-    directory: "/frontend"
-    schedule:
-      interval: "weekly"
-    groups:
-      minor-and-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-
-  - package-ecosystem: "docker"
-    directories:
-      - "/backend"
-      - "/frontend"
-    schedule:
-      interval: "weekly"
-    groups:
-      minor-and-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    open-pull-requests-limit: 2
     groups:
-      minor-and-patch:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "uv"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    groups:
+      python:
         patterns: ["*"]
         update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "typescript"
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
