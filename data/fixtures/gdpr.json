@@ -3,8 +3,8 @@
  "title": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
  "celex": "32016R0679",
  "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679",
- "retrieved": "2026-07-12",
- "parsed_by": "app.ingestion.eurlex.parse_articles",
+ "retrieved": "2026-08-04",
+ "parsed_by": "app.ingestion.eurlex.parse_units",
  "articles": [
   {
    "number": "1",
@@ -116,9 +116,7 @@
     "(25)",
     "‘information society service’ means a service as defined in point (b) of Article 1(1) of Directive (EU) 2015/1535 of the European Parliament and of the Council ( 19 ) ;",
     "(26)",
-    "‘international organisation’ means an organisation and its subordinate bodies governed by public international law, or any other body which is set up by, or on the basis of, an agreement between two or more countries.",
-    "CHAPTER II",
-    "Principles"
+    "‘international organisation’ means an organisation and its subordinate bodies governed by public international law, or any other body which is set up by, or on the basis of, an agreement between two or more countries."
    ]
   },
   {
@@ -241,11 +239,7 @@
    "heading": "Processing which does not require identification",
    "paragraphs": [
     "1.   If the purposes for which a controller processes personal data do not or do no longer require the identification of a data subject by the controller, the controller shall not be obliged to maintain, acquire or process additional information in order to identify the data subject for the sole purpose of complying with this Regulation.",
-    "2.   Where, in cases referred to in paragraph 1 of this Article, the controller is able to demonstrate that it is not in a position to identify the data subject, the controller shall inform the data subject accordingly, if possible. In such cases, Articles 15 to 20 shall not apply except where the data subject, for the purpose of exercising his or her rights under those articles, provides additional information enabling his or her identification.",
-    "CHAPTER III",
-    "Rights of the data subject",
-    "Section 1",
-    "Transparency and modalities"
+    "2.   Where, in cases referred to in paragraph 1 of this Article, the controller is able to demonstrate that it is not in a position to identify the data subject, the controller shall inform the data subject accordingly, if possible. In such cases, Articles 15 to 20 shall not apply except where the data subject, for the purpose of exercising his or her rights under those articles, provides additional information enabling his or her identification."
    ]
   },
   {
@@ -264,9 +258,7 @@
     "The controller shall bear the burden of demonstrating the manifestly unfounded or excessive character of the request.",
     "6.   Without prejudice to Article 11, where the controller has reasonable doubts concerning the identity of the natural person making the request referred to in Articles 15 to 21, the controller may request the provision of additional information necessary to confirm the identity of the data subject.",
     "7.   The information to be provided to data subjects pursuant to Articles 13 and 14 may be provided in combination with standardised icons in order to give in an easily visible, intelligible and clearly legible manner a meaningful overview of the intended processing. Where the icons are presented electronically they shall be machine-readable.",
-    "8.   The Commission shall be empowered to adopt delegated acts in accordance with Article 92 for the purpose of determining the information to be presented by the icons and the procedures for providing standardised icons.",
-    "Section 2",
-    "Information and access to personal data"
+    "8.   The Commission shall be empowered to adopt delegated acts in accordance with Article 92 for the purpose of determining the information to be presented by the icons and the procedures for providing standardised icons."
    ]
   },
   {
@@ -377,9 +369,7 @@
     "the existence of automated decision-making, including profiling, referred to in Article 22(1) and (4) and, at least in those cases, meaningful information about the logic involved, as well as the significance and the envisaged consequences of such processing for the data subject.",
     "2.   Where personal data are transferred to a third country or to an international organisation, the data subject shall have the right to be informed of the appropriate safeguards pursuant to Article 46 relating to the transfer.",
     "3.   The controller shall provide a copy of the personal data undergoing processing. For any further copies requested by the data subject, the controller may charge a reasonable fee based on administrative costs. Where the data subject makes the request by electronic means, and unless otherwise requested by the data subject, the information shall be provided in a commonly used electronic form.",
-    "4.   The right to obtain a copy referred to in paragraph 3 shall not adversely affect the rights and freedoms of others.",
-    "Section 3",
-    "Rectification and erasure"
+    "4.   The right to obtain a copy referred to in paragraph 3 shall not adversely affect the rights and freedoms of others."
    ]
   },
   {
@@ -455,9 +445,7 @@
     "the processing is carried out by automated means.",
     "2.   In exercising his or her right to data portability pursuant to paragraph 1, the data subject shall have the right to have the personal data transmitted directly from one controller to another, where technically feasible.",
     "3.   The exercise of the right referred to in paragraph 1 of this Article shall be without prejudice to Article 17. That right shall not apply to processing necessary for the performance of a task carried out in the public interest or in the exercise of official authority vested in the controller.",
-    "4.   The right referred to in paragraph 1 shall not adversely affect the rights and freedoms of others.",
-    "Section 4",
-    "Right to object and automated individual decision-making"
+    "4.   The right referred to in paragraph 1 shall not adversely affect the rights and freedoms of others."
    ]
   },
   {
@@ -485,9 +473,7 @@
     "(c)",
     "is based on the data subject's explicit consent.",
     "3.   In the cases referred to in points (a) and (c) of paragraph 2, the data controller shall implement suitable measures to safeguard the data subject's rights and freedoms and legitimate interests, at least the right to obtain human intervention on the part of the controller, to express his or her point of view and to contest the decision.",
-    "4.   Decisions referred to in paragraph 2 shall not be based on special categories of personal data referred to in Article 9(1), unless point (a) or (g) of Article 9(2) applies and suitable measures to safeguard the data subject's rights and freedoms and legitimate interests are in place.",
-    "Section 5",
-    "Restrictions"
+    "4.   Decisions referred to in paragraph 2 shall not be based on special categories of personal data referred to in Article 9(1), unless point (a) or (g) of Article 9(2) applies and suitable measures to safeguard the data subject's rights and freedoms and legitimate interests are in place."
    ]
   },
   {
@@ -531,11 +517,7 @@
     "(g)",
     "the risks to the rights and freedoms of data subjects; and",
     "(h)",
-    "the right of data subjects to be informed about the restriction, unless that may be prejudicial to the purpose of the restriction.",
-    "CHAPTER IV",
-    "Controller and processor",
-    "Section 1",
-    "General obligations"
+    "the right of data subjects to be informed about the restriction, unless that may be prejudicial to the purpose of the restriction."
    ]
   },
   {
@@ -657,9 +639,7 @@
    "number": "31",
    "heading": "Cooperation with the supervisory authority",
    "paragraphs": [
-    "The controller and the processor and, where applicable, their representatives, shall cooperate, on request, with the supervisory authority in the performance of its tasks.",
-    "Section 2",
-    "Security of personal data"
+    "The controller and the processor and, where applicable, their representatives, shall cooperate, on request, with the supervisory authority in the performance of its tasks."
    ]
   },
   {
@@ -712,9 +692,7 @@
     "the controller has taken subsequent measures which ensure that the high risk to the rights and freedoms of data subjects referred to in paragraph 1 is no longer likely to materialise;",
     "(c)",
     "it would involve disproportionate effort. In such a case, there shall instead be a public communication or similar measure whereby the data subjects are informed in an equally effective manner.",
-    "4.   If the controller has not already communicated the personal data breach to the data subject, the supervisory authority, having considered the likelihood of the personal data breach resulting in a high risk, may require it to do so or may decide that any of the conditions referred to in paragraph 3 are met.",
-    "Section 3",
-    "Data protection impact assessment and prior consultation"
+    "4.   If the controller has not already communicated the personal data breach to the data subject, the supervisory authority, having considered the likelihood of the personal data breach resulting in a high risk, may require it to do so or may decide that any of the conditions referred to in paragraph 3 are met."
    ]
   },
   {
@@ -768,9 +746,7 @@
     "(f)",
     "any other information requested by the supervisory authority.",
     "4.   Member States shall consult the supervisory authority during the preparation of a proposal for a legislative measure to be adopted by a national parliament, or of a regulatory measure based on such a legislative measure, which relates to processing.",
-    "5.   Notwithstanding paragraph 1, Member State law may require controllers to consult with, and obtain prior authorisation from, the supervisory authority in relation to processing by a controller for the performance of a task carried out by the controller in the public interest, including processing in relation to social protection and public health.",
-    "Section 4",
-    "Data protection officer"
+    "5.   Notwithstanding paragraph 1, Member State law may require controllers to consult with, and obtain prior authorisation from, the supervisory authority in relation to processing by a controller for the performance of a task carried out by the controller in the public interest, including processing in relation to social protection and public health."
    ]
   },
   {
@@ -819,9 +795,7 @@
     "to cooperate with the supervisory authority;",
     "(e)",
     "to act as the contact point for the supervisory authority on issues relating to processing, including the prior consultation referred to in Article 36, and to consult, where appropriate, with regard to any other matter.",
-    "2.   The data protection officer shall in the performance of his or her tasks have due regard to the risk associated with processing operations, taking into account the nature, scope, context and purposes of processing.",
-    "Section 5",
-    "Codes of conduct and certification"
+    "2.   The data protection officer shall in the performance of his or her tasks have due regard to the risk associated with processing operations, taking into account the nature, scope, context and purposes of processing."
    ]
   },
   {
@@ -923,9 +897,7 @@
     "6.   The requirements referred to in paragraph 3 of this Article and the criteria referred to in Article 42(5) shall be made public by the supervisory authority in an easily accessible form. The supervisory authorities shall also transmit those requirements and criteria to the Board. The Board shall collate all certification mechanisms and data protection seals in a register and shall make them publicly available by any appropriate means.",
     "7.   Without prejudice to Chapter VIII, the competent supervisory authority or the national accreditation body shall revoke an accreditation of a certification body pursuant to paragraph 1 of this Article where the conditions for the accreditation are not, or are no longer, met or where actions taken by a certification body infringe this Regulation.",
     "8.   The Commission shall be empowered to adopt delegated acts in accordance with Article 92 for the purpose of specifying the requirements to be taken into account for the data protection certification mechanisms referred to in Article 42(1).",
-    "9.   The Commission may adopt implementing acts laying down technical standards for certification mechanisms and data protection seals and marks, and mechanisms to promote and recognise those certification mechanisms, seals and marks. Those implementing acts shall be adopted in accordance with the examination procedure referred to in Article 93(2).",
-    "CHAPTER V",
-    "Transfers of personal data to third countries or international organisations"
+    "9.   The Commission may adopt implementing acts laying down technical standards for certification mechanisms and data protection seals and marks, and mechanisms to promote and recognise those certification mechanisms, seals and marks. Those implementing acts shall be adopted in accordance with the examination procedure referred to in Article 93(2)."
    ]
   },
   {
@@ -1073,11 +1045,7 @@
     "(c)",
     "engage relevant stakeholders in discussion and activities aimed at furthering international cooperation in the enforcement of legislation for the protection of personal data;",
     "(d)",
-    "promote the exchange and documentation of personal data protection legislation and practice, including on jurisdictional conflicts with third countries.",
-    "CHAPTER VI",
-    "Independent supervisory authorities",
-    "Section 1",
-    "Independent status"
+    "promote the exchange and documentation of personal data protection legislation and practice, including on jurisdictional conflicts with third countries."
    ]
   },
   {
@@ -1137,9 +1105,7 @@
     "whether and, if so, for how many terms the member or members of each supervisory authority is eligible for reappointment;",
     "(f)",
     "the conditions governing the obligations of the member or members and staff of each supervisory authority, prohibitions on actions, occupations and benefits incompatible therewith during and after the term of office and rules governing the cessation of employment.",
-    "2.   The member or members and the staff of each supervisory authority shall, in accordance with Union or Member State law, be subject to a duty of professional secrecy both during and after their term of office, with regard to any confidential information which has come to their knowledge in the course of the performance of their tasks or exercise of their powers. During their term of office, that duty of professional secrecy shall in particular apply to reporting by natural persons of infringements of this Regulation.",
-    "Section 2",
-    "Competence, tasks and powers"
+    "2.   The member or members and the staff of each supervisory authority shall, in accordance with Union or Member State law, be subject to a duty of professional secrecy both during and after their term of office, with regard to any confidential information which has come to their knowledge in the course of the performance of their tasks or exercise of their powers. During their term of office, that duty of professional secrecy shall in particular apply to reporting by natural persons of infringements of this Regulation."
    ]
   },
   {
@@ -1285,11 +1251,7 @@
    "number": "59",
    "heading": "Activity reports",
    "paragraphs": [
-    "Each supervisory authority shall draw up an annual report on its activities, which may include a list of types of infringement notified and types of measures taken in accordance with Article 58(2). Those reports shall be transmitted to the national parliament, the government and other authorities as designated by Member State law. They shall be made available to the public, to the Commission and to the Board.",
-    "CHAPTER VII",
-    "Cooperation and consistency",
-    "Section 1",
-    "Cooperation"
+    "Each supervisory authority shall draw up an annual report on its activities, which may include a list of types of infringement notified and types of measures taken in accordance with Article 58(2). Those reports shall be transmitted to the national parliament, the government and other authorities as designated by Member State law. They shall be made available to the public, to the Commission and to the Board."
    ]
   },
   {
@@ -1339,9 +1301,7 @@
     "4.   Where, in accordance with paragraph 1, staff of a seconding supervisory authority operate in another Member State, the Member State of the host supervisory authority shall assume responsibility for their actions, including liability, for any damage caused by them during their operations, in accordance with the law of the Member State in whose territory they are operating.",
     "5.   The Member State in whose territory the damage was caused shall make good such damage under the conditions applicable to damage caused by its own staff. The Member State of the seconding supervisory authority whose staff has caused damage to any person in the territory of another Member State shall reimburse that other Member State in full any sums it has paid to the persons entitled on their behalf.",
     "6.   Without prejudice to the exercise of its rights vis-à-vis third parties and with the exception of paragraph 5, each Member State shall refrain, in the case provided for in paragraph 1, from requesting reimbursement from another Member State in relation to damage referred to in paragraph 4.",
-    "7.   Where a joint operation is intended and a supervisory authority does not, within one month, comply with the obligation laid down in the second sentence of paragraph 2 of this Article, the other supervisory authorities may adopt a provisional measure on the territory of its Member State in accordance with Article 55. In that case, the urgent need to act under Article 66(1) shall be presumed to be met and require an opinion or an urgent binding decision from the Board pursuant to Article 66(2).",
-    "Section 2",
-    "Consistency"
+    "7.   Where a joint operation is intended and a supervisory authority does not, within one month, comply with the obligation laid down in the second sentence of paragraph 2 of this Article, the other supervisory authorities may adopt a provisional measure on the territory of its Member State in accordance with Article 55. In that case, the urgent need to act under Article 66(1) shall be presumed to be met and require an opinion or an urgent binding decision from the Board pursuant to Article 66(2)."
    ]
   },
   {
@@ -1414,9 +1374,7 @@
    "heading": "Exchange of information",
    "paragraphs": [
     "The Commission may adopt implementing acts of general scope in order to specify the arrangements for the exchange of information by electronic means between supervisory authorities, and between supervisory authorities and the Board, in particular the standardised format referred to in Article 64.",
-    "Those implementing acts shall be adopted in accordance with the examination procedure referred to in Article 93(2).",
-    "Section 3",
-    "European data protection board"
+    "Those implementing acts shall be adopted in accordance with the examination procedure referred to in Article 93(2)."
    ]
   },
   {
@@ -1568,9 +1526,7 @@
    "heading": "Confidentiality",
    "paragraphs": [
     "1.   The discussions of the Board shall be confidential where the Board deems it necessary, as provided for in its rules of procedure.",
-    "2.   Access to documents submitted to members of the Board, experts and representatives of third parties shall be governed by Regulation (EC) No 1049/2001 of the European Parliament and of the Council ( 21 ) .",
-    "CHAPTER VIII",
-    "Remedies, liability and penalties"
+    "2.   Access to documents submitted to members of the Board, experts and representatives of third parties shall be governed by Regulation (EC) No 1049/2001 of the European Parliament and of the Council ( 21 ) ."
    ]
   },
   {
@@ -1686,9 +1642,7 @@
    "heading": "Penalties",
    "paragraphs": [
     "1.   Member States shall lay down the rules on other penalties applicable to infringements of this Regulation in particular for infringements which are not subject to administrative fines pursuant to Article 83, and shall take all measures necessary to ensure that they are implemented. Such penalties shall be effective, proportionate and dissuasive.",
-    "2.   Each Member State shall notify to the Commission the provisions of its law which it adopts pursuant to paragraph 1, by 25 May 2018 and, without delay, any subsequent amendment affecting them.",
-    "CHAPTER IX",
-    "Provisions relating to specific processing situations"
+    "2.   Each Member State shall notify to the Commission the provisions of its law which it adopts pursuant to paragraph 1, by 25 May 2018 and, without delay, any subsequent amendment affecting them."
    ]
   },
   {
@@ -1746,9 +1700,7 @@
    "heading": "Existing data protection rules of churches and religious associations",
    "paragraphs": [
     "1.   Where in a Member State, churches and religious associations or communities apply, at the time of entry into force of this Regulation, comprehensive rules relating to the protection of natural persons with regard to processing, such rules may continue to apply, provided that they are brought into line with this Regulation.",
-    "2.   Churches and religious associations which apply comprehensive rules in accordance with paragraph 1 of this Article shall be subject to the supervision of an independent supervisory authority, which may be specific, provided that it fulfils the conditions laid down in Chapter VI of this Regulation.",
-    "CHAPTER X",
-    "Delegated acts and implementing acts"
+    "2.   Churches and religious associations which apply comprehensive rules in accordance with paragraph 1 of this Article shall be subject to the supervision of an independent supervisory authority, which may be specific, provided that it fulfils the conditions laid down in Chapter VI of this Regulation."
    ]
   },
   {
@@ -1768,9 +1720,7 @@
    "paragraphs": [
     "1.   The Commission shall be assisted by a committee. That committee shall be a committee within the meaning of Regulation (EU) No 182/2011.",
     "2.   Where reference is made to this paragraph, Article 5 of Regulation (EU) No 182/2011 shall apply.",
-    "3.   Where reference is made to this paragraph, Article 8 of Regulation (EU) No 182/2011, in conjunction with Article 5 thereof, shall apply.",
-    "CHAPTER XI",
-    "Final provisions"
+    "3.   Where reference is made to this paragraph, Article 8 of Regulation (EU) No 182/2011, in conjunction with Article 5 thereof, shall apply."
    ]
   },
   {
@@ -1822,37 +1772,9 @@
    "heading": "Entry into force and application",
    "paragraphs": [
     "1.   This Regulation shall enter into force on the twentieth day following that of its publication in the Official Journal of the European Union .",
-    "2.   It shall apply from 25 May 2018.",
-    "This Regulation shall be binding in its entirety and directly applicable in all Member States.",
-    "Done at Brussels, 27 April 2016.",
-    "For the European Parliament",
-    "The President",
-    "M. SCHULZ",
-    "For the Council",
-    "The President",
-    "J.A. HENNIS-PLASSCHAERT",
-    "( 1 ) OJ C 229, 31.7.2012, p. 90 .",
-    "( 2 ) OJ C 391, 18.12.2012, p. 127 .",
-    "( 3 ) Position of the European Parliament of 12 March 2014 (not yet published in the Official Journal) and position of the Council at first reading of 8 April 2016 (not yet published in the Official Journal). Position of the European Parliament of 14 April 2016.",
-    "( 4 ) Directive 95/46/EC of the European Parliament and of the Council of 24 October 1995 on the protection of individuals with regard to the processing of personal data and on the free movement of such data ( OJ L 281, 23.11.1995, p. 31 ).",
-    "( 5 ) Commission Recommendation of 6 May 2003 concerning the definition of micro, small and medium-sized enterprises (C(2003) 1422) ( OJ L 124, 20.5.2003, p. 36 ).",
-    "( 6 ) Regulation (EC) No 45/2001 of the European Parliament and of the Council of 18 December 2000 on the protection of individuals with regard to the processing of personal data by the Community institutions and bodies and on the free movement of such data ( OJ L 8, 12.1.2001, p. 1 ).",
-    "( 7 ) Directive (EU) 2016/680 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data by competent authorities for the purposes of prevention, investigation, detection or prosecution of criminal offences or the execution of criminal penalties, and the free movement of such data and repealing Council Framework Decision 2008/977/JHA (see page 89 of this Official Journal).",
-    "( 8 ) Directive 2000/31/EC of the European Parliament and of the Council of 8 June 2000 on certain legal aspects of information society services, in particular electronic commerce, in the Internal Market (‘Directive on electronic commerce’) ( OJ L 178, 17.7.2000, p. 1 ).",
-    "( 9 ) Directive 2011/24/EU of the European Parliament and of the Council of 9 March 2011 on the application of patients' rights in cross-border healthcare ( OJ L 88, 4.4.2011, p. 45 ).",
-    "( 10 ) Council Directive 93/13/EEC of 5 April 1993 on unfair terms in consumer contracts ( OJ L 95, 21.4.1993, p. 29 ).",
-    "( 11 ) Regulation (EC) No 1338/2008 of the European Parliament and of the Council of 16 December 2008 on Community statistics on public health and health and safety at work ( OJ L 354, 31.12.2008, p. 70 ).",
-    "( 12 ) Regulation (EU) No 182/2011 of the European Parliament and of the Council of 16 February 2011 laying down the rules and general principles concerning mechanisms for control by Member States of the Commission's exercise of implementing powers ( OJ L 55, 28.2.2011, p. 13 ).",
-    "( 13 ) Regulation (EU) No 1215/2012 of the European Parliament and of the Council of 12 December 2012 on jurisdiction and the recognition and enforcement of judgments in civil and commercial matters ( OJ L 351, 20.12.2012, p. 1 ).",
-    "( 14 ) Directive 2003/98/EC of the European Parliament and of the Council of 17 November 2003 on the re-use of public sector information ( OJ L 345, 31.12.2003, p. 90 ).",
-    "( 15 ) Regulation (EU) No 536/2014 of the European Parliament and of the Council of 16 April 2014 on clinical trials on medicinal products for human use, and repealing Directive 2001/20/EC ( OJ L 158, 27.5.2014, p. 1 ).",
-    "( 16 ) Regulation (EC) No 223/2009 of the European Parliament and of the Council of 11 March 2009 on European statistics and repealing Regulation (EC, Euratom) No 1101/2008 of the European Parliament and of the Council on the transmission of data subject to statistical confidentiality to the Statistical Office of the European Communities, Council Regulation (EC) No 322/97 on Community Statistics, and Council Decision 89/382/EEC, Euratom establishing a Committee on the Statistical Programmes of the European Communities ( OJ L 87, 31.3.2009, p. 164 ).",
-    "( 17 ) OJ C 192, 30.6.2012, p. 7 .",
-    "( 18 ) Directive 2002/58/EC of the European Parliament and of the Council of 12 July 2002 concerning the processing of personal data and the protection of privacy in the electronic communications sector (Directive on privacy and electronic communications) ( OJ L 201, 31.7.2002, p. 37 ).",
-    "( 19 ) Directive (EU) 2015/1535 of the European Parliament and of the Council of 9 September 2015 laying down a procedure for the provision of information in the field of technical regulations and of rules on Information Society services ( OJ L 241, 17.9.2015, p. 1 ).",
-    "( 20 ) Regulation (EC) No 765/2008 of the European Parliament and of the Council of 9 July 2008 setting out the requirements for accreditation and market surveillance relating to the marketing of products and repealing Regulation (EEC) No 339/93 ( OJ L 218, 13.8.2008, p. 30 ).",
-    "( 21 ) Regulation (EC) No 1049/2001 of the European Parliament and of the Council of 30 May 2001 regarding public access to European Parliament, Council and Commission documents ( OJ L 145, 31.5.2001, p. 43 )."
+    "2.   It shall apply from 25 May 2018."
    ]
   }
- ]
+ ],
+ "annexes": []
 }

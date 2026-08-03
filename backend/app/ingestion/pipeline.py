@@ -1,9 +1,12 @@
-"""Ingestion CLI: EUR-Lex (or the committed corpus) -> articles -> chunks ->
+"""Ingestion CLI: EUR-Lex (or the committed corpus) -> units -> chunks ->
 embeddings -> Postgres.
 
+A unit is one citable subdivision: an article ("Art. 6") or an annex
+("Annex III"). Both are chunked the same way and land in the same table.
+
     uv run python -m app.ingestion.pipeline --regulations ai_act gdpr
-    uv run python -m app.ingestion.pipeline --source fixture                    # offline
-    uv run python -m app.ingestion.pipeline --no-contextual --max-articles 10   # fast smoke
+    uv run python -m app.ingestion.pipeline --source fixture                 # offline
+    uv run python -m app.ingestion.pipeline --no-contextual --max-units 10   # fast smoke
 
 Re-running replaces a regulation's document and chunks atomically, so the
 pipeline is idempotent.
@@ -17,9 +20,9 @@ from sqlalchemy import delete, select
 
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
-from app.ingestion.chunker import ArticleChunk, chunk_article
+from app.ingestion.chunker import UnitChunk, chunk_unit
 from app.ingestion.contextual import deterministic_prefix, llm_prefixes
-from app.ingestion.eurlex import REGULATIONS, fetch_html, load_fixture, parse_articles
+from app.ingestion.eurlex import REGULATIONS, Annex, fetch_html, load_fixture, parse_units
 from app.models.tables import Chunk, Document
 from app.retrieval.embedder import embed_texts
 
@@ -27,7 +30,7 @@ from app.retrieval.embedder import embed_texts
 async def ingest_regulation(
     regulation: str,
     contextual: bool,
-    max_articles: int | None,
+    max_units: int | None,
     source: str,
 ) -> tuple[int, int]:
     meta = REGULATIONS[regulation]
@@ -35,22 +38,27 @@ async def ingest_regulation(
 
     if source == "fixture":
         print(f"[{regulation}] reading committed corpus", file=sys.stderr)
-        articles = load_fixture(regulation)
+        units = load_fixture(regulation)
     else:
         print(f"[{regulation}] fetching {meta['url']}", file=sys.stderr)
         html = fetch_html(meta["url"])
-        articles = parse_articles(html)
-    if max_articles:
-        articles = articles[:max_articles]
-    if not articles:
-        raise RuntimeError(
-            f"No articles parsed for {regulation} — EUR-Lex markup may have changed."
-        )
+        units = parse_units(html)
+    if max_units:
+        units = units[:max_units]
+    if not units:
+        raise RuntimeError(f"No units parsed for {regulation} — EUR-Lex markup may have changed.")
 
-    chunks: list[ArticleChunk] = []
-    for article in articles:
-        chunks.extend(chunk_article(article))
-    print(f"[{regulation}] {len(articles)} articles -> {len(chunks)} chunks", file=sys.stderr)
+    chunks: list[UnitChunk] = []
+    for unit in units:
+        chunks.extend(chunk_unit(unit))
+    # Annexes are counted separately because zero of them is a real answer for
+    # one regulation (the GDPR has none) and a parser regression for the other.
+    annexes = sum(1 for unit in units if isinstance(unit, Annex))
+    print(
+        f"[{regulation}] {len(units) - annexes} articles + {annexes} annexes "
+        f"-> {len(chunks)} chunks",
+        file=sys.stderr,
+    )
 
     prefixes = [deterministic_prefix(meta["title"], chunk) for chunk in chunks]
     if contextual:
@@ -82,7 +90,8 @@ async def ingest_regulation(
         session.add_all(
             Chunk(
                 document_id=document.id,
-                article_ref=chunk.article_ref,
+                # Column name predates annexes; it holds any unit ref (ADR 0003).
+                article_ref=chunk.ref,
                 heading=chunk.heading,
                 idx=chunk.idx,
                 content=chunk.content,
@@ -93,7 +102,7 @@ async def ingest_regulation(
         )
         await session.commit()
 
-    return len(articles), len(chunks)
+    return len(units), len(chunks)
 
 
 async def main() -> None:
@@ -107,7 +116,12 @@ async def main() -> None:
         default=True,
         help="Add an LLM-written context sentence per chunk (one model call per chunk)",
     )
-    parser.add_argument("--max-articles", type=int, default=None)
+    parser.add_argument(
+        "--max-units",
+        type=int,
+        default=None,
+        help="Ingest only the first N units (articles come first) — for smoke runs",
+    )
     parser.add_argument(
         "--source",
         choices=["network", "fixture"],
@@ -121,10 +135,10 @@ async def main() -> None:
 
     try:
         for regulation in args.regulations:
-            articles, chunks = await ingest_regulation(
-                regulation, args.contextual, args.max_articles, args.source
+            units, chunks = await ingest_regulation(
+                regulation, args.contextual, args.max_units, args.source
             )
-            print(f"[{regulation}] done: {articles} articles, {chunks} chunks")
+            print(f"[{regulation}] done: {units} units, {chunks} chunks")
     finally:
         await dispose_engine()
 

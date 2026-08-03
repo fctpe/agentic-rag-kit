@@ -21,11 +21,11 @@ flowchart TD
 
 ## Request flow
 
-1. **Ingestion (offline)** — `app/ingestion/pipeline.py` fetches the EU AI Act and GDPR from EUR-Lex and parses them into articles via the `ti-art`/`sti-art` markup, or reads the same articles from the committed `data/fixtures/` with `--source fixture`. From there both paths are identical: chunk on article boundaries (≤700 tokens), prepend deterministic + optional LLM context prefixes, embed, and store everything in one Postgres.
+1. **Ingestion (offline)** — `app/ingestion/pipeline.py` fetches the EU AI Act and GDPR from EUR-Lex and parses them into citable units — articles (`Art. 6`) and annexes (`Annex III`), each read from its own EUR-Lex container id (`art_6`, `anx_III`) — or reads the same units from the committed `data/fixtures/` with `--source fixture`. From there both paths are identical: chunk on unit boundaries (≤700 tokens), prepend deterministic + optional LLM context prefixes, embed, and store everything in one Postgres. Annexes are chunked exactly like articles; ingesting Annex III whole would let it crowd out the articles that cite it (ADR 0003).
 2. **Chat** — `POST /chat` streams SSE: `token` events from the agent node only, `approval_required` when the graph interrupts, `citations` + `grounding` from the verify node, `done` with the authoritative final text. The response header `X-Thread-Id` carries the LangGraph thread.
 3. **Retrieval** — both arms always run (cosine top-20 + `ts_rank_cd` top-20), RRF (k=60) fuses, final 6 reach the model wrapped in `<source id=…>` tags that the system prompt declares to be data, not instructions.
 4. **Approvals** — report-type answers hit `interrupt()`. The checkpoint lives in Postgres (`AsyncPostgresSaver`), so the pending approval survives restarts; `POST /chat/{thread}/resume` continues the same graph with `Command(resume=…)`. Verified by killing uvicorn mid-approval and resuming after restart.
-5. **Verification** — a grounding pass audits the answer against the retrieved excerpts and flags unsupported claims to the user rather than silently shipping them.
+5. **Verification** — a grounding pass audits the answer against the retrieved excerpts and reports the claims *no* excerpt supports to the user rather than silently shipping them. It judges support, not attribution — a claim citing the wrong article passes; see [security.md](security.md).
 6. **Telemetry** — one OTel span per graph node, tool call, retrieval and grounding check, on the GenAI semantic conventions, with tokens and cost from `usage_metadata`; JSON logs on stdout correlated by request id and, when tracing is on, trace id. Both sinks are inert until configured — ADR 0006.
 
 ## SSE protocol

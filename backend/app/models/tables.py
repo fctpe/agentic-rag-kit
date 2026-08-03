@@ -66,6 +66,11 @@ class Chunk(Base):
     document_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE"), index=True
     )
+    # The ref of the unit this chunk came from: "Art. 6" or "Annex III". The
+    # column name predates annex ingestion and is kept — renaming it would
+    # invalidate every persisted citation payload and eval baseline for a
+    # cosmetic gain. app/retrieval/citations.py maps either shape to its
+    # EUR-Lex anchor.
     article_ref: Mapped[str] = mapped_column(String(64), index=True)
     heading: Mapped[str] = mapped_column(String(512), default="")
     idx: Mapped[int] = mapped_column(Integer)

@@ -12,6 +12,7 @@ from langchain_core.tools import BaseTool, tool
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.ingestion.eurlex import unit_ref
 from app.models.tables import Chunk, Document
 from app.retrieval.citations import citation_url
 from app.retrieval.hybrid import RetrievedChunk, hybrid_search
@@ -103,23 +104,29 @@ def build_tools(session: AsyncSession, collector: CitationCollector) -> list[Bas
 
     @tool
     async def read_article(regulation: str, article_number: str) -> str:
-        """Read ONE article in full (all its chunks, in order). Use after
-        search_corpus identifies the controlling article, especially before
-        enumerating list-type content (prohibitions, obligations, rights) —
-        top-k search may return only part of a long article. regulation is
-        "ai_act" or "gdpr"; article_number like "5" or "22"."""
+        """Read ONE article or annex in full (all its chunks, in order). Use
+        after search_corpus identifies the controlling text, especially before
+        enumerating list-type content (prohibitions, obligations, rights, the
+        high-risk use cases in Annex III) — top-k search may return only part
+        of a long article or annex. regulation is "ai_act" or "gdpr";
+        article_number like "5" or "22" for an article, "Annex III" for an
+        annex."""
         if regulation not in ("ai_act", "gdpr"):
             return 'Invalid regulation — use "ai_act" or "gdpr".'
+        # Annexes are the enumerations most likely to be asked for whole
+        # ("which use cases are high-risk?"), and search returns fragments of
+        # them exactly as it does for a long article.
+        ref = unit_ref(article_number)
         rows = await session.execute(
             select(Chunk, Document)
             .join(Document, Document.id == Chunk.document_id)
             .where(Document.regulation == regulation)
-            .where(Chunk.article_ref == f"Art. {article_number.strip()}")
+            .where(Chunk.article_ref == ref)
             .order_by(Chunk.idx)
         )
         pairs = rows.all()
         if not pairs:
-            return f"No Art. {article_number} found in {regulation}."
+            return f"No {ref} found in {regulation}."
         chunks = [
             RetrievedChunk(
                 chunk_id=str(chunk.id),
