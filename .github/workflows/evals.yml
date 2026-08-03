@@ -43,7 +43,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       JWT_SECRET: ${{ secrets.EVAL_JWT_SECRET }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v5
 
       - name: Refuse to report a green run without a key

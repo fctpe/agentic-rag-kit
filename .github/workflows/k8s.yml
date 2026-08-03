@@ -21,7 +21,7 @@ jobs:
   kind:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build the images the cluster will run
         # Same two commands as docs/deployment.md. NEXT_PUBLIC_API_BASE is a
@@ -142,7 +142,7 @@ jobs:
       run:
         working-directory: deploy/terraform
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.14.4
