@@ -48,9 +48,9 @@ async def list_pending_approvals(
         .order_by(Approval.requested_at.desc())
     )
     if user.role != Role.admin:
-        query = query.join(
-            Conversation, Conversation.thread_id == Approval.thread_id
-        ).where(Conversation.user_id == user.id)
+        query = query.join(Conversation, Conversation.thread_id == Approval.thread_id).where(
+            Conversation.user_id == user.id
+        )
     rows = await session.scalars(query)
     return {
         "pending": [
