@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
-from app.models.tables import Approval, ApprovalStatus, AuditLog, Role, User
+from app.models.tables import Approval, ApprovalStatus, AuditLog, Conversation, Role, User
 from app.security.rbac import require_role
 
 router = APIRouter(tags=["admin"])
@@ -37,13 +37,21 @@ async def list_audit(
 @router.get("/approvals")
 async def list_pending_approvals(
     session: AsyncSession = Depends(get_session),
-    _analyst: User = Depends(require_role(Role.analyst)),
+    user: User = Depends(require_role(Role.analyst)),
 ) -> dict:
-    rows = await session.scalars(
+    # Object-level authorization, matching /chat/{thread_id}: an approval payload
+    # is the draft report itself, so listing every pending approval to every
+    # analyst leaked other users' drafts. Admins keep the full view.
+    query = (
         select(Approval)
         .where(Approval.status == ApprovalStatus.pending)
         .order_by(Approval.requested_at.desc())
     )
+    if user.role != Role.admin:
+        query = query.join(
+            Conversation, Conversation.thread_id == Approval.thread_id
+        ).where(Conversation.user_id == user.id)
+    rows = await session.scalars(query)
     return {
         "pending": [
             {
