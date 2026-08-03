@@ -36,8 +36,7 @@ from app.models.tables import (  # noqa: E402
 from app.security.rbac import hash_password, issue_token  # noqa: E402
 
 _TABLES = [
-    Base.metadata.tables[name]
-    for name in ("users", "conversations", "approvals", "audit_log")
+    Base.metadata.tables[name] for name in ("users", "conversations", "approvals", "audit_log")
 ]
 
 
