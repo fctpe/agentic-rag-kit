@@ -52,6 +52,13 @@ jobs:
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/kind/deploy.yaml
           kubectl -n ingress-nginx wait --for=condition=available deploy/ingress-nginx-controller --timeout=300s
+          # A Deployment reporting Available is not the same as the admission
+          # webhook serving. The webhook's certificate is installed by a Job, and
+          # until that finishes, applying an Ingress fails with "connection
+          # refused" calling validate.nginx.ingress.kubernetes.io.
+          kubectl -n ingress-nginx wait --for=condition=complete job/ingress-nginx-admission-patch --timeout=300s
+          kubectl -n ingress-nginx wait --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller --timeout=300s
 
       - name: Namespace and secrets
         # The namespace first, because its pod-security label has to be in
