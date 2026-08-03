@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ragkit-frontend
+  labels:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ragkit
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ragkit
+        app.kubernetes.io/component: frontend
+    spec:
+      securityContext:
+        # frontend/Dockerfile creates nextjs as uid 1001 and USERs it.
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: frontend
+          # No envFrom, and that is not an oversight: NEXT_PUBLIC_API_BASE is
+          # inlined into the client bundle at BUILD time (frontend/Dockerfile),
+          # so the browser's API host is decided by whoever built this image,
+          # not by anything set here. Build it with the api hostname from
+          # ingress.yaml or the browser will call localhost:8000 and fail.
+          image: ghcr.io/fctpe/agentic-rag-kit-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          # One probe path for both, because this container has no dependency
+          # to be un-ready against: it either serves the standalone Next.js
+          # server or it does not. The split that matters is on the backend.
+          startupProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          # Unmeasured starting points — see backend-deployment.yaml.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

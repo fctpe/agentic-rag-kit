@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ragkit-migrate
+  labels:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: migrate
+spec:
+  backoffLimit: 2
+  # Bounds the wait loop below. Without it a Job pointed at a database that
+  # never comes up waits forever and the deploy just hangs.
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ragkit
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: ghcr.io/fctpe/agentic-rag-kit-backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            # Two different failures, kept apart. `alembic current` exits
+            # non-zero only because Postgres is not answering yet — worth
+            # retrying, and it exits 0 against an empty database, so it does
+            # not care whether the schema exists. The upgrade is then run
+            # exactly once and its exit code is the Job's verdict: a broken
+            # migration fails the deploy instead of being retried into
+            # something that looks like a slow start.
+            - |
+              until uv run --no-sync alembic current >/dev/null 2>&1; do
+                echo "waiting for postgres"
+                sleep 2
+              done
+              exec uv run --no-sync alembic upgrade head
+          envFrom:
+            - secretRef:
+                name: ragkit-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

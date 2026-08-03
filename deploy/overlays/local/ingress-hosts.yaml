@@ -1,0 +1,30 @@
+# *.localtest.me resolves to 127.0.0.1 from any resolver, so a kind cluster
+# with :80 published needs no /etc/hosts edit. `rules` is an atomic list — this
+# replaces the placeholder hosts in base wholesale rather than merging into
+# them.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ragkit
+spec:
+  rules:
+    - host: ragkit.localtest.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ragkit-frontend
+                port:
+                  name: http
+    - host: api.ragkit.localtest.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ragkit-backend
+                port:
+                  name: http

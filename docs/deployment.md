@@ -20,6 +20,103 @@ docker compose exec backend uv run --no-sync python -m app.seed
 docker compose exec backend uv run --no-sync python -m app.ingestion.pipeline
 ```
 
+## Kubernetes
+
+Kustomize base plus a local overlay under [`deploy/`](../deploy). The base carries no
+namespace and no Secret — the overlay picks the namespace, the images and the hostnames, and
+the values come from outside the tree. `.github/workflows/k8s.yml` runs exactly the sequence
+below on kind for every push.
+
+```bash
+docker build -t ragkit-backend:dev backend
+docker build --build-arg NEXT_PUBLIC_API_BASE=http://api.ragkit.localtest.me \
+  -t ragkit-frontend:dev frontend
+
+kind create cluster --name ragkit --config deploy/kind-cluster.yaml
+kind load docker-image ragkit-backend:dev ragkit-frontend:dev --name ragkit
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/kind/deploy.yaml
+kubectl -n ingress-nginx wait --for=condition=available deploy/ingress-nginx-controller --timeout=300s
+
+# The namespace first: its pod-security label has to exist before any pod is admitted.
+kubectl apply -f deploy/overlays/local/namespace.yaml
+
+PG_PASSWORD="$(openssl rand -hex 16)"
+kubectl -n ragkit create secret generic ragkit-postgres \
+  --from-literal=POSTGRES_USER=rag \
+  --from-literal=POSTGRES_PASSWORD="$PG_PASSWORD" \
+  --from-literal=POSTGRES_DB=ragkit
+kubectl -n ragkit create secret generic ragkit-secrets \
+  --from-literal=DATABASE_URL="postgresql+asyncpg://rag:${PG_PASSWORD}@postgres:5432/ragkit" \
+  --from-literal=JWT_SECRET="$(openssl rand -hex 32)" \
+  --from-literal=OPENAI_API_KEY="$OPENAI_API_KEY"   # from your environment, not from a file
+
+kubectl apply -k deploy/overlays/local
+kubectl -n ragkit wait --for=condition=complete job/ragkit-migrate --timeout=300s
+kubectl -n ragkit rollout status deploy/ragkit-backend --timeout=300s
+curl -H "Host: api.ragkit.localtest.me" http://127.0.0.1/health
+```
+
+**Secrets never enter the tree.** `envFrom.secretRef` names `ragkit-secrets`, nothing
+generates it, and it is not `optional` — a backend pod with no Secret fails to start instead of
+coming up on defaults. In a real cluster, point External Secrets (or your own sync) at the ARNs
+the Terraform module outputs; the two `kubectl create secret` calls above are the local
+equivalent, and `$OPENAI_API_KEY` is read from your shell.
+
+**The migration Job gates the rollout.** `job/ragkit-migrate` runs `alembic upgrade head`
+(which is also what creates the pgvector extension), and every backend pod has a
+`wait-for-schema` init container that blocks until `alembic current` reports `(head)`. Kubernetes
+applies a Job and a Deployment at the same time; without that init container the new pods come
+up against the old schema. A pod stuck in `Init:0/1` means the Job has not finished — read
+`kubectl -n ragkit logs job/ragkit-migrate`.
+
+**Re-deploying a new image tag needs the old Job gone.** A Job's pod template is immutable, so
+`kubectl apply -k` fails on the second image tag. Run
+`kubectl -n ragkit delete job/ragkit-migrate --ignore-not-found` first.
+
+**Liveness and readiness are different endpoints, on purpose.**
+
+| probe | path | touches Postgres | what a failure does |
+|---|---|---|---|
+| liveness | `/health/live` | no | **restarts the container** |
+| readiness | `/health` | `SELECT 1` | removes the pod from the Service |
+
+Wire liveness to `/health` and a Postgres failover restart-loops every replica at once, exactly
+when the pods were fine and the database was not. `/health` used to return `{"status": "ok"}`
+without opening a connection, which made any readiness probe pointed at it a test that the HTTP
+server could answer itself; it now fails closed with 503, and `backend/tests/test_health.py`
+plus the outage step in `.github/workflows/k8s.yml` hold the split.
+
+**Two hostnames, not one.** `NEXT_PUBLIC_API_BASE` is inlined into the browser bundle at build
+time, so the frontend image has to be built with the same `api.` hostname the Ingress serves —
+setting it in the Deployment does nothing.
+
+## Managed infrastructure (Terraform)
+
+[`deploy/terraform`](../deploy/terraform) covers the parts Kubernetes cannot hold: the Postgres
+instance, the Secrets Manager container the app's credentials live in, and the two DNS records
+pointing at the ingress load balancer.
+
+```bash
+cd deploy/terraform
+terraform init -backend=false && terraform validate   # no credentials needed; runs in CI
+```
+
+It is a module — no provider block, no backend, no VPC. Pass in an existing DB subnet group and
+security groups; the caller configures the region and where state lives.
+
+Three deliberate omissions:
+
+- **No password anywhere.** `manage_master_user_password = true` has RDS generate and rotate the
+  master password into a secret it owns. A `random_password` or a variable would put the
+  production database password in Terraform state in plaintext.
+- **No secret *values*.** The `aws_secretsmanager_secret` is versionless; every argument
+  Terraform sees ends up in state, so `JWT_SECRET` and `OPENAI_API_KEY` are written once with
+  `aws secretsmanager put-secret-value` (the command is in `main.tf`). Terraform owns the
+  container, never the contents.
+- **No `CREATE EXTENSION vector`.** It is the first statement of the first Alembic migration, so
+  the migration Job does it. Doing it from Terraform would mean a second provider with a live
+  route into a private subnet, for one statement the app already owns.
+
 ## Observability
 
 Two independent sinks, both optional, neither required for the app to run.
@@ -34,7 +131,11 @@ Two independent sinks, both optional, neither required for the app to run.
 
 - [ ] Real `JWT_SECRET` (`openssl rand -hex 32`) and a non-default `SEED_PASSWORD` — or replace seeding with your IdP
 - [ ] Postgres with backups; the audit log and LangGraph checkpoints live there too
-- [ ] TLS termination in front of FastAPI (the app serves plain HTTP)
+- [ ] TLS termination in front of FastAPI (the app serves plain HTTP) — on Kubernetes that is a
+      `tls:` block and an issuer annotation on the Ingress, which the base leaves to your overlay
+- [ ] Health checks split the way the table above splits them: readiness on `/health`, liveness on
+      `/health/live`. A load balancer pointed at `/health` for both will pull the whole fleet
+      during a failover *and* restart it
 - [ ] Restrict CORS origins in `app/main.py` to your frontend host
 - [ ] Rate limiting at the proxy layer — the app bounds a single request (tool rounds, a per-request token budget, a graph recursion limit, per-call LLM timeouts; see ADR 0005), not the rate at which requests arrive
 - [ ] Poll `GET /audit/verify` (admin) on a schedule — it walks the audit hash chain and reports the first entry where it breaks. **Keep the `checked` count between polls**: a chain that only ever grows is the check, because truncation from the newest end walks clean (the table in [docs/security.md](security.md#audit-trail-eu-ai-act-art-12-framing) says what else it misses)

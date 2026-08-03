@@ -24,12 +24,17 @@
 # threshold check misses entirely.
 
 ragas:
+  # Baselines are the committed run in evals/results/ragas.json (2026-08-03).
+  # An earlier single run on 2026-07-12 scored faithfulness 0.9644; two runs on
+  # 2026-08-03 scored 0.9176 and 0.9316 with retrieval byte-identical and the
+  # ragas version unchanged. One run is not an estimate of an LLM-judged metric
+  # — the floors below are sized for that spread, not for the best draw.
   expect_n_scored: 38
   max_chat_failures: 0
   metrics:
-    faithfulness: { baseline: 0.9644, floor: 0.90 }
-    answer_relevancy: { baseline: 0.8632, floor: 0.78 }
-    context_precision: { baseline: 0.8666, floor: 0.78 }
+    faithfulness: { baseline: 0.9316, floor: 0.90 }
+    answer_relevancy: { baseline: 0.8805, floor: 0.78 }
+    context_precision: { baseline: 0.8490, floor: 0.78 }
     context_recall: { baseline: 0.9605, floor: 0.90 }
 
 retrieval:

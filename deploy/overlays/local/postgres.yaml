@@ -1,0 +1,97 @@
+# The local stand-in for the managed instance deploy/terraform provisions. Same
+# image as docker-compose.yml, so `CREATE EXTENSION vector` in the first
+# migration finds pgvector here too.
+#
+# Deployment + emptyDir, not a StatefulSet + PVC: this database is disposable
+# and is meant to be. `make db` (compose, named volume) is the one that keeps
+# data across restarts; a kind cluster that outlives its data is the point of a
+# CI fixture.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ragkit
+      app.kubernetes.io/component: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ragkit
+        app.kubernetes.io/component: postgres
+    spec:
+      securityContext:
+        # uid/gid 999 is `postgres` inside the image. Run as that user and the
+        # entrypoint skips its root-only chown branch; fsGroup makes the
+        # emptyDir group-writable so initdb can still create the cluster.
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            # Not the mount point itself: fsGroup makes the emptyDir
+            # group-writable but leaves it owned by root, and initdb chmods its
+            # data directory to 0700, which only the owner may do. A
+            # subdirectory the entrypoint creates belongs to uid 999 and
+            # initdb is happy. (Observed: "initdb: error: could not change
+            # permissions of directory /var/lib/postgresql/data".)
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB. Created out of
+          # band next to ragkit-secrets, whose DATABASE_URL has to agree with
+          # it — one command creates both, see docs/deployment.md.
+          envFrom:
+            - secretRef:
+                name: ragkit-postgres
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            periodSeconds: 5
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ragkit
+    app.kubernetes.io/component: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

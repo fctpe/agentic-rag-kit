@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-from app.api import admin, auth, chat, search
+from app.api import admin, auth, chat, health, search
 from app.config import get_settings
 from app.db import dispose_engine
 from app.observability import request_context, setup_observability, shutdown_observability
@@ -68,8 +68,4 @@ app.include_router(auth.router)
 app.include_router(search.router)
 app.include_router(chat.router)
 app.include_router(admin.router)
-
-
-@app.get("/health")
-async def health() -> dict:
-    return {"status": "ok"}
+app.include_router(health.router)

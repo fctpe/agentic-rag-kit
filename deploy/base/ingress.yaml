@@ -1,0 +1,41 @@
+# Two hostnames, not one host with a /api prefix: the frontend calls the
+# backend from the browser at the absolute NEXT_PUBLIC_API_BASE baked into its
+# bundle, and the backend serves /chat, /search, /auth and /audit at the root.
+# A prefix would need a rewrite rule in every ingress controller this ever runs
+# on. The hosts here are placeholders — overlays replace them, and
+# deploy/overlays/local shows the shape.
+#
+# No `tls:` block: the certificate secret and the issuer annotation differ per
+# environment and per controller, and a placeholder secretName that resolves to
+# nothing serves a self-signed default cert while looking configured. Add both
+# in the overlay that owns the hostname — the app itself speaks plain HTTP
+# (docs/deployment.md, production checklist).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ragkit
+  labels:
+    app.kubernetes.io/name: ragkit
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ragkit.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ragkit-frontend
+                port:
+                  name: http
+    - host: api.ragkit.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ragkit-backend
+                port:
+                  name: http
