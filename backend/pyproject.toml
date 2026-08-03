@@ -19,6 +19,12 @@ dependencies = [
     "langchain>=1.0,<2",
     "langchain-openai>=1.0,<2",
     "langfuse>=4.14",
+    # Pinned, not floated: the GenAI semantic conventions are still Development
+    # status (ADR 0006), so attribute names can move under a minor bump and the
+    # spans would drift silently. Raise this deliberately, with the ADR.
+    "opentelemetry-api==1.44.0",
+    "opentelemetry-sdk==1.44.0",
+    "opentelemetry-exporter-otlp-proto-http==1.44.0",
     "httpx>=0.28",
     "pyjwt>=2.10",
     "tiktoken>=0.9",

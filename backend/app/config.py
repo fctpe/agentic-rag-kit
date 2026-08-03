@@ -21,6 +21,20 @@ class Settings(BaseSettings):
     langfuse_secret_key: str = ""
     langfuse_host: str = "https://cloud.langfuse.com"
 
+    # Unset endpoint = tracing off, no exporter, no background thread. Mirrored
+    # into the process environment at startup so the OTLP exporter's own
+    # resolution (path suffix, header parsing) applies — see app/observability.py.
+    otel_exporter_otlp_endpoint: str = ""
+    otel_exporter_otlp_headers: str = ""
+
+    log_level: str = "INFO"
+
+    # USD per million tokens for llm_model. Left at 0 the spans carry token
+    # counts and no cost: a price table baked into the repo goes stale without
+    # anyone noticing, and a cost of 0.0 reads as "free" rather than "unpriced".
+    llm_input_price_per_mtok: float = 0.0
+    llm_output_price_per_mtok: float = 0.0
+
     reranker: str = "none"
     cohere_api_key: str = ""
 

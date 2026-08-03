@@ -6,6 +6,7 @@ from typing import Any
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Computed,
     DateTime,
     Enum,
@@ -135,15 +136,25 @@ class Approval(Base):
 
 
 class AuditLog(Base):
-    """Append-only: the application exposes no update or delete path.
+    """Append-only and tamper-evident: the application exposes no update or
+    delete path, and each row hashes the row before it.
 
     Frames EU AI Act Art. 12 (record-keeping) — every query, answer,
-    approval decision, and login lands here with actor and timestamp.
+    approval decision, and login lands here with actor and timestamp. A change
+    made around the application (direct SQL, a restored backup) breaks the hash
+    chain; GET /audit/verify walks it and reports where.
     """
 
     __tablename__ = "audit_log"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    # Chain position, and the primary key because position is what an append-only
+    # log is keyed by. The database assigns it (bigserial): created_at is a
+    # Python clock that can step backwards and id is a random uuid4, so neither
+    # orders two appends. Writer and verifier both use this column — ADR 0005.
+    seq: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    )
+    id: Mapped[uuid.UUID] = mapped_column(unique=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     action: Mapped[str] = mapped_column(String(64), index=True)
     resource: Mapped[str] = mapped_column(String(256), default="")
@@ -151,3 +162,7 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, index=True
     )
+    # Empty on the first entry only. No default: an insert that skips the chain
+    # must fail at the database, not quietly land unhashed.
+    prev_hash: Mapped[str] = mapped_column(String(64))
+    entry_hash: Mapped[str] = mapped_column(String(64))
