@@ -28,9 +28,13 @@ services:
     profiles: ["full"]
 
   frontend:
-    build: ./frontend
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+    build:
+      context: ./frontend
+      args:
+        # Build-time, not runtime: Next.js inlines NEXT_PUBLIC_* into the client
+        # bundle. localhost:8000 is correct because the browser calls the
+        # published host port, not the compose network.
+        NEXT_PUBLIC_API_BASE: http://localhost:8000
     ports:
       - "3000:3000"
     depends_on:
