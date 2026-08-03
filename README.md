@@ -91,6 +91,7 @@ Short ADRs in [`docs/adr/`](docs/adr): explicit StateGraph over prebuilt agents,
 
 ## Limitations
 
+- **Ingestion from live EUR-Lex is currently blocked upstream.** As of 2026-08-03 EUR-Lex answers the document URLs with `HTTP 202` and an empty body — bot protection or a queued render, not an error status. `make ingest` therefore fails with a `FetchError` naming the cause. The parser is unchanged and the committed corpus and eval results were produced on 2026-07-12 when the endpoint still served HTML. Working around the block is not something this repo does; retry later, or point `eurlex.py` at a local copy.
 - Corpus is articles-only (no recitals/annexes) and English-only; Annex III questions answer from Art. 6 references, not the annex text itself.
 - The router's report-detection is heuristic-first; unusual phrasings can miss the approval gate. The gate is policy, not a security boundary — RBAC is.
 - PII redaction is structural (emails, phones, IBANs, cards); free-text names need the documented Presidio swap.

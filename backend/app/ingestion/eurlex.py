@@ -42,10 +42,32 @@ class Article:
         return "\n\n".join(self.paragraphs)
 
 
+# A served article page is hundreds of KB. Anything this small is an
+# interstitial or an empty body, never the regulation.
+_MIN_DOCUMENT_BYTES = 20_000
+
+
+class FetchError(RuntimeError):
+    """The document could not be retrieved. Distinct from a parse failure."""
+
+
 def fetch_html(url: str, timeout: float = 60.0) -> str:
     headers = {"User-Agent": "agentic-rag-kit/0.1 (research; contact via GitHub)"}
     response = httpx.get(url, headers=headers, timeout=timeout, follow_redirects=True)
     response.raise_for_status()
+
+    # EUR-Lex answers 202 with an empty body when it declines to serve the
+    # document — bot protection or a queued render, not an error status, so
+    # raise_for_status() lets it through. Without this check the empty string
+    # reaches the parser, which finds no articles and reports that the markup
+    # changed. That sends you looking for a parser bug that does not exist.
+    if len(response.text) < _MIN_DOCUMENT_BYTES:
+        raise FetchError(
+            f"EUR-Lex returned HTTP {response.status_code} with "
+            f"{len(response.text)} bytes for {url}. The document was not served "
+            "— this is a fetch problem (rate limiting or bot protection), not a "
+            "parsing problem. Retry later; the parser is untouched."
+        )
     return response.text
 
 
