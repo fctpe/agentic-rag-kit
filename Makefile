@@ -1,4 +1,4 @@
-.PHONY: db up migrate seed ingest ingest-fixture ingest-smoke api dev test lint eval eval-retrieval redteam promote gate require-env
+.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke api dev test lint eval eval-retrieval redteam promote gate require-env
 
 # Every app target runs from backend/, which puts the repo-root .env out of
 # reach of both pydantic-settings (it resolves env_file against the working
@@ -51,8 +51,14 @@ ingest-smoke: require-env    ## 10 articles per regulation from data/fixtures/, 
 api: require-env
 	cd backend && $(UV) uvicorn app.main:app --reload --port 8000
 
-dev:
+dev: frontend-deps
 	cd frontend && npm run dev
+
+frontend-deps:
+	# The backend installs itself through `uv run`; the frontend has no
+	# equivalent, so a clean clone reached `npm run dev` with no node_modules
+	# and died on `next: command not found`.
+	@test -d frontend/node_modules || (cd frontend && npm ci)
 
 test:
 	cd backend && uv run pytest
