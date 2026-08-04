@@ -30,3 +30,31 @@ The decision, therefore: **an ingested unit is any citable subdivision — an `A
 - `chunks.article_ref` keeps its column name and now holds either shape. Renaming it would invalidate every persisted citation payload and eval baseline to buy a tidier identifier.
 - Zero annexes is a valid corpus (the GDPR has none), so nothing special-cases their absence — but a *fixture* with no `annexes` key fails closed, because that means the file predates annex ingestion rather than that the regulation has none.
 - The re-cut corpus is 212 articles + 13 annexes → 280 chunks. Every eval figure committed before this change was measured on a different corpus and needs re-running; see the note in the README Results section.
+
+## Addendum, 2026-08-04 (later the same day): the unit of body text is the cell, not the paragraph
+
+The annex work above landed a corpus in which **Annex I was 238 characters** — the numbers 1 to 12 and nothing else. The list of Union harmonisation legislation that Art. 6(1) points at for high-risk classification had been reduced to its own numbering.
+
+EUR-Lex renders numbered lists as tables, one cell for the marker and one for the text. Most rows wrap both in `<p class="oj-normal">`. One row shape does not: `<td></td><td><p>1.</p></td><td><span>Directive 2006/42/EC …</span></td>`. The parser extracted with `container.find_all("p")` — a whitelist of exactly one tag — so it took every marker and dropped every directive.
+
+What makes this the more instructive failure of the two is that **nothing was structurally wrong afterwards**. The unit existed, carried its heading, had a non-empty `paragraphs`, produced a chunk, and deep-linked correctly. Every guard in the module counted units; none compared the text a container holds against the text taken out of it. Measured across all 225 units, four were affected: Annex I (capture ratio 0.034), Annex VII (0.452), Annex XI (0.755) and Art. 108 (0.998, four stray semicolons). The other 221 — including all 99 GDPR articles and Annex III — were byte-identical.
+
+Two decisions follow.
+
+**Extraction is structural, not tag-named.** A block element ends a paragraph; a paragraph's text is whatever is not a nested block (`_BLOCK_ELEMENTS` in `app/ingestion/eurlex.py`). If EUR-Lex swaps `<span>` for `<em>`, `<font>`, or a bare text node, the text is still captured, because none of them is named anywhere. Only a genuinely new *block* element would need the set extended, and that failure is loud — two paragraphs run together — rather than silent.
+
+**And a coverage check, because the rule above will eventually be wrong too.** `_check_capture` compares the word characters a unit carries against the word characters its container holds, and raises `ParseError` below `MIN_CAPTURE_RATIO = 0.95`. The floor is not a round number: the new extractor scores 1.000 on every one of the 225 units because it partitions the container, and the rule it replaces scored 0.034 / 0.452 / 0.755 on the three annexes. Any floor in (0.755, 1.0] separates them, so 0.95 is chosen for headroom against a future extractor dropping something incidental, not for sensitivity. The tests pin both directions: the `<span>` shape parses, and restoring the `<p>`-only rule raises.
+
+**Corpus: 212 articles + 13 annexes → 284 chunks** (AI Act 167, GDPR 117). Superseding the 280 recorded above, which was the count with Annex I empty.
+
+### Ingestion moved to Cellar; Formex considered and deferred
+
+The EUR-Lex web endpoint answers **HTTP 202 with an empty body** under bot protection — observed for over an hour continuously, across 30 retries, on the day this was written. `FetchError` names that case precisely so it is never mistaken for a parse failure, but a fresh ingest was still a coin flip.
+
+Documents are now fetched from **Cellar** (`publications.europa.eu/resource/celex/<CELEX>`), the Publications Office repository EUR-Lex itself reads from, via content negotiation. It served both regulations without complaint through exactly the window EUR-Lex was refusing. Parsing both sources produces **byte-identical units across all 225** — same publisher, same content, through the interface intended for programs.
+
+`REGULATIONS` therefore carries two URLs, and the split is load-bearing: `fetch_url` is Cellar, `url` stays the EUR-Lex page, because a citation must link where a reader can check the claim. Fixtures record both.
+
+**Formex XML** (`Accept: application/xml;notice=branch`) is available from the same endpoint and is the better long-term target: explicit `ARTICLE` and `ANNEX` elements would make this entire class of loss impossible by construction rather than caught by a coverage check afterwards. It is deferred, not rejected — it is a parser rewrite against a different schema, and the coverage check closes the immediate hole with a guard that also covers whatever the *next* markup surprise turns out to be.
+
+Fixtures are regenerated with `make refresh-fixtures`. Until this ADR, the committed corpus could only be produced by a throwaway script — a reviewer could read the parser and read the fixture with no way to check that one had produced the other.

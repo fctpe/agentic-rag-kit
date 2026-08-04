@@ -14,6 +14,7 @@ dropped the annexes entirely.
 """
 
 import json
+import re
 
 import pytest
 
@@ -23,7 +24,7 @@ from app.retrieval.citations import citation_url
 
 # Per-regulation (articles, annexes, chunks) in data/fixtures/. The GDPR has no
 # annexes at all — zero is the right answer there, not a broken fixture.
-EXPECTED = {"ai_act": (113, 13, 163), "gdpr": (99, 0, 117)}
+EXPECTED = {"ai_act": (113, 13, 167), "gdpr": (99, 0, 117)}
 
 
 @pytest.mark.parametrize(("regulation", "counts"), EXPECTED.items())
@@ -42,7 +43,7 @@ def test_fixture_matches_the_evaluated_corpus(
 def test_corpus_totals() -> None:
     assert sum(articles for articles, _, _ in EXPECTED.values()) == 212
     assert sum(annexes for _, annexes, _ in EXPECTED.values()) == 13
-    assert sum(chunks for _, _, chunks in EXPECTED.values()) == 280
+    assert sum(chunks for _, _, chunks in EXPECTED.values()) == 284
 
 
 def test_units_carry_text_and_a_citable_ref() -> None:
@@ -66,6 +67,40 @@ def test_annex_iii_is_present_and_carries_the_high_risk_list() -> None:
     assert "High-risk AI systems referred to in Article" in annex_iii.heading
     for use_case in ("Biometrics", "Critical infrastructure", "Education", "Employment"):
         assert use_case in annex_iii.text
+
+
+def test_annex_i_carries_the_legislation_it_lists_not_just_the_numbering() -> None:
+    """The loss that a length check would not have caught either.
+
+    EUR-Lex renders these list rows with the marker in a `<p>` and the text in a
+    bare `<span>`. A parser reading only `<p>` collected "1." "2." "3." and threw
+    away every directive they label, so Annex I arrived as 238 characters that
+    still looked like a populated unit: it had a heading, a non-empty
+    `paragraphs`, and one chunk, exactly as a genuinely short annex would.
+
+    This is the list Art. 6(1) points at to classify a system as high-risk. With
+    it empty, "which legislation makes my system high-risk?" is answerable only
+    with the numbers 1 through 12.
+
+    So the assertion is on named content, not on length. A character count would
+    pass on 5,000 characters of the wrong text, and it would have to be updated
+    every time the union amends the annex — a threshold nobody trusts is a
+    threshold that gets raised until it never fires.
+    """
+    annexes = {unit.number: unit for unit in load_fixture("ai_act") if isinstance(unit, Annex)}
+    annex_i = annexes["I"]
+
+    for directive in (
+        "Directive 2006/42/EC",  # machinery
+        "Regulation (EU) 2017/745",  # medical devices
+        "Regulation (EU) 2018/1139",  # civil aviation
+    ):
+        assert directive in annex_i.text, f"Annex I does not list {directive}"
+
+    # The bare markers alone are what the broken parser produced. Their presence
+    # is fine and expected; a unit consisting of nothing else is the defect.
+    stripped = re.sub(r"\b\d{1,2}\.\s*", "", annex_i.text).strip()
+    assert len(stripped) > 3000, "Annex I is little more than its own list numbering"
 
 
 def test_no_annex_chunk_claims_to_be_an_article() -> None:

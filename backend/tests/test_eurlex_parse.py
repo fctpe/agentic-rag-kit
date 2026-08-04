@@ -246,3 +246,80 @@ def test_unit_ref_normalises_what_the_agent_supplies(supplied: str, expected: st
     # read_article takes this straight from the model; "annex iii" has to find
     # the chunks stored under "Annex III" rather than report the annex missing.
     assert unit_ref(supplied) == expected
+
+
+class TestCaptureRatioFailsClosed:
+    """The check that would have caught Annex I on the day it broke.
+
+    Every other guard in the module counts *units*: orphan markers outside a
+    container, units with no paragraphs at all. None of them compared the text a
+    container holds against the text taken out of it, which is why Annex I could
+    fall from 5,872 characters to 238 without moving a unit count, a chunk count,
+    or a single test. It kept a heading and a non-empty body — it just lost every
+    directive it was there to list.
+    """
+
+    # The real shape of the loss: EUR-Lex puts the list marker in a <p> and the
+    # text it labels in a bare <span>, and a parser reading only <p> takes the
+    # numbering and leaves the content.
+    _SPAN_CONTENT = (
+        '<div id="anx_I"><p class="oj-doc-ti">ANNEX I</p>'
+        '<p class="oj-doc-ti">List of Union harmonisation legislation</p>'
+        "<table><tr><td></td><td><p>1.</p></td>"
+        "<td><span>Directive 2006/42/EC of the European Parliament and of the Council "
+        "of 17 May 2006 on machinery, and amending Directive 95/16/EC;</span></td></tr>"
+        "<tr><td></td><td><p>2.</p></td>"
+        "<td><span>Directive 2009/48/EC of the European Parliament and of the Council "
+        "of 18 June 2009 on the safety of toys;</span></td></tr></table></div>"
+    )
+
+    def test_span_wrapped_content_is_captured(self):
+        units = parse_units(self._SPAN_CONTENT)
+        assert len(units) == 1
+        assert "Directive 2006/42/EC" in units[0].text
+        assert "Directive 2009/48/EC" in units[0].text
+
+    def test_the_old_p_only_rule_would_have_been_rejected(self, monkeypatch):
+        """The negative control, and the one that matters.
+
+        Restoring the `<p>`-only extraction must now raise rather than return a
+        unit of bare numbering. Without this, `test_span_wrapped_content_is_
+        captured` above proves only that the new extractor works — not that the
+        guard would stop the old one, which is the property claimed in prose.
+        """
+        from app.ingestion import eurlex
+
+        def p_only(container, exempt):
+            return [
+                node.get_text(" ", strip=True)
+                for node in container.find_all("p")
+                if id(node) not in exempt and node.get_text(strip=True)
+            ]
+
+        monkeypatch.setattr(eurlex, "_blocks", p_only)
+        with pytest.raises(ParseError, match="word characters"):
+            parse_units(self._SPAN_CONTENT)
+
+    def test_the_error_names_the_unit_and_the_shortfall(self, monkeypatch):
+        # A guard that fires without saying which unit lost what sends you
+        # reading a 1.2 MB document by hand.
+        from app.ingestion import eurlex
+
+        monkeypatch.setattr(eurlex, "_blocks", lambda container, exempt: ["1.", "2."])
+        with pytest.raises(ParseError) as caught:
+            parse_units(self._SPAN_CONTENT)
+        message = str(caught.value)
+        assert "Annex I" in message
+        assert str(eurlex.MIN_CAPTURE_RATIO) in message
+
+    def test_a_genuinely_short_unit_is_not_a_shortfall(self):
+        """Negative control for the guard itself. It measures the ratio of what
+        was captured to what the container held — not length — so a two-line
+        article passes. A guard that reds healthy documents gets deleted."""
+        html = (
+            '<div id="art_1"><p class="oj-ti-art">Article 1</p>'
+            '<p class="oj-sti-art">Subject matter</p>'
+            '<p class="oj-normal">This Regulation lays down harmonised rules.</p></div>'
+        )
+        units = parse_units(html)
+        assert [unit.ref for unit in units] == ["Art. 1"]

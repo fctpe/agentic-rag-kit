@@ -48,6 +48,10 @@ ingest-fixture: require-env  ## same corpus as `ingest`, read offline (needs OPE
 ingest-smoke: require-env    ## 10 units per regulation from data/fixtures/, no LLM prefixes
 	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture --no-contextual --max-units 10
 
+# No require-env: this only fetches and parses, so it needs no provider key.
+refresh-fixtures:            ## regenerate data/fixtures/ from Cellar (no key needed)
+	cd backend && $(UV_OPTENV) python -m app.ingestion.refresh_fixtures
+
 api: require-env
 	cd backend && $(UV) uvicorn app.main:app --reload --port 8000
 

@@ -40,8 +40,8 @@ async def ingest_regulation(
         print(f"[{regulation}] reading committed corpus", file=sys.stderr)
         units = load_fixture(regulation)
     else:
-        print(f"[{regulation}] fetching {meta['url']}", file=sys.stderr)
-        html = fetch_html(meta["url"])
+        print(f"[{regulation}] fetching {meta['fetch_url']}", file=sys.stderr)
+        html = fetch_html(meta["fetch_url"])
         units = parse_units(html)
     if max_units:
         units = units[:max_units]
