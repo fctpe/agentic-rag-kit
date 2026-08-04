@@ -466,11 +466,27 @@ async def main() -> int:
                 file=sys.stderr,
             )
 
-    unmarked = [s["id"] for s in scorable if not INLINE_CITATION.search(s["answer"])]
+    # An answer the grounding verifier rejected is not an answer — it is the
+    # refusal that replaced one, and it has no sources to mark because it makes
+    # no claims. Counting it as a missing citation would make the fail-closed
+    # path look like a formatting defect, and the cheapest way to turn that
+    # gate green would be to weaken the verifier. That is the one incentive
+    # this suite must never create.
+    #
+    # Reported separately rather than dropped: an answer count that quietly
+    # shrinks is the defect this same file was just fixed for.
+    citable = [s for s in scorable if s.get("grounded") is not False]
+    ungrounded = [s["id"] for s in scorable if s.get("grounded") is False]
+    unmarked = [s["id"] for s in citable if not INLINE_CITATION.search(s["answer"])]
     print(
-        f"\ninline citations: {len(scorable) - len(unmarked)}/{len(scorable)} answers carry an "
+        f"\ninline citations: {len(citable) - len(unmarked)}/{len(citable)} answers carry an "
         "[n] marker" + (f" — missing: {', '.join(unmarked)}" if unmarked else "")
     )
+    if ungrounded:
+        print(
+            f"  ({len(ungrounded)} answer(s) not counted — the grounding verifier "
+            f"refused them, so they cite nothing: {', '.join(ungrounded)})"
+        )
 
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = RESULTS_DIR / f"ragas_{timestamp}.json"
@@ -487,6 +503,10 @@ async def main() -> int:
         "n_judge_failures": len(judge_failures),
         "judge_failures": judge_failures,
         "answers_without_inline_citation": unmarked,
+        # Denominator for the line above, and the ids it excluded. Without both,
+        # "0 answers missing a marker" cannot be told apart from "0 answers".
+        "n_citable": len(citable),
+        "answers_refused_as_ungrounded": ungrounded,
         "timestamp": timestamp,
         "partial": partial,
         "samples": samples,

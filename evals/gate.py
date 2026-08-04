@@ -165,6 +165,35 @@ def gate_ragas(payload: dict[str, Any], *, partial: bool) -> GateResult:
             len(unmarked) <= allowed,
             detail + (f" — {', '.join(unmarked)}" if unmarked else ""),
         )
+    # The denominator of the check above, and the ids it excluded.
+    #
+    # An answer the grounding verifier refused makes no claims, so it has
+    # nothing to cite and is not counted. That exclusion is correct and it is
+    # also a hole: with every answer refused, `unmarked` is empty and the
+    # citation check passes over nothing at all. Same shape as the per-metric
+    # population above — a shrinking denominator hiding behind a clean count.
+    #
+    # Refusals are not failures. `max_answers_refused_as_ungrounded` is sized
+    # from what the suite actually does: 0 or 1 across five scored runs, always
+    # the same question (G11), where the verifier disagrees with itself run to
+    # run. A rising count is not a broken gate, it is answers getting worse.
+    citable = payload.get("n_citable")
+    refused = payload.get("answers_refused_as_ungrounded")
+    if citable is None or refused is None:
+        result.add(
+            "citation population",
+            False,
+            "the citation check does not state its denominator — this run "
+            "predates it; re-run run_evals.py",
+        )
+    else:
+        max_refused = spec["max_answers_refused_as_ungrounded"]
+        result.add(
+            "citation population",
+            citable + len(refused) == expected and len(refused) <= max_refused,
+            f"{citable} answers citable, {len(refused)} refused as ungrounded "
+            f"(max {max_refused})" + (f" — {', '.join(refused)}" if refused else ""),
+        )
     summary = payload.get("summary", {})
     for metric, mspec in spec["metrics"].items():
         _check_metric(result, metric, summary.get(metric), mspec)

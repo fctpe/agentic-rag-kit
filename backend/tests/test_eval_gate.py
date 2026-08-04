@@ -43,6 +43,8 @@ def _complete_ragas_payload() -> dict:
     payload["answers_without_inline_citation"] = []
     payload["n_contributing"] = dict.fromkeys(payload["summary"], payload["n_scored"])
     payload["n_judge_failures"] = 0
+    payload["n_citable"] = payload["n_scored"]
+    payload["answers_refused_as_ungrounded"] = []
     return payload
 
 
@@ -212,6 +214,51 @@ class TestPerMetricPopulation:
         failed = _failed(gate_ragas(_load("ragas.json"), partial=False))
         assert "per-metric population" in failed
         assert "judge failures" in failed
+
+
+class TestCitationPopulation:
+    """A citation check that passes over nothing.
+
+    An answer the grounding verifier refused makes no claims and cites nothing,
+    so it is excluded from the marker check — counting it would make the
+    fail-closed path look like a formatting defect, and the cheapest way to
+    green that would be to weaken the verifier.
+
+    The exclusion needs its own denominator for the same reason the metric means
+    do: without it, a run where every answer was refused reports zero missing
+    markers and passes, having checked nothing.
+    """
+
+    def test_a_complete_run_passes(self):
+        payload = _complete_ragas_payload()
+        assert gate_ragas(payload, partial=False).passed
+
+    def test_a_refusal_does_not_count_as_a_missing_marker(self):
+        """The false positive this closes. G11 is a real answer the verifier
+        refused in three of five scored runs; it was reported as an uncited
+        answer and failed the gate."""
+        payload = _complete_ragas_payload()
+        payload["n_citable"] = 37
+        payload["answers_refused_as_ungrounded"] = ["G11"]
+        assert gate_ragas(payload, partial=False).passed
+
+    def test_a_shrunken_citable_set_fails(self):
+        """Zero missing markers out of two answers is not a pass."""
+        payload = _complete_ragas_payload()
+        payload["n_citable"] = 2
+        payload["answers_refused_as_ungrounded"] = []
+        assert _failed(gate_ragas(payload, partial=False)) == ["citation population"]
+
+    def test_too_many_refusals_fail_even_though_refusing_is_correct(self):
+        payload = _complete_ragas_payload()
+        payload["n_citable"] = 33
+        payload["answers_refused_as_ungrounded"] = ["G11", "G08", "A01", "A02", "X01"]
+        assert _failed(gate_ragas(payload, partial=False)) == ["citation population"]
+
+    def test_an_unmeasured_run_is_a_failure_not_a_skip(self):
+        payload = _complete_ragas_payload()
+        payload.pop("n_citable")
+        assert "citation population" in _failed(gate_ragas(payload, partial=False))
 
 
 class TestSubsetRunsCannotClaimAGate:

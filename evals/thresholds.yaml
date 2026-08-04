@@ -55,6 +55,17 @@ ragas:
   # committed run predates the check and does not carry the field — see
   # backend/tests/test_eval_gate.py.
   max_answers_without_inline_citation: 0
+  # An answer the grounding verifier refused is excluded from the check above —
+  # it makes no claims, so it cites nothing, and counting it would make the
+  # fail-closed path read as a formatting defect. The cheapest way to green that
+  # would be to weaken the verifier, which is the one incentive this suite must
+  # not create.
+  #
+  # But the exclusion needs a ceiling or the citation check can pass over an
+  # empty set. Sized from five scored runs: 0 or 1, always G11, where the
+  # verifier disagrees with itself between runs. Two allows that flip plus one
+  # more; beyond it, answers are getting worse, not the gate stricter.
+  max_answers_refused_as_ungrounded: 2
   metrics:
     faithfulness: { baseline: 0.9316, floor: 0.90 }
     answer_relevancy: { baseline: 0.8805, floor: 0.78 }
