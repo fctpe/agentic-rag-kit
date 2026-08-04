@@ -1,0 +1,36 @@
+# gitleaks configuration: the default rules, plus one narrowly-scoped allowlist.
+#
+# Three committed artefacts are keyed by SHA-256, and `generic-api-key` reads a
+# 64-character hex string as a credential — 613 findings, every one a cache key:
+#
+#   data/fixtures/context_prefixes.json   one LLM-written sentence per chunk
+#   data/fixtures/chunk_embeddings.json   one embedding vector per chunk
+#   evals/query_embeddings.json           one embedding vector per golden question
+#
+# All three are generated, never hand-edited, and every key is a digest over
+# text committed a few files away — see backend/app/embedding_cache.py.
+#
+# The allowlist matches on the *rendered finding*, not on the file path. That is
+# deliberate. `paths = [...]` was tried first and is wrong: gitleaks skips an
+# allowlisted path wholesale, so a real `ghp_…` token or `sk-proj-…` key pasted
+# into one of these files would have gone unreported. Verified, not assumed —
+# with the path form both were silently swallowed; with the form below both are
+# still found, and only `"key": "<64 lowercase hex>"` is suppressed.
+#
+# The pattern is kept as tight as it is for one specific reason: this repository
+# generates JWT_SECRET with `openssl rand -hex 32`, which is exactly a bare
+# 64-hex string. Allowlisting that shape on its own would blind the scanner to
+# the one secret it is most likely to be the last line of defence against.
+# Requiring the literal `key": "` prefix leaves that case reporting.
+#
+# The rule this repository works to is that `gitleaks git .` prints nothing, and
+# that is only a rule while it is achievable. A scanner with 613 standing false
+# positives is a scanner nobody reads.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SHA-256 cache keys in the committed prefix and embedding caches"
+regexTarget = "match"
+regexes = ['''^key":\s*"[0-9a-f]{64}"$''']
