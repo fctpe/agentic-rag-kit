@@ -21,7 +21,7 @@ jobs:
   kind:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Build the images the cluster will run
         # Same two commands as docs/deployment.md. NEXT_PUBLIC_API_BASE is a
@@ -32,13 +32,13 @@ jobs:
           docker build --build-arg NEXT_PUBLIC_API_BASE=http://api.ragkit.localtest.me \
             -t ragkit-frontend:dev frontend
 
-      - uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
         with:
           # `apply -k` renders with the kustomize built into kubectl, so the
           # version is part of what this job reproduces.
           version: v1.32.3
 
-      - uses: helm/kind-action@v1
+      - uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
         with:
           cluster_name: ragkit
           config: deploy/kind-cluster.yaml
@@ -171,8 +171,8 @@ jobs:
       run:
         working-directory: deploy/terraform
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
           terraform_version: 1.14.4
       - run: terraform fmt -check -recursive
