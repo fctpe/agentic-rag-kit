@@ -63,6 +63,12 @@ jobs:
         # holds it to that. The committed baselines were measured on an earlier
         # corpus (212 articles / 283 chunks, annexes mislabelled under the last
         # article) and are stale until this workflow re-runs them.
+        #
+        # Contextual prefixes come from data/fixtures/context_prefixes.json, not
+        # from a model call: generating them here would make every scored run
+        # measure a slightly different corpus, which is what a weekly regression
+        # run cannot afford. A cache that does not cover the fixture fails this
+        # step rather than degrading the corpus — see app/ingestion/prefix_cache.py.
         run: uv run python -m app.ingestion.pipeline --source fixture
 
       - name: Start the API

@@ -1,0 +1,1996 @@
+{
+  "generated": "2026-08-04",
+  "model": "openai:gpt-4o-mini",
+  "generated_by": "app.ingestion.refresh_prefixes",
+  "note": "Contextual prefixes for the committed fixture corpus, generated once so that ingesting data/fixtures/ twice produces the same chunks. Keyed by a SHA-256 over the rendered prompt and the full chunk content; an edited chunk therefore misses rather than reusing a sentence written for different text. Regenerate with `make prefix-cache`.",
+  "entries": [
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 1",
+      "idx": 0,
+      "key": "cc94c05fefc4828089b9358c5e641d0ab10058822171c585004b922029e832e5",
+      "prefix": "This chunk of Regulation (EU) 2024/1689 outlines the objectives and scope of the regulation, which aims to enhance the internal market for artificial intelligence while ensuring safety, fundamental rights, and innovation through specific rules and prohibitions related to AI systems in the Union."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 2",
+      "idx": 0,
+      "key": "d13ac3a1c77a956c08e757f1bea955e077ca6312ecdc2a9adfee28440dd9c58c",
+      "prefix": "This chunk outlines the scope of Regulation (EU) 2024/1689, detailing the entities and circumstances to which the regulation applies and the exceptions regarding military, national security, and scientific research purposes."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 2",
+      "idx": 1,
+      "key": "ef6b180c663c974837ab596062bca0488cdf4e7930a988529a8d6896bf273b67",
+      "prefix": "This chunk outlines the exclusions from the Regulation (EU) 2024/1689, specifying that it does not apply to pre-market AI research and development, personal use by individuals, certain consumer protection laws, and free and open-source AI systems unless they are classified as high-risk."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 3",
+      "idx": 0,
+      "key": "0cb1bb158a5e6fd8be60baeae840e755b2246cb3947b79cd114c869a2766ac84",
+      "prefix": "This chunk defines key terms related to AI systems, including 'AI system,' 'risk,' 'provider,' 'deployer,' 'authorised representative,' 'importer,' 'distributor,' 'operator,' 'placing on the market,' 'making available on the market,' 'putting into service,' 'intended purpose,' 'reasonably foreseeable misuse,' and 'safety component' for the purposes of Regulation (EU) 2024/1689."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 3",
+      "idx": 1,
+      "key": "10331b20fde0db745c14ea8c14c70913236b1aad694fb8ce2f59cae480280dbe",
+      "prefix": "This chunk defines key terms related to the operation, assessment, and regulation of AI systems, including instructions for use, recall and withdrawal of AI systems, performance, conformity assessment, and data used in training and validation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 3",
+      "idx": 2,
+      "key": "0c2cf852a7c378149d0b4f935e568baed4651207ef2a2b9dae5d183e9ef99551",
+      "prefix": "This chunk defines various terms related to artificial intelligence, including types of data (testing, input, biometric, sensitive operational), identification systems (biometric identification, verification, emotion recognition), and the roles of law enforcement authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 3",
+      "idx": 3,
+      "key": "dd1efd58a86523feaa9593b92d697e5abf254a363744ae492f9eb7ca196749d1",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 3 (Definitions), defines key terms related to law enforcement, AI governance, authorities, incidents, data types, profiling, testing plans, AI regulatory sandboxes, AI literacy, and real-world testing conditions."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 3",
+      "idx": 4,
+      "key": "f0f617071b1ae26ec49cd011a15b34915c4e2bdcef764f4720b437343b103a21",
+      "prefix": "This chunk defines key terms related to the testing of AI systems, including 'subject', 'informed consent', 'deep fake', 'widespread infringement', 'critical infrastructure', 'general-purpose AI model', 'high-impact capabilities', 'systemic risk', 'general-purpose AI system', 'floating-point operation', and 'downstream provider'."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 4",
+      "idx": 0,
+      "key": "cc83c423e39fd39bf693593d9a8a7ed275e6225dde2bcbb8d1e4eb0b20f8ac77",
+      "prefix": "The regulation mandates that AI system providers and deployers must ensure adequate AI literacy among their staff and users, tailored to their knowledge and the specific context of AI application."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 5",
+      "idx": 0,
+      "key": "847e5fcf7dff3adc7f682a2944c8890cfc3082a811a085734348634496c78fe3",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 5, outlines various AI practices that are prohibited due to their potential to manipulate individuals, exploit vulnerabilities, unfairly classify or assess individuals, and infringe on privacy and rights, particularly in contexts such as criminal risk assessment and biometric categorization."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 5",
+      "idx": 1,
+      "key": "efa6b53bb722c3e285ab1830624e5f2a61f4d4364ae9ee569e72c707cac6cfa8",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 5, outlines the conditions under which 'real-time' remote biometric identification systems may be used in public spaces for law enforcement, emphasizing strict necessity, specific objectives, and compliance with fundamental rights safeguards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 5",
+      "idx": 2,
+      "key": "9f9b98f7583dc154507998f606180dcf3433574716093d0e6c9dd22a47e7b4f7",
+      "prefix": "This chunk outlines the conditions under which 'real-time' remote biometric identification systems can be used for law enforcement in publicly accessible spaces, requiring prior authorization from a judicial or independent authority, with specific provisions for urgent situations and mandatory notifications to relevant authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 5",
+      "idx": 3,
+      "key": "ba621f79905b49744a7129297ff4364375a31285709075346d9d1e69593ff3d5",
+      "prefix": "This chunk outlines the reporting requirements for Member States regarding the use of real-time remote biometric identification systems in public spaces for law enforcement, including the submission of annual reports to the Commission and the publication of aggregated data, while clarifying that these provisions do not override existing prohibitions under other Union law."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 6",
+      "idx": 0,
+      "key": "f913d710ff80acba08178152f7ead15b33c55e9fff032885e13a3b4cafc329c8",
+      "prefix": "Article 6 of Regulation (EU) 2024/1689 outlines the criteria for classifying AI systems as high-risk based on their intended use as safety components of products or as standalone products subject to conformity assessments, along with additional conditions specified in Annex III."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 6",
+      "idx": 1,
+      "key": "97979e2cee2633ccab944c5ecafcaf36864e5c57426f2ce9efca72c476a5e468",
+      "prefix": "This chunk outlines the process for the Commission to amend specific conditions related to high-risk AI systems while ensuring that such amendments do not reduce the protection of health, safety, and fundamental rights as established by the Regulation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 7",
+      "idx": 0,
+      "key": "aae18aa6135fee35ddf074d3da7cc7ae1293e13a6b79fae4e06d5fa741dfef3e",
+      "prefix": "Article 7 of Regulation (EU) 2024/1689 empowers the Commission to adopt delegated acts to amend Annex III by adding or removing high-risk AI systems based on specific risk criteria related to health, safety, and fundamental rights."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 8",
+      "idx": 0,
+      "key": "f5e6bf96dd9cb9d82fca1db06d2865fec2b8d73a9328a477f365f34c9414bbba",
+      "prefix": "This chunk outlines the compliance obligations for high-risk AI systems, emphasizing adherence to specific requirements based on their intended use and the integration of existing Union harmonisation legislation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 9",
+      "idx": 0,
+      "key": "6fadaab4265eb07bf8e5c8d477f566c16d3386a62f11f510b32b6ecd48327ceb",
+      "prefix": "The chunk outlines the requirements for establishing, implementing, and maintaining a risk management system for high-risk AI systems, detailing the processes for identifying, evaluating, and mitigating risks throughout the system's lifecycle."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 9",
+      "idx": 1,
+      "key": "94412d0b79169a62d64399c78027c96d5f5b5f8dbf726413ca72a318c437cdc3",
+      "prefix": "This chunk addresses the considerations providers must take into account regarding the potential adverse impacts of high-risk AI systems on individuals under 18 and other vulnerable groups when implementing a risk management system."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 10",
+      "idx": 0,
+      "key": "23606e52abf9a8d4fe0eafe93875373226af4685078c6c99ee9551cbb40f4f79",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 10, outlines the requirements for the development and management of training, validation, and testing data sets for high-risk AI systems, emphasizing data quality, governance, bias detection, and compliance with fundamental rights."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 10",
+      "idx": 1,
+      "key": "c172fd069f8bfe70bb44cfe18acc02f19f042c020722fbaf535c3032312c23a2",
+      "prefix": "This chunk of Regulation (EU) 2024/1689 addresses the handling, retention, and processing justification of special categories of personal data in relation to bias correction in high-risk AI systems."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 11",
+      "idx": 0,
+      "key": "04ab84da892223b78c2914dcd4924080dbeec2251f44311576db80c15c851e41",
+      "prefix": "Article 11 of Regulation (EU) 2024/1689 outlines the requirements for the technical documentation of high-risk AI systems, including its preparation, content, and provisions for small and microenterprises to submit simplified documentation for compliance assessment."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 12",
+      "idx": 0,
+      "key": "e30f0bcea4cb27ed0972b26267c174fd4810e72111661ecae8f9c6e4346ee080",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 12, outlines the requirements for high-risk AI systems to automatically log events throughout their lifecycle to ensure traceability, facilitate monitoring, and record specific usage details."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 13",
+      "idx": 0,
+      "key": "37d2e4f6e4bed67e5a713c31563c15b8dc8bd4e86040ab7033d2563a3861fe41",
+      "prefix": "This chunk outlines the requirements for transparency and information provision for high-risk AI systems, detailing the necessary instructions for use that must be provided to deployers, including system characteristics, performance metrics, risks, and oversight measures."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 14",
+      "idx": 0,
+      "key": "1c09d80404e6e86c46992e53820be2614c10a44e3791674be5488d72917210a4",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 14, outlines the requirements for human oversight of high-risk AI systems to ensure they are effectively monitored and that risks to health, safety, or fundamental rights are minimized during their use."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 15",
+      "idx": 0,
+      "key": "be84fc52ef711de050bfcb9db1296cc190413e90f054ec0e100f60a96e89c004",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 15, outlines the requirements for high-risk AI systems to ensure accuracy, robustness, and cybersecurity throughout their lifecycle, including measures to address performance metrics, resilience against errors and unauthorized alterations, and the prevention of biased outputs and vulnerabilities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 16",
+      "idx": 0,
+      "key": "d03b6a7790884b8a316fedf812de0326ecd8ca5d2daee12d8f572be9ffede020",
+      "prefix": "This chunk outlines the obligations of providers of high-risk AI systems, including compliance with regulatory requirements, documentation, quality management, conformity assessments, and accessibility standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 17",
+      "idx": 0,
+      "key": "fdcd92a0742fa63267bc4b1f365ded4fef9be88d0b7c94e5150987267b7790ef",
+      "prefix": "This chunk outlines the requirements for providers of high-risk AI systems to establish a documented quality management system that ensures compliance with the Artificial Intelligence Act, detailing necessary components such as regulatory compliance strategies, design and development procedures, risk management, and post-market monitoring."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 18",
+      "idx": 0,
+      "key": "6ee9ec6fe4ac8a7c56263989c8d4f9b8f52a4494207cc5d77a7a6b4b293f3768",
+      "prefix": "Article 18 of Regulation (EU) 2024/1689 mandates that providers of high-risk AI systems retain specific technical and compliance documentation for ten years after the system's market introduction, ensuring availability for national authorities, even in cases of provider bankruptcy."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 19",
+      "idx": 0,
+      "key": "ec8d4aedfb70095e2089652378b3fc041a49b8399fc9352318a91b4d587a18d3",
+      "prefix": "Providers of high-risk AI systems must maintain automatically generated logs for at least six months, in accordance with applicable Union or national laws, including those related to personal data protection."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 20",
+      "idx": 0,
+      "key": "6de00544c5e2cc6e43a53e8b84a85cc04b3604f0b93e06e3e2edafa4b74c360e",
+      "prefix": "This regulation mandates that providers of high-risk AI systems must take immediate corrective actions if they identify non-compliance with the regulation and inform relevant parties, including distributors and market surveillance authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 21",
+      "idx": 0,
+      "key": "65f5d4430bf93ff8ace08c6a21e37095be1211f68e94d68f68059ffd562b5e2c",
+      "prefix": "This chunk outlines the obligations of providers of high-risk AI systems to supply necessary information and documentation to competent authorities upon request, including access to system logs, while ensuring confidentiality of the obtained information."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 22",
+      "idx": 0,
+      "key": "8327baf1f2750443c2a87073988eadcd1ccee2d1f5942c479db2f57235ca2421",
+      "prefix": "This chunk outlines the requirements for providers of high-risk AI systems from third countries to appoint an authorised representative in the EU, detailing the representative's responsibilities, including compliance verification, documentation retention, and cooperation with authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 23",
+      "idx": 0,
+      "key": "d175e72f2986707fb822806c55cf5eeadbd28ecf495c38701a3c9ae7d325c28a",
+      "prefix": "This chunk outlines the obligations of importers regarding the conformity, documentation, labeling, and cooperation with authorities for high-risk AI systems before they are placed on the market."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 24",
+      "idx": 0,
+      "key": "79b2d80a07301b81a53b05ebea80581362e8b6b8dcfac3b8ef07794c0e9dc030",
+      "prefix": "Article 24 of Regulation (EU) 2024/1689 outlines the obligations of distributors regarding the verification, compliance, and corrective actions for high-risk AI systems before they are made available on the market."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 25",
+      "idx": 0,
+      "key": "7f303689ee9e6f605de227e12b4150af4629f1d6e88ef81e8adeed870df3343e",
+      "prefix": "This chunk outlines the responsibilities of distributors, importers, deployers, and other third parties regarding high-risk AI systems, including their obligations when modifying or branding such systems, and the cooperation required with initial providers to ensure compliance with regulatory standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 25",
+      "idx": 1,
+      "key": "a683e293a9fd4320c5f6d56f2c47a112de8979eac7d2c237020d51219f78ade6",
+      "prefix": "This chunk outlines the AI Office's authority to create and recommend voluntary model contract terms for high-risk AI system providers and their third-party suppliers, while ensuring compliance with intellectual property and confidentiality laws."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 26",
+      "idx": 0,
+      "key": "a56d7e4db5484941459e66a9e109cc32b58491fdeea4dbd48a00296d7bc900fe",
+      "prefix": "This chunk outlines the obligations of deployers of high-risk AI systems, including ensuring compliance with usage instructions, assigning competent human oversight, monitoring system operations, managing input data relevance, maintaining logs, and informing workers about the use of such systems."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 26",
+      "idx": 1,
+      "key": "22b43f4b7a1d278a3b5aaed09110e675d6d3c5a95dfc0737818e8e843111ca4c",
+      "prefix": "This chunk outlines the obligations of public authorities and Union institutions deploying high-risk AI systems, including registration requirements, data protection assessments, authorization for post-remote biometric identification, documentation of use, and annual reporting to relevant authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 26",
+      "idx": 2,
+      "key": "bcdc994892edbf46b1faa40ebb0ccb94d96e7047126af9e51f8865e766c5874c",
+      "prefix": "Deployers of high-risk AI systems must inform individuals affected by these systems and cooperate with authorities regarding their implementation and oversight."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 27",
+      "idx": 0,
+      "key": "fed4110de9b490c54d99944dcff4c08da6e63ad0a9e3e0ab34e9f9fa050fcd98",
+      "prefix": "Article 27 of Regulation (EU) 2024/1689 mandates that deployers of high-risk AI systems conduct a fundamental rights impact assessment prior to deployment, detailing usage processes, affected individuals, potential risks, human oversight measures, and governance arrangements."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 28",
+      "idx": 0,
+      "key": "49521aad83bde58b9e2c5f7541dc6b9e16960373d8c55bce903a9f03947d90bf",
+      "prefix": "Article 28 of Regulation (EU) 2024/1689 outlines the responsibilities and requirements for Member States to establish notifying authorities that oversee the assessment and monitoring of conformity assessment bodies, ensuring objectivity, impartiality, and confidentiality in their operations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 29",
+      "idx": 0,
+      "key": "46d7e70aed1f5d29e26f6a70f20a0f9b7b600316795b166653f7db1023509fe2",
+      "prefix": "This chunk outlines the application process and requirements for conformity assessment bodies seeking notification from the relevant Member State authority, including necessary documentation and compliance verification."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 30",
+      "idx": 0,
+      "key": "ee7e68b3e511f41591bfdc150439e4eb3c3b3c1befb721969fce2dc8291a9ca5",
+      "prefix": "Article 30 of Regulation (EU) 2024/1689 outlines the notification procedure for conformity assessment bodies by notifying authorities, detailing the requirements for notification, the information to be included, and the process for addressing objections from the Commission or other Member States."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 31",
+      "idx": 0,
+      "key": "f492d9e6d08a15544470e4f4b43b3545873c89cec6646421dfaabef2694fe75c",
+      "prefix": "This chunk outlines the requirements for notified bodies under the Artificial Intelligence Act, including their establishment, independence, organizational structure, confidentiality, and professional integrity in conducting conformity assessments for high-risk AI systems."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 31",
+      "idx": 1,
+      "key": "02b5c1a378b68e14708e45933073b9bc37aa2bce1149747c189fa3fe5f933bdb",
+      "prefix": "This chunk outlines the requirements for notified bodies to possess adequate internal expertise and personnel, participate in coordination activities, and stay informed about relevant standards in relation to AI system evaluations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 32",
+      "idx": 0,
+      "key": "8fdcda467869255bba7a5c998acc57e713c1162c100354cc3f2d52fa7b7ed8f1",
+      "prefix": "This chunk outlines that a conformity assessment body is presumed to meet the requirements of Article 31 if it demonstrates compliance with relevant harmonised standards published in the Official Journal of the European Union."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 33",
+      "idx": 0,
+      "key": "6c14f7a6cd0ee04a2966668c61210c15b74b3dc9dbd44cf7bd06a716deda3ad0",
+      "prefix": "Article 33 of Regulation (EU) 2024/1689 outlines the responsibilities and requirements for notified bodies regarding subcontracting tasks and the use of subsidiaries in conformity assessments, including the need for compliance with specific standards, accountability, provider consent, public disclosure of subsidiaries, and document retention for oversight."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 34",
+      "idx": 0,
+      "key": "806d411965120aab3859433eedd382da108bcdc2043702d152ceee3bd733bb88",
+      "prefix": "Article 34 outlines the operational obligations of notified bodies in verifying the conformity of high-risk AI systems, ensuring minimal burdens on providers, and providing necessary documentation to the notifying authority."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 35",
+      "idx": 0,
+      "key": "1212a65fef7837fe5f8ce518a1f7b00b9b3e9135a03effb3bde6c6385d60698e",
+      "prefix": "Article 35 of Regulation (EU) 2024/1689 mandates the assignment of unique identification numbers to notified bodies and requires the Commission to maintain and publicly share an updated list of these bodies along with their respective activities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 36",
+      "idx": 0,
+      "key": "c2bf5a0eab7b3960d1f6e6410defca17d84cef533d68dbd2c29b419cf9fc68e7",
+      "prefix": "Article 36 of Regulation (EU) 2024/1689 outlines the procedures for notifying changes to the designation of notified bodies, including requirements for informing authorities about cessation of activities, compliance failures, and the management of certificates during such changes."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 36",
+      "idx": 1,
+      "key": "08aade2f8c3da66c45c03cd9079bc2623e611c23175dbbde25d7ec79198d7bad",
+      "prefix": "This chunk outlines the conditions under which certificates for high-risk AI systems remain valid despite suspension, restriction, or withdrawal of designation by the notifying authority."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 37",
+      "idx": 0,
+      "key": "3ffbbb0a5ffe565a445e584a7188c8017cb61acd67d0d8933dffa77d821e73ab",
+      "prefix": "Article 37 of Regulation (EU) 2024/1689 outlines the Commission's authority to investigate the competence of notified bodies, the obligation of notifying authorities to provide relevant information, the confidentiality of sensitive information during investigations, and the procedures for corrective measures if a notified body fails to meet the required standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 38",
+      "idx": 0,
+      "key": "434fc102b02ff8a20b30703a030e45eff9eeb11eef7e8f8240f189314b961186",
+      "prefix": "Article 38 of Regulation (EU) 2024/1689 mandates the Commission to facilitate coordination among notified bodies for high-risk AI systems and ensures that notifying authorities support their participation in this collaborative effort."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 39",
+      "idx": 0,
+      "key": "3cce275ee06582c65f5c329af9f0b8e34c8a912f18d2bd688c0d256d2df1c4bb",
+      "prefix": "This chunk outlines the conditions under which conformity assessment bodies from third countries can be authorized to perform notified body activities in the EU, contingent on meeting specific compliance requirements."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 40",
+      "idx": 0,
+      "key": "93ef3a2bcba7dcf5472031a9c611486ea997b14c16d1f0df1c8f6e51950d20df",
+      "prefix": "Article 40 of Regulation (EU) 2024/1689 outlines the presumption of conformity for high-risk AI systems and general-purpose AI models with harmonised standards, the Commission's responsibilities for issuing standardisation requests, and the promotion of investment and innovation in AI through stakeholder engagement and alignment with international standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 41",
+      "idx": 0,
+      "key": "795729637e1b569acfa9c7ef03561bc65b3b96eae733ac93bb7fa5e63a5db451",
+      "prefix": "Article 41 of Regulation (EU) 2024/1689 outlines the conditions under which the Commission can adopt implementing acts to establish common specifications for AI system requirements and obligations when harmonised standards are not adequately provided by European standardisation organisations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 41",
+      "idx": 1,
+      "key": "7e074f72241b3b2816690f1840bb02510866c37aff6e6a645980dc4478ce5205",
+      "prefix": "This chunk outlines the obligations of providers of high-risk AI systems or general-purpose AI models regarding compliance with common specifications and the process for Member States to report deficiencies in these specifications to the Commission."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 42",
+      "idx": 0,
+      "key": "7293af8f07631080099552311eade35b7e9d393b32d50e316062879b522b3c63",
+      "prefix": "This chunk outlines the conditions under which high-risk AI systems are presumed to comply with specific regulatory requirements based on their training data and certification status."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 43",
+      "idx": 0,
+      "key": "ef744eb5bdee005b76e19e56c0af8002b44434489cf202c935c3cbd6170a879d",
+      "prefix": "Article 43 of Regulation (EU) 2024/1689 outlines the conformity assessment procedures for high-risk AI systems, detailing the options for compliance based on the application of harmonised standards or common specifications, and specifies the roles of notified bodies in the assessment process."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 43",
+      "idx": 1,
+      "key": "727843872f03531abb51d76c0c63a72ef8cc17a54819afa56013b4704413fb54",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 43, outlines the conditions under which manufacturers of high-risk AI systems can opt out of third-party conformity assessments, the requirements for re-assessment after substantial modifications, and the Commission's authority to amend related annexes and procedures."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 44",
+      "idx": 0,
+      "key": "89828bafaac341fa0dd2aa6eaccc235e301051e2c0d3e3095bfb78d0f52a3c0d",
+      "prefix": "Article 44 of Regulation (EU) 2024/1689 outlines the requirements for certificates issued by notified bodies, including their language, validity periods, conditions for extension, and procedures for suspension or withdrawal based on compliance with AI system requirements."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 45",
+      "idx": 0,
+      "key": "4e0c5382ecf29e61c569ac1923d7f14063fa80ced4205aea8f8fe0f9d1e35e29",
+      "prefix": "This chunk outlines the information obligations of notified bodies regarding the communication of technical documentation assessments, quality management system approvals, and related activities to both the notifying authority and other notified bodies, while ensuring confidentiality."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 46",
+      "idx": 0,
+      "key": "7f34d2cc82ea389a1db2ae35468bc94ec9aa3afd9fafe8ed77c694c7afed87e2",
+      "prefix": "Article 46 of Regulation (EU) 2024/1689 outlines the conditions under which market surveillance authorities can grant temporary derogations from conformity assessment procedures for high-risk AI systems in exceptional circumstances related to public security, health, or environmental protection."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 47",
+      "idx": 0,
+      "key": "0f9fffc95d61af44b2a6d6e2e619021e9b8e4602d110544c68a22bd4ad4abbbd",
+      "prefix": "Article 47 of Regulation (EU) 2024/1689 outlines the requirements for providers to create and maintain an EU declaration of conformity for high-risk AI systems, ensuring compliance with relevant regulations and making it available to national authorities for a specified duration."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 48",
+      "idx": 0,
+      "key": "e6c39a87091336f627c2e09822d086a01a0e342b8753af9d26df54f0b959c98f",
+      "prefix": "Article 48 of Regulation (EU) 2024/1689 outlines the requirements and conditions for affixing the CE marking on high-risk AI systems, including its visibility, digital accessibility, and the inclusion of the notified body's identification number."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 49",
+      "idx": 0,
+      "key": "764494e9e8cbd12379b2bdf97bc81815f6d3b3983eb1003766c5acc075bb96d7",
+      "prefix": "Article 49 of Regulation (EU) 2024/1689 outlines the registration requirements for providers and deployers of high-risk AI systems in the EU database before these systems can be marketed or put into service."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 50",
+      "idx": 0,
+      "key": "32feb4de098ce857e1355c08dbc6e9d6498e47a90453ce772088416d9a57b72b",
+      "prefix": "The chunk outlines the transparency obligations for providers and deployers of certain AI systems, requiring them to inform users when interacting with AI, mark AI-generated content, and disclose the use of emotion recognition or deep fake technologies, while specifying exceptions for law enforcement and artistic contexts."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 50",
+      "idx": 1,
+      "key": "12ad583c63fbffe07596d9f13b4761ae2f02e28d951a1747a851061b92c26725",
+      "prefix": "This chunk outlines that the specified paragraphs do not alter existing transparency obligations under Union or national law for AI system deployers and discusses the AI Office's role in promoting codes of practice for detecting and labeling artificially generated or manipulated content, along with the Commission's authority to approve or establish common rules for these practices."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 51",
+      "idx": 0,
+      "key": "9b0882834f9156a3b723f0f92c582f959564cefa74153d7f8f403e323ceb8f8f",
+      "prefix": "This chunk outlines the criteria for classifying general-purpose AI models as having systemic risk based on their impact capabilities and computational requirements, as well as the Commission's authority to adjust these criteria over time."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 52",
+      "idx": 0,
+      "key": "f0c6ef89f37b87d08dee871b883c4e4995714430e12617b20ad0e5bde6b2917f",
+      "prefix": "Article 52 of Regulation (EU) 2024/1689 outlines the notification procedure for providers of general-purpose AI models that meet certain criteria, including the assessment and potential designation of these models as presenting systemic risks by the Commission, as well as the process for reassessment of such designations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 53",
+      "idx": 0,
+      "key": "4017d243a6c270e1f7dbce26a1cbafa591bb11b87e96c3d40df136354ecbd238",
+      "prefix": "This chunk outlines the obligations for providers of general-purpose AI models, including requirements for technical documentation, information sharing with AI system providers, compliance with copyright laws, and cooperation with authorities, while also detailing exceptions and the role of the Commission in standardization and confidentiality."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 54",
+      "idx": 0,
+      "key": "f0f68c25860b2d7353a615f0136a4ebb14fb0b6aaaea86d764dac426b87e07b6",
+      "prefix": "Article 54 of Regulation (EU) 2024/1689 mandates that providers of general-purpose AI models from third countries must appoint an authorised representative in the Union to ensure compliance with regulatory obligations before placing their models on the market."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 55",
+      "idx": 0,
+      "key": "fae5fd6b6bacc19399d48d8bfb6eacca79e78b5ca03c435bacc2ffe98d2d31bc",
+      "prefix": "This chunk outlines the obligations of providers of general-purpose AI models with systemic risk, including model evaluation, risk assessment, incident reporting, cybersecurity measures, and compliance with codes of practice or harmonised standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 56",
+      "idx": 0,
+      "key": "0363747b8fd3c39bb1d8fa33ff8c4ff3535cad73dde77863976d9894633e5e0d",
+      "prefix": "Article 56 of Regulation (EU) 2024/1689 outlines the responsibilities of the AI Office in promoting and facilitating the development of codes of practice for AI, ensuring they address obligations related to systemic risks, stakeholder involvement, and regular monitoring and evaluation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 56",
+      "idx": 1,
+      "key": "13a19b20f5b849046324ae7f7fb132130ceae9f6cc481dce13c2e10c4ce828b9",
+      "prefix": "This chunk outlines the deadlines and procedures for finalizing codes of practice related to the implementation of obligations under the Artificial Intelligence Act, including the role of the AI Office and the Commission's authority to establish common rules if necessary."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 57",
+      "idx": 0,
+      "key": "975f777be54861870f72e6d3e0b9d10f238077974458ec7e10d64b845579cb23",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 57, outlines the establishment and operation of AI regulatory sandboxes by Member States to foster innovation and ensure compliance with AI regulations, including provisions for cooperation, resource allocation, and guidance for participants."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 57",
+      "idx": 1,
+      "key": "0f5cee680bd8ae7bbaacc1f00bfe6b7f18ad9215b9e14e5dfda5b1163a5f7cd4",
+      "prefix": "This chunk outlines the objectives, operational guidelines, and supervisory roles of AI regulatory sandboxes established under Regulation (EU) 2024/1689, including provisions for legal compliance, innovation support, data protection involvement, and liability considerations for participants."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 57",
+      "idx": 2,
+      "key": "ce3a31d73de6f0eb20f3345dcb2293db0522bd7b583bb977451cb1e8453fc8ed",
+      "prefix": "This chunk outlines the responsibilities of national competent authorities regarding the establishment, reporting, and public accessibility of AI regulatory sandboxes, as well as the Commission's role in providing a centralized interface for stakeholder interaction and guidance."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 58",
+      "idx": 0,
+      "key": "d9f9cd53972c8c02cdd81e51e7cd86e0576a516e1485e88272c4fcb6760cf3aa",
+      "prefix": "This chunk outlines the Commission's responsibility to establish detailed arrangements for AI regulatory sandboxes, including eligibility criteria, application procedures, and operational guidelines to ensure uniformity and accessibility across the EU."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 58",
+      "idx": 1,
+      "key": "35ff6bc0a22d1cf654f501e68442fbfe9b9e0863796d0aad73926f082c448481",
+      "prefix": "This chunk outlines the support and services available to prospective AI providers in regulatory sandboxes, including guidance on compliance, testing facilities, and the conditions for real-world testing to ensure fundamental rights and safety."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 59",
+      "idx": 0,
+      "key": "c35fb97fca90bc6733655eb5ae7e8d7dd69f2d49bf3510dcceffdb2a30d6d8d2",
+      "prefix": "This regulation outlines the conditions under which personal data collected for other purposes can be processed in the AI regulatory sandbox to develop AI systems that serve substantial public interests, ensuring compliance with data protection laws and safeguarding the rights of data subjects."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 59",
+      "idx": 1,
+      "key": "478921443820cc6c59a25ce8d021145da5a5296c8e6407d236f5536115923abc",
+      "prefix": "This chunk clarifies that the provisions regarding the processing of personal data for developing AI systems in the public interest do not override existing Union or national laws that restrict such processing for other purposes or establish necessary legal bases for it."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 60",
+      "idx": 0,
+      "key": "d5827ced4877df1cff7d769a8f2ac80d738b4967549e9620c89b6682033c176c",
+      "prefix": "This chunk outlines the conditions and procedures for testing high-risk AI systems in real-world conditions outside regulatory sandboxes, including the requirement for a real-world testing plan, approval from market surveillance authorities, and compliance with relevant laws."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 60",
+      "idx": 1,
+      "key": "62793a5650659c34e6deff0dc7f58f6b08159c2b41e7baa1199813c345b55698",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 60, outlines the conditions and requirements for testing high-risk AI systems in real-world conditions, including data transfer safeguards, duration limits, protection for vulnerable groups, informed consent, oversight responsibilities, and incident reporting protocols."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 60",
+      "idx": 2,
+      "key": "4146d0cb757ef5471de2a6da5c043d9cea9dcf95a3e28bf3f5687674a853617e",
+      "prefix": "This chunk outlines the obligations of AI system providers to notify national authorities about the suspension or termination of real-world testing and their liability for any damages incurred during such testing."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 61",
+      "idx": 0,
+      "key": "7893061136bc9f3b819cfa2b59a3a6b5b5e80e0fdf9dd804734a906d198655e0",
+      "prefix": "This regulation mandates that informed consent must be obtained from participants before testing AI in real-world conditions, ensuring they are fully informed about the testing's nature, conditions, their rights, and the identification details of the testing."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 62",
+      "idx": 0,
+      "key": "e9d8c3a1e4d5b70da3db46f2560680ee583a71cb788ee823cb6878be860cc267",
+      "prefix": "This chunk outlines the responsibilities of Member States and the AI Office to support SMEs and start-ups in accessing AI regulatory sandboxes, providing tailored training, facilitating communication, and considering their specific needs in regulatory processes."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 63",
+      "idx": 0,
+      "key": "935bc500558697bdf6260516de1af4700db044e0b8098c3eb10d08d2fdbdabe5",
+      "prefix": "Article 63 of Regulation (EU) 2024/1689 outlines that microenterprises can simplify compliance with certain quality management system elements while still adhering to other regulatory obligations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 64",
+      "idx": 0,
+      "key": "9881188eb94df2230fd8b30e03f09b094f58b4945043bdb1fe7abe1826eeebb3",
+      "prefix": "This chunk outlines the responsibilities of the Commission and Member States in supporting the AI Office to enhance Union expertise and capabilities in artificial intelligence."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 65",
+      "idx": 0,
+      "key": "a33f4db34fc328a4771cad379fca91724bbee199528fdd53aff56c708c9d51e6",
+      "prefix": "This chunk outlines the establishment, composition, roles, and operational procedures of the European Artificial Intelligence Board, including the designation of representatives from Member States and the formation of sub-groups for cooperation on market surveillance issues."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 66",
+      "idx": 0,
+      "key": "cec0e8546363b79f5aaab84658f37ec50f68991deee95c5b7fa6ff7187f5363f",
+      "prefix": "Article 66 of Regulation (EU) 2024/1689 outlines the tasks of the Board, which include advising the Commission and Member States on the consistent application of the Regulation, coordinating national authorities, sharing expertise, providing implementation advice, and promoting AI literacy."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 66",
+      "idx": 1,
+      "key": "51b1557ed763aabd421ae23da9de5fc2a179937b2256124a5cdfc0ed96ef7931",
+      "prefix": "This chunk outlines the responsibilities of the Board in supporting national authorities with AI regulatory sandboxes, advising on guidance documents and international matters, and handling qualified alerts related to general-purpose AI models."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 67",
+      "idx": 0,
+      "key": "294998ef5143f8c7b16c6287f6e17e56758a1aabb63961818e1a16e137ddf346",
+      "prefix": "Article 67 of Regulation (EU) 2024/1689 establishes an advisory forum to provide technical expertise and advice to the Board and the Commission, ensuring balanced representation from various stakeholders in the field of artificial intelligence."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 68",
+      "idx": 0,
+      "key": "0fca997a030506545527223c5b0d5cf1d533e76e7281ee1bc31e6e6a1741716a",
+      "prefix": "Article 68 of Regulation (EU) 2024/1689 establishes a scientific panel of independent experts to support the enforcement of AI regulations, detailing their composition, responsibilities, and the procedures for ensuring their impartiality and conflict of interest management."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 69",
+      "idx": 0,
+      "key": "0f1c3e7b18cf1200d4b6091d6414043d0ce2903b69475d735759af022ad4dffc",
+      "prefix": "This chunk outlines the provisions for Member States to access scientific panel experts for enforcement support, including potential fees and the Commission's role in facilitating this access."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 70",
+      "idx": 0,
+      "key": "3b99540d08153529a5a6664216397b49bbc5af98c4b831a990edbc85a3bef546",
+      "prefix": "This chunk outlines the responsibilities and requirements for Member States to establish national competent authorities and single points of contact for the implementation and oversight of the Artificial Intelligence Act, including their independence, resource adequacy, and communication obligations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 71",
+      "idx": 0,
+      "key": "0e9152fac320fc6ea5cba5722be315d8cc26a85a019ee3aa8500e10215b7c030",
+      "prefix": "Article 71 of Regulation (EU) 2024/1689 establishes the creation and maintenance of an EU database for high-risk AI systems, detailing the responsibilities for data entry, accessibility, and compliance with privacy regulations."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 72",
+      "idx": 0,
+      "key": "216631829874d0a2594715c318f5e44fe5b52362101955538867cc00ae08a668",
+      "prefix": "This chunk outlines the requirements for providers of high-risk AI systems to establish a documented post-market monitoring system and plan that ensures ongoing compliance and performance evaluation throughout the AI system's lifecycle."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 73",
+      "idx": 0,
+      "key": "6268216bb8cdc68c94befcd4e868c04f1de6662b748a5f9a7f6ed4fbfc33d5f0",
+      "prefix": "Article 73 of Regulation (EU) 2024/1689 mandates that providers of high-risk AI systems must report serious incidents to market surveillance authorities within specified timeframes, depending on the severity of the incident and any established causal links."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 73",
+      "idx": 1,
+      "key": "6c6c1cd4049e7a49f87cdef2d0b559286498bf81e450fa2f53d7fb141a699d41",
+      "prefix": "This chunk outlines the reporting requirements for serious incidents involving high-risk AI systems that are safety components of devices, specifying the notification process to national authorities and the Commission."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 74",
+      "idx": 0,
+      "key": "3e31d0006abdc9c00214aebab399a1c6acaf20aaa14190aee15840e80630202b",
+      "prefix": "This chunk outlines the application of Regulation (EU) 2019/1020 to AI systems, the reporting obligations of market surveillance authorities, the designation of relevant authorities for high-risk AI systems, and the enforcement powers of these authorities in relation to market surveillance and compliance with Union law."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 74",
+      "idx": 1,
+      "key": "517c56471816b3e41a6573a9c84f6cb267a89979aa49ca899c5aa8dc5122526f",
+      "prefix": "This chunk outlines the responsibilities and powers of market surveillance authorities in the EU regarding high-risk AI systems, including their coordination with other authorities, access to necessary documentation and source code, and the independence of judicial authorities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 75",
+      "idx": 0,
+      "key": "6722b9fca1888a51983b9c4ca45fe0849139c77b25a8e54fe809b624e4d8dd1d",
+      "prefix": "This chunk outlines the powers and responsibilities of the AI Office and market surveillance authorities in monitoring, supervising, and ensuring compliance of general-purpose AI systems, particularly those classified as high-risk, under Regulation (EU) 2024/1689."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 76",
+      "idx": 0,
+      "key": "2b605e35de148c617f340fdd60f0e5179139d4e48ed8efd557a97dfacdfe3bd8",
+      "prefix": "This chunk outlines the powers and responsibilities of market surveillance authorities in overseeing real-world testing of AI systems to ensure compliance with the regulation, including the ability to suspend or modify testing based on serious incidents or non-compliance."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 77",
+      "idx": 0,
+      "key": "9a901b9149ed0ebc54e727722f4e0bccf83f0abf8f2db72a67e6120d75279ff1",
+      "prefix": "Article 77 of Regulation (EU) 2024/1689 grants national public authorities the power to access documentation related to high-risk AI systems to ensure compliance with fundamental rights, mandates the identification and public listing of these authorities by Member States, allows for testing requests if documentation is insufficient, and establishes confidentiality obligations for the obtained information."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 78",
+      "idx": 0,
+      "key": "e1b7942ce4d4b1ec08ef76fa78b5819046060026ca2dc5c0539d282da9412d9b",
+      "prefix": "Article 78 of Regulation (EU) 2024/1689 establishes the obligation for the Commission, market surveillance authorities, and other involved parties to maintain the confidentiality of sensitive information and data obtained during the regulation's implementation, while outlining specific protections for intellectual property, public security, and the conduct of legal proceedings."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 79",
+      "idx": 0,
+      "key": "5775b1406022ea9d3ac6375edd53918227eff916760d8b7ce2a4073b88fccca8",
+      "prefix": "This chunk outlines the procedures for national market surveillance authorities to evaluate and address AI systems that present risks to health, safety, or fundamental rights, including compliance assessments, corrective actions, and notifications to relevant bodies."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 79",
+      "idx": 1,
+      "key": "f0f5aaba213393d2488097c51d1ac8cd3298ff39e6900cf0d046dc72721eba31",
+      "prefix": "This chunk outlines the procedures for national market surveillance authorities to address non-compliance of high-risk AI systems with regulatory requirements, including the notification process and the imposition of restrictive measures."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 80",
+      "idx": 0,
+      "key": "367cdd8dc1dc5434f0848c748aa47370e2c231da18aeb57d7b98952f9ea94509",
+      "prefix": "This chunk outlines the procedures for market surveillance authorities to evaluate AI systems classified as non-high-risk by providers, including actions to ensure compliance if the systems are found to be high-risk, and the consequences for providers who fail to take corrective actions."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 81",
+      "idx": 0,
+      "key": "aa2573860b6afb5be44754effdd0b84a96db4c0f5662eee74e40ea7d84498948",
+      "prefix": "Article 81 of Regulation (EU) 2024/1689 outlines the Union safeguard procedure for evaluating objections raised by market surveillance authorities regarding national measures on AI practices, including the Commission's role in consultation and decision-making on the justification of such measures."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 82",
+      "idx": 0,
+      "key": "8fada5735c24fbf9b9040f6b553fed6796fb6334fc0b0215c39d164c3c5b79dc",
+      "prefix": "Article 82 of Regulation (EU) 2024/1689 outlines the responsibilities of market surveillance authorities and operators regarding high-risk AI systems that, despite compliance, pose risks to health, safety, fundamental rights, or public interest, requiring corrective actions and communication among Member States and the Commission."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 83",
+      "idx": 0,
+      "key": "106e574f25a50e51a00cd610e0cb642f5499067e649a638b0b9aabbebd8d40f5",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 83, outlines the obligations of market surveillance authorities in Member States to address formal non-compliance by AI system providers regarding CE marking, EU declarations of conformity, registration, and technical documentation, and the subsequent measures to restrict or withdraw non-compliant systems from the market."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 84",
+      "idx": 0,
+      "key": "bec7d3ac3b6da60f03a5b609ee5ddb20d3a2b6110bfe87072241257ae3625c59",
+      "prefix": "This chunk outlines the designation of Union AI testing support structures by the Commission to perform specific tasks related to AI and to provide independent technical or scientific advice as needed."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 85",
+      "idx": 0,
+      "key": "0497e62661e7b05747636422195133e864b073530fe50a03c11b1e12c4f7e2eb",
+      "prefix": "This regulation allows individuals or entities to file complaints with market surveillance authorities if they believe there has been a violation of the Artificial Intelligence Act, ensuring these complaints are considered in market surveillance activities."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 86",
+      "idx": 0,
+      "key": "08a11fd8c8dc5240f3e7b92853b7c9663ae6fae4068ab004eb8405df51ebf234",
+      "prefix": "Article 86 of Regulation (EU) 2024/1689 grants individuals affected by decisions made using high-risk AI systems the right to receive clear explanations regarding the AI's role in the decision-making process, while noting exceptions based on Union or national law."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 87",
+      "idx": 0,
+      "key": "2a7121ca2ab2ab07f91addf74ab27b49d69b4598d9e5ea03e6b393508a927c5b",
+      "prefix": "This chunk addresses the applicability of Directive (EU) 2019/1937 to the reporting of infringements of the Regulation and the safeguarding of individuals who report these infringements."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 88",
+      "idx": 0,
+      "key": "7efd00b1b73c83446a7fd5eb83c01dcc652203e6d28d3720ead57300b1f4f4df",
+      "prefix": "This chunk outlines the exclusive supervisory and enforcement powers of the Commission regarding Chapter V of the Regulation, delegating implementation to the AI Office while allowing market surveillance authorities to request assistance from the Commission."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 89",
+      "idx": 0,
+      "key": "11b2021432830725a89bba48466a5a0d0b387a33d2f17e302bf6cb4420d1f93a",
+      "prefix": "Article 89 of Regulation (EU) 2024/1689 outlines the AI Office's authority to monitor compliance with the regulation by general-purpose AI model providers and establishes the process for downstream providers to lodge complaints regarding alleged infringements."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 90",
+      "idx": 0,
+      "key": "17f91afb941b149b1a7dc90639e4d9f95b0a37595b040f3c685ca97021e2efb8",
+      "prefix": "This chunk outlines the process by which the scientific panel can issue a qualified alert to the AI Office regarding potential systemic risks posed by general-purpose AI models, including the necessary information to be provided in such alerts."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 91",
+      "idx": 0,
+      "key": "6dabc0b434d8d7c8ae22ca91545211652ede601b67b3b53ac863461bd8ef5c68",
+      "prefix": "Article 91 of Regulation (EU) 2024/1689 outlines the Commission's authority to request documentation and information from providers of general-purpose AI models to assess compliance, including the procedures for such requests and the responsibilities of the providers."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 92",
+      "idx": 0,
+      "key": "83a694f602b71090d89137b5606d6db649330cec8da61cb9994cd17e8045ec88",
+      "prefix": "Article 92 of Regulation (EU) 2024/1689 outlines the AI Office's authority to conduct evaluations of general-purpose AI models to ensure compliance and assess systemic risks, including the appointment of independent experts and the procedures for accessing necessary information."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 93",
+      "idx": 0,
+      "key": "a3b7cbfd146151eca4476cc0c7fadc7f29c72c319851518c757024e3405700b8",
+      "prefix": "This chunk outlines the Commission's authority to request compliance measures from AI model providers in response to systemic risks, including the implementation of mitigation strategies and potential market restrictions."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 94",
+      "idx": 0,
+      "key": "0083f5c1d14875cf6168376b0fcdcfba2b8d5ae35b2f4c52eccf672166d58b24",
+      "prefix": "This chunk establishes that Article 18 of Regulation (EU) 2019/1020 applies similarly to providers of general-purpose AI models, while allowing for more specific procedural rights outlined in the current regulation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 95",
+      "idx": 0,
+      "key": "d431f6c51e97b384a2e0a945272b863565205e0565bd7b52084d392b363f562d",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 95, outlines the encouragement and facilitation by the AI Office and Member States for the development of voluntary codes of conduct aimed at applying specific requirements to AI systems, excluding high-risk ones, while considering ethical guidelines, environmental sustainability, AI literacy, inclusivity, and the protection of vulnerable groups."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 96",
+      "idx": 0,
+      "key": "d3212cb2f5de4b9a9dea482cf20f5acfce7b39d34c5a373ce225c738c79e6865",
+      "prefix": "This chunk outlines the Commission's responsibility to create guidelines for the practical implementation of the Artificial Intelligence Act, addressing various articles, prohibited practices, transparency obligations, and the relationship with Union legislation, while considering the needs of SMEs and relevant standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 97",
+      "idx": 0,
+      "key": "60abee9345835b72a7a6f2a82273a93d5445b05e18fe8e712a8fab259e5640da",
+      "prefix": "Article 97 of Regulation (EU) 2024/1689 outlines the conditions under which the European Commission can adopt delegated acts, including the duration of delegation, the process for revocation by the European Parliament or Council, the requirement for expert consultation, notification procedures, and the conditions for the acts to enter into force."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 98",
+      "idx": 0,
+      "key": "6e414bde3c84429fcce2d0a129b28fc10c08a9ed04c8b72753eddccae378670e",
+      "prefix": "Article 98 of Regulation (EU) 2024/1689 establishes that the Commission will be supported by a committee as defined in Regulation (EU) No 182/2011, with specific reference to the application of Article 5 of that regulation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 99",
+      "idx": 0,
+      "key": "68f8e10c9a9be67eb255569c9395e7ebe48011579252d27d34b6e52efc096b3f",
+      "prefix": "This chunk outlines the rules and conditions for penalties and enforcement measures imposed by Member States for violations of the Artificial Intelligence Act, including specific fines for non-compliance with various provisions, while considering the interests of SMEs."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 99",
+      "idx": 1,
+      "key": "338e0e0549b1befd034eb06e9fee0db3b47dc810dd9fdcb2e2cf16cf3d9a32b6",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 99, outlines the factors to consider when imposing administrative fines for infringements, the rules for applying these fines to public authorities, and the procedural safeguards and reporting requirements for Member States."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 100",
+      "idx": 0,
+      "key": "150a6973a6c0fb7bce83b20d6bdfabc9e3dd81414a62e6a46be92bae47716f5a",
+      "prefix": "This chunk outlines the conditions and procedures under which the European Data Protection Supervisor can impose administrative fines on Union institutions, bodies, offices, and agencies for non-compliance with the Artificial Intelligence Act, including factors influencing the fine amount and the rights of the parties involved."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 101",
+      "idx": 0,
+      "key": "53dbbfa1aa323278a2f52c4d173f770ecb4f71fe5e64823002c83d8e317943f4",
+      "prefix": "Article 101 of Regulation (EU) 2024/1689 outlines the conditions under which the Commission can impose fines on providers of general-purpose AI models for various infringements, specifying the maximum fine limits, the process for determining fines, and the rights of the providers during the proceedings."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 102",
+      "idx": 0,
+      "key": "c7668e75ef019e505ce29362a5587c7cb620f24f26faad5885369528bb329caf",
+      "prefix": "This chunk specifies that when implementing technical specifications and procedures for security equipment related to Artificial Intelligence systems, the requirements of Chapter III, Section 2 of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 103",
+      "idx": 0,
+      "key": "76b3dc98ba2de27d3b72857eda3cbae037c2dae857fbb88a3f266359523f93d0",
+      "prefix": "This chunk specifies that when adopting delegated acts related to artificial intelligence systems classified as safety components, the requirements from Chapter III, Section 2 of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 104",
+      "idx": 0,
+      "key": "5bb4266dffe4f3aca15d6e518197acdc2ca0fa060863a18bec0a70d27e146afd",
+      "prefix": "This chunk specifies that when adopting delegated acts related to safety components of Artificial Intelligence systems, the requirements from a specific section of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 105",
+      "idx": 0,
+      "key": "8d185ac29626e6b2041a09f7f39e3624cf940b2fcfee2073aaa8f06f2f87f18a",
+      "prefix": "This chunk adds a paragraph to Article 8 of Directive 2014/90/EU, stating that the Commission must consider the requirements of Regulation (EU) 2024/1689 when dealing with AI systems that are safety components."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 106",
+      "idx": 0,
+      "key": "8598089e558fb892d4ffc56d6a7e5403ab3c814b8b1c4dcd56b820533b798548",
+      "prefix": "This chunk specifies that when creating delegated and implementing acts related to safety components of Artificial Intelligence systems, the requirements from a specific section of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 107",
+      "idx": 0,
+      "key": "58d36e0c4f55b7c77d03317ce6e59178d4b2fb357865601dd21de2d99c0bf9ef",
+      "prefix": "This chunk specifies that when creating delegated acts related to safety components of Artificial Intelligence systems, the requirements from a specific section of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 108",
+      "idx": 0,
+      "key": "127df0bd0fc83f81e7a020a2c9c099b62aec61a4ef73797e0487017a4c349771",
+      "prefix": "This chunk outlines amendments to Regulation (EU) 2018/1139, specifying that when adopting implementing and delegated acts related to Artificial Intelligence systems classified as safety components, the requirements of Chapter III, Section 2 of Regulation (EU) 2024/1689 must be considered."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 109",
+      "idx": 0,
+      "key": "837d2591b7260612742c52088eb7671c862d9bdceda7470f3bd55599961990e9",
+      "prefix": "This chunk specifies that when implementing acts are adopted for safety components of artificial intelligence systems, they must consider the requirements outlined in Chapter III, Section 2 of Regulation (EU) 2024/1689."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 110",
+      "idx": 0,
+      "key": "0c97a9111c66c6996ca8885f28420a3b1f08a2850fabc43333a5e92a19986f45",
+      "prefix": "This chunk adds a new point to Annex I of Directive (EU) 2020/1828, referencing Regulation (EU) 2024/1689, which establishes harmonized rules on artificial intelligence and amends several existing regulations and directives."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 111",
+      "idx": 0,
+      "key": "a80b3dc34f6bb845bc278219bbf6b028e2db189d297393bf5e0799f99a2bde74",
+      "prefix": "This chunk of Regulation (EU) 2024/1689, Art. 111, outlines compliance deadlines for AI systems and general-purpose AI models already on the market, specifying requirements for bringing them into alignment with the Regulation by set dates based on their market introduction."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 112",
+      "idx": 0,
+      "key": "49b5deb4aa09a1e2ac9f2bfbfe1e276818763035376fb76e2bc729d10fa88ab4",
+      "prefix": "Article 112 of Regulation (EU) 2024/1689 outlines the Commission's obligations to annually assess and report on the need for amendments to AI regulations, evaluate the functioning of the AI Office, and review various aspects of AI governance and standardization every four years."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 112",
+      "idx": 1,
+      "key": "2df865a0643d3f423d0b57d036856fee206439a8d06f98df627a78e6f3fb23ce",
+      "prefix": "This chunk outlines the responsibilities of the Board, Member States, and national authorities in providing information to the Commission for evaluations and reviews, the Commission's obligation to consider various stakeholders' positions, the potential for regulatory amendments based on technological developments and impacts of AI, the development of an evaluation methodology by the AI Office, and the requirement for a comprehensive assessment of the Regulation's enforcement by 2031."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Art. 113",
+      "idx": 0,
+      "key": "eac8ed0cc4f9276dda86bd3b98f65049f4c5e9b9a85437288cc63af1b16f4f84",
+      "prefix": "This chunk outlines the entry into force and application dates of the Regulation (EU) 2024/1689, specifying when different chapters and articles will take effect."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex I",
+      "idx": 0,
+      "key": "f1dd2ad3a60b6ab59ab87497e42d4f87f4ef0219588ef7389f07e7b33adf05ea",
+      "prefix": "This chunk lists various Union harmonisation legislation directives and regulations related to machinery, toys, recreational craft, lifts, explosive atmospheres, radio equipment, pressure equipment, cableway installations, personal protective equipment, and appliances burning gaseous fuels."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex I",
+      "idx": 1,
+      "key": "bce18e8cf5d3861830fd8dc70c6e38c529e96832424778a796162cee281138a4",
+      "prefix": "This chunk lists various Union harmonisation legislation, including regulations and directives related to medical devices, civil aviation security, vehicle approval, marine equipment, rail interoperability, and motor vehicle market surveillance."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex I",
+      "idx": 2,
+      "key": "a14102fa211afb3480c6c6b9b0755116c00bede427e95cdb79fe0492f611e0f1",
+      "prefix": "This chunk covers the type-approval requirements for motor vehicles and their trailers, focusing on general safety and the protection of vehicle occupants and vulnerable road users, as well as common rules in civil aviation related to unmanned aircraft and their components."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex II",
+      "idx": 0,
+      "key": "642efe798723a44348b375d90a3f5b8fc1c92fab699e529530933e05ebb45210",
+      "prefix": "This chunk lists various serious criminal offences, including terrorism, human trafficking, sexual exploitation of children, drug trafficking, and others, as referenced in Article 5(1) of the Regulation (EU) 2024/1689."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex III",
+      "idx": 0,
+      "key": "4c26d8bf6b92882b044adaa505118a02cf9611f53639f5eb5e2f82e600dc4560",
+      "prefix": "Annex III of Regulation (EU) 2024/1689 identifies high-risk AI systems across various sectors, including biometrics, critical infrastructure, education, employment, essential services, and law enforcement, as specified in Article 6(2)."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex III",
+      "idx": 1,
+      "key": "4a4138ab1d31e25b57feb745d844bbf5bd011a0d717bd1bc8ee1a01712beb92d",
+      "prefix": "This chunk of Regulation (EU) 2024/1689 outlines high-risk AI systems used by law enforcement and public authorities for purposes such as polygraph testing, evidence evaluation, risk assessment, profiling, migration management, and supporting judicial processes."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex IV",
+      "idx": 0,
+      "key": "def0a0111984668a7fb06cfee5999deda6e777bead39741b8f29b4cc44e6dbbb",
+      "prefix": "This chunk outlines the required contents of the technical documentation for AI systems, including descriptions of the system's purpose, interactions, development processes, and compliance measures."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex IV",
+      "idx": 1,
+      "key": "4b9de2f986f2cf7f0f88d306244fb909c64a91a32c83077ae984f733df8a110b",
+      "prefix": "This chunk outlines the requirements for technical documentation related to validation, testing, monitoring, risk management, and compliance of AI systems as specified in Regulation (EU) 2024/1689, Annex IV."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex V",
+      "idx": 0,
+      "key": "16dc6898647c9f8c1e55c1d3a9b247104ea2e8086b2ca79d93e6aaa829d1bf81",
+      "prefix": "This chunk outlines the required contents of the EU declaration of conformity for AI systems, including identification details, provider information, compliance statements, and relevant standards."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VI",
+      "idx": 0,
+      "key": "2cced8585416e3108e2530f94413f51dac9a5cb00102cdb767b4a62c85dee57c",
+      "prefix": "This chunk outlines the steps involved in the conformity assessment procedure based on internal control, including compliance verification of the quality management system, examination of technical documentation, and consistency checks of the AI system's design and development process."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VII",
+      "idx": 0,
+      "key": "1157a6fdc0c4c17785971028cc596f7a183320d88c2ede89121bd8f144453a6b",
+      "prefix": "This chunk outlines the conformity assessment procedure for AI systems based on the evaluation of the provider's quality management system and technical documentation, detailing the requirements for application, assessment, and maintenance of these systems."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VII",
+      "idx": 1,
+      "key": "159f61c423b3cfb3806258909f71021de90c150f8dd55c57dc88a9d9ee9fd974",
+      "prefix": "This chunk outlines the procedures and requirements for notified bodies to assess the technical documentation and conformity of high-risk AI systems, including the need for additional evidence or testing, access to training models, issuance of assessment certificates, and the handling of changes affecting compliance."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VII",
+      "idx": 2,
+      "key": "a5c915980e815336ef06519e79b2add4dfffa3feb56f00692f6b27129ca96ef6",
+      "prefix": "This chunk outlines the requirements for AI system providers to grant notified bodies access to their premises and necessary information for periodic audits and potential additional testing of the AI systems."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VIII",
+      "idx": 0,
+      "key": "e34ccd294ad8ab3e6a66310407b20c761241b66ec33e01257146c37788a967b7",
+      "prefix": "This chunk outlines the information that providers and deployers of high-risk AI systems must submit and maintain up to date for registration under Article 49 of Regulation (EU) 2024/1689, including details about the provider, the AI system, its intended purpose, and its market status."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex VIII",
+      "idx": 1,
+      "key": "640079308136ec3fd4ef63a1bc48f5c3933b1c4cba177e28853a9646dec95b27",
+      "prefix": "This chunk outlines the required information for the registration of high-risk AI systems, including contact details of the submitter, the AI system's EU database URL, and summaries of fundamental rights and data protection impact assessments."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex IX",
+      "idx": 0,
+      "key": "82dff8f781ad5e6b6416fbb136ebb41b68710607652fb5a679f22b3d4cc741d7",
+      "prefix": "This chunk outlines the required information for registering high-risk AI systems regarding real-world testing, including identification details, provider information, system description, testing plan characteristics, and any suspension or termination updates."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex X",
+      "idx": 0,
+      "key": "475d0a86e99e850e97d8b3c919ceb780302dd2d4d5bdbbaf53c4ea2f16318a8b",
+      "prefix": "This chunk covers the regulations related to the Schengen Information System and the Visa Information System, including their establishment, operation, and use in the context of border checks, police cooperation, and judicial cooperation in criminal matters."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex X",
+      "idx": 1,
+      "key": "3a721831622467c3db06468a9c019bef23f24a4f7e686575ecf0e4d39977768d",
+      "prefix": "This chunk covers various EU regulations related to large-scale IT systems for managing biometric data, entry/exit information, travel authorizations, and criminal records of third-country nationals and stateless persons for purposes of law enforcement and border control."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex X",
+      "idx": 2,
+      "key": "66dc4885b101429aac8fc9d6a35607ac200219f7fc40c52aa96f7efbde5a7e3e",
+      "prefix": "This chunk covers two regulations from May 2019 that establish frameworks for interoperability between EU information systems related to borders, visas, police and judicial cooperation, asylum, and migration."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex XI",
+      "idx": 0,
+      "key": "258c5fadb7cf8460ceaa66ef297d6348f1cb4b0262ade4e8e633ff0013aaa8ad",
+      "prefix": "This chunk outlines the required technical documentation for providers of general-purpose AI models, detailing the information that must be included regarding the model's description, development process, training data, evaluation strategies, and system architecture, tailored to the model's size and risk profile."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex XII",
+      "idx": 0,
+      "key": "980076b915ae7759693f1cef13e0bc7a2efd3ede567cb9b0577cc4033b762083",
+      "prefix": "This chunk outlines the required technical documentation for providers of general-purpose AI models, detailing the model's description, acceptable use policies, integration methods, development process, and data used for training and validation."
+    },
+    {
+      "regulation": "ai_act",
+      "ref": "Annex XIII",
+      "idx": 0,
+      "key": "9c8634fd4deb475bf3f8a635c57bea2061ecd01cd978ce8621578b10d5a426c8",
+      "prefix": "This chunk outlines the criteria the Commission will consider to determine if a general-purpose AI model has capabilities or impacts equivalent to those specified in Article 51(1)(a), including factors such as model parameters, data quality, training computation, input/output modalities, performance benchmarks, market impact, and user registration."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 1",
+      "idx": 0,
+      "key": "c1c0232da3c150427c4019bebdb0bdd11706bf0a66aec1f2b14ba1ffc9f7229e",
+      "prefix": "This chunk outlines the General Data Protection Regulation's objectives of protecting individuals' personal data and ensuring the free movement of such data within the EU."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 2",
+      "idx": 0,
+      "key": "d25fe0cf033474ca98882fee6af79ef6c69cc6b4f9c090bf29648e297b4309f8",
+      "prefix": "This chunk of Regulation (EU) 2016/679 outlines the scope of the regulation regarding the processing of personal data, specifying what is included and excluded from its application."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 3",
+      "idx": 0,
+      "key": "35a7cfbce51656a41e0402b8385d0a2720a2cbd6db50f75e64811ca806888d6a",
+      "prefix": "This chunk outlines the territorial scope of the General Data Protection Regulation, specifying its applicability to personal data processing by entities within the EU and by non-EU entities targeting individuals in the EU."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 4",
+      "idx": 0,
+      "key": "e4f6054dff4dc0602b57f2e19338e765ebde51ce982088f7d535915932da8e35",
+      "prefix": "This chunk defines key terms related to personal data, processing, and the roles of various entities involved in data handling under the General Data Protection Regulation (GDPR)."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 4",
+      "idx": 1,
+      "key": "ddfb807dc9b848b60fc6ccbed425e6a390339ab5553fa765d84dc04939713523",
+      "prefix": "This chunk defines key terms related to personal data, including 'personal data breach,' 'genetic data,' 'biometric data,' 'data concerning health,' 'main establishment,' 'representative,' 'enterprise,' 'group of undertakings,' 'binding corporate rules,' 'supervisory authority,' 'supervisory authority concerned,' and 'cross-border processing' as outlined in Regulation (EU) 2016/679."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 4",
+      "idx": 2,
+      "key": "2b188f5397c0768d32198fceed696f8fac8d59d1efb7cb74a3b6f1f63f12bbfc",
+      "prefix": "This chunk defines the processing of personal data in the context of multiple Member States, the concept of a 'relevant and reasoned objection,' the definition of an 'information society service,' and the meaning of 'international organisation' under the General Data Protection Regulation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 5",
+      "idx": 0,
+      "key": "808855764b26a8d75190c61bcd6745599174d884d564165f22a29cce96ca6e7f",
+      "prefix": "This chunk outlines the principles for processing personal data, including lawfulness, purpose limitation, data minimization, accuracy, storage limitation, integrity and confidentiality, and accountability of the data controller."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 6",
+      "idx": 0,
+      "key": "e7c17b03e7bb63fb79b657f5a2943b0e4a4d1267d43b1b78577563c75a864291",
+      "prefix": "This chunk outlines the conditions under which the processing of personal data is considered lawful under the General Data Protection Regulation, specifying various bases such as consent, contractual necessity, legal obligations, vital interests, public tasks, and legitimate interests."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 6",
+      "idx": 1,
+      "key": "1cb962f7f016a50dd7261d6ff5ee34d8dae94ed3906da94217ca3caa1fd5b8fa",
+      "prefix": "This chunk addresses the considerations regarding the nature of personal data being processed, potential consequences for data subjects, and the existence of safeguards like encryption or pseudonymisation in the context of lawful data processing under the General Data Protection Regulation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 7",
+      "idx": 0,
+      "key": "7a18c7fd6206e152142d9c9e1bd294e108f8b8d5592a22e1e471fa7b6a2c4cf6",
+      "prefix": "This chunk outlines the requirements for obtaining, demonstrating, and managing consent for the processing of personal data under the General Data Protection Regulation, including the right to withdraw consent and the conditions under which consent must be given."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 8",
+      "idx": 0,
+      "key": "845c0e820fd60cd8e3145ef546238ee42f47914365cdb969c71c413c5dfdf465",
+      "prefix": "This regulation outlines the conditions under which the processing of a child's personal data for information society services is lawful, specifying age thresholds for consent and parental authorization."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 9",
+      "idx": 0,
+      "key": "e52c4fed6886bab9aa1d36f5d00267bbc7b8582ab611f88a6d4954bc414da982",
+      "prefix": "This chunk of Regulation (EU) 2016/679 outlines the prohibitions and exceptions for processing special categories of personal data, including sensitive information related to race, health, and sexual orientation, under specific conditions."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 9",
+      "idx": 1,
+      "key": "822df37fa31a36a702897f4a0fe4f7429b5a4da6c3a8e5dc8bfe4c58c12eebba",
+      "prefix": "This chunk addresses the conditions under which special categories of personal data, such as genetic, biometric, or health data, may be processed by professionals bound by secrecy obligations, and allows Member States to impose additional restrictions on such processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 10",
+      "idx": 0,
+      "key": "af3b72ec17b16f28f9f96526482d163e0ff095b9619b9002b2311b21e5a75fd4",
+      "prefix": "This regulation stipulates that the processing of personal data concerning criminal convictions and offenses must be conducted under official authority or authorized by law, ensuring safeguards for individuals' rights."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 11",
+      "idx": 0,
+      "key": "188cde2415ba3c0b935f096499623cab119ffe0e0c34a9bad75e55713773bb5d",
+      "prefix": "Article 11 of Regulation (EU) 2016/679 states that if a data controller no longer needs to identify a data subject for processing purposes, they are not required to obtain or maintain identifying information, and must inform the data subject if they cannot be identified, with certain rights being limited unless additional identifying information is provided."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 12",
+      "idx": 0,
+      "key": "b490a00ea5f05bea9ac52e234452b7b0e4836a47862c8ab7f531663e12757dfa",
+      "prefix": "This chunk outlines the obligations of data controllers to provide clear, accessible information and facilitate the exercise of data subject rights regarding personal data processing, including timelines for responses and conditions under which fees may be charged for excessive requests."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 13",
+      "idx": 0,
+      "key": "0678bf8feafad29d1cc2be541b95ac4dfea8d3a0c04550298b5f4d035dd70474",
+      "prefix": "This chunk outlines the obligations of data controllers to provide specific information to data subjects at the time of collecting their personal data, including details about the controller, processing purposes, data retention, rights of the data subject, and any automated decision-making involved."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 14",
+      "idx": 0,
+      "key": "477f73c44b3acdfcc7ae1b5a3eac4a6bbe707e6f4de7fecfd0e0da6c5f9fe330",
+      "prefix": "This regulation mandates that when personal data is collected from sources other than the data subject, the data controller must inform the data subject about various details including the identity of the controller, the purposes of processing, data categories, recipients, and the rights of the data subject, within a specified timeframe."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 14",
+      "idx": 1,
+      "key": "5ef47bc8d33cd5b8d65700aaeeb189f8845596f01d2f862bf96a46fee2e6095c",
+      "prefix": "This chunk addresses situations where providing information to data subjects is impractical or excessively burdensome, particularly in contexts like public interest archiving or research, and outlines the conditions under which data controllers can forgo this obligation while ensuring the protection of data subjects' rights."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 15",
+      "idx": 0,
+      "key": "0d8956ac6f8a500c350155ec9740ee433e4bcd1b0a5aa758b9f12c769a8b7ae8",
+      "prefix": "Article 15 of Regulation (EU) 2016/679 grants data subjects the right to access their personal data being processed by a controller, including information about the processing purposes, data categories, recipients, storage duration, rights to rectification or erasure, complaint lodging, data sources, automated decision-making, and safeguards for data transfers to third countries."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 16",
+      "idx": 0,
+      "key": "57337c388921ce0ea1677fd396f0ebbc08957d22633918f04be19d8acfd67560",
+      "prefix": "This regulation grants individuals the right to promptly correct inaccurate personal data and to complete incomplete data held by the data controller."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 17",
+      "idx": 0,
+      "key": "bf16f7b2eddaad3e64aa0bbe758c180294c5f0716cf4901f35d1a5ba4fbbb466",
+      "prefix": "This chunk of Regulation (EU) 2016/679, Art. 17, outlines the conditions under which individuals have the right to request the deletion of their personal data from a data controller, as well as the exceptions to this right."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 18",
+      "idx": 0,
+      "key": "d01739444aa79f0f69c44a43886b439edb083c000ce85366007bb42ae904cd8c",
+      "prefix": "Article 18 of Regulation (EU) 2016/679 grants data subjects the right to request a restriction on the processing of their personal data under specific circumstances, such as contesting data accuracy or opposing unlawful processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 19",
+      "idx": 0,
+      "key": "4ad7974da704f37c843e55d6bd72f8a745c7382863d1385fd64500d39199df6a",
+      "prefix": "This regulation mandates that data controllers must notify recipients of any changes to personal data, such as rectification or erasure, unless it is impossible or excessively burdensome, and must inform the data subject about these recipients upon request."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 20",
+      "idx": 0,
+      "key": "ad058a7c993d987642a6d22948a88aa478aaa952ebacb7fb1f026695a81c11bd",
+      "prefix": "Article 20 of Regulation (EU) 2016/679 grants individuals the right to obtain their personal data from a controller in a machine-readable format and to transfer it to another controller, under certain conditions related to consent or contract and automated processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 21",
+      "idx": 0,
+      "key": "086ed2be0880dd3ca2db03208369454449afb82fd1880ca82f7345e7532ea038",
+      "prefix": "Article 21 of Regulation (EU) 2016/679 grants individuals the right to object to the processing of their personal data under certain conditions, including for direct marketing and profiling, and outlines the requirements for data controllers in response to such objections."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 22",
+      "idx": 0,
+      "key": "a1ea542d2b450ea083ff1807b41ce5b9ce7909e94f965a9e157fb8965ba8bd5d",
+      "prefix": "This regulation grants individuals the right to not be subjected to decisions made solely through automated processing, including profiling, that significantly affect them, while outlining exceptions and required safeguards for such decisions."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 23",
+      "idx": 0,
+      "key": "13748d6fbe478e33b3f7a7dc1e07a58be6b6fcb77ef5a58dac68ce1315fb8476",
+      "prefix": "Article 23 of Regulation (EU) 2016/679 outlines the conditions under which Union or Member State law can restrict the obligations and rights related to personal data processing to safeguard various public interests, provided that such restrictions are necessary, proportionate, and respect fundamental rights."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 24",
+      "idx": 0,
+      "key": "7955c88c5cbf6446baadf9c49f0da74af263f5b8cded934ad2c97acef3789888",
+      "prefix": "Article 24 of Regulation (EU) 2016/679 outlines the responsibilities of data controllers to implement and maintain appropriate technical and organizational measures for data processing in compliance with the regulation, considering the nature and risks involved, and allows for the use of approved codes of conduct or certification mechanisms as proof of compliance."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 25",
+      "idx": 0,
+      "key": "f7a32dc4cc425499e1b8295ff07e80f8b082bd28eecd693ebec3c057c0165dd9",
+      "prefix": "Article 25 of Regulation (EU) 2016/679 mandates that data controllers implement appropriate technical and organizational measures to ensure data protection by design and by default, focusing on minimizing personal data processing and safeguarding the rights of individuals."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 26",
+      "idx": 0,
+      "key": "1b5ad2ca0f03d44bf08fbe9948dd8ee366bc03b1e94c75fad2e5e2134be0e22c",
+      "prefix": "Article 26 of Regulation (EU) 2016/679 outlines the responsibilities and arrangements between joint controllers who determine the purposes and means of data processing, ensuring transparency and compliance with data subject rights."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 27",
+      "idx": 0,
+      "key": "03dc54975918f399dcb893b657479a43b250c2fb3bae278e86e306086888c515",
+      "prefix": "This regulation requires controllers or processors not established in the EU to appoint a representative within the Union for compliance purposes, with certain exceptions for occasional processing and public authorities."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 28",
+      "idx": 0,
+      "key": "aaa371046d6cfcdcbebd44212141c51aa5462264b41de373d3074e4191ff113e",
+      "prefix": "Article 28 of Regulation (EU) 2016/679 outlines the responsibilities and requirements for data processors when processing personal data on behalf of a controller, including the need for sufficient guarantees, contractual obligations, and conditions for engaging sub-processors."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 28",
+      "idx": 1,
+      "key": "0ba3de2a0f2e96b8c67b0b0f13d33552bdf04db1e1e8c96a8e434d928474e0c4",
+      "prefix": "This chunk of Regulation (EU) 2016/679, Art. 28, outlines the obligations of a processor when engaging another processor, including the requirement for contractual data protection obligations, liability for compliance, and the use of standard contractual clauses or approved codes of conduct to ensure adequate data protection measures."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 29",
+      "idx": 0,
+      "key": "a0fd30838b1a963705dac7d9ce588a49f2f6cdef1bf0f390cf84ce910e329a6e",
+      "prefix": "This regulation stipulates that processors and individuals authorized by the controller may only process personal data according to the controller's instructions, unless mandated by law."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 30",
+      "idx": 0,
+      "key": "d5d734c54ddefa7bad18732c2910ed433fa349ca48d9f1b488e80c55b9408bd6",
+      "prefix": "Article 30 of Regulation (EU) 2016/679 mandates that both data controllers and processors maintain detailed records of their processing activities, including information on data subjects, purposes, recipients, and security measures, while outlining exceptions for smaller enterprises."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 31",
+      "idx": 0,
+      "key": "8ba36e5bb7eca68db77a1fa06a621ac844b324f6c8a1295128484fa4af7b0642",
+      "prefix": "This regulation mandates that the data controller, processor, and their representatives must assist the supervisory authority when requested in fulfilling its responsibilities."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 32",
+      "idx": 0,
+      "key": "31e5c6c99579f9c2bd9479afe4467f09a3efbc1787f351ffb7f15213f075e1b5",
+      "prefix": "Article 32 of Regulation (EU) 2016/679 outlines the requirements for data controllers and processors to implement appropriate technical and organizational measures to ensure the security of personal data processing, taking into account various risk factors and compliance mechanisms."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 33",
+      "idx": 0,
+      "key": "878be5e57b6a01f2f9b53bec5280b4cbec147b485b339a270e2b91207f0c2937",
+      "prefix": "Article 33 of Regulation (EU) 2016/679 mandates that data controllers notify the relevant supervisory authority of a personal data breach within 72 hours of awareness, unless the breach poses no risk to individuals, and outlines the required content and documentation for such notifications."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 34",
+      "idx": 0,
+      "key": "fabf49f5bc72ccdf450ba383891109155bbb03bb0f8d0608def7435eda8dab25",
+      "prefix": "This regulation outlines the obligations of data controllers to inform individuals about personal data breaches that pose a high risk to their rights and freedoms, including the necessary content of such communications and exceptions under which notification may not be required."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 35",
+      "idx": 0,
+      "key": "8de5f4347cfc5ec4cb7be4a4fd75c43a5a9c26b69af16e2ee41f50bd61f798c1",
+      "prefix": "This chunk outlines the requirements for conducting a data protection impact assessment when processing activities pose a high risk to individuals' rights and freedoms, including the need for consultation with a data protection officer and the assessment's necessary components."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 35",
+      "idx": 1,
+      "key": "556d33e0277713adb5ffe35e1b08aee59ad2f3a477aeb43ab68b527aad5dc8d7",
+      "prefix": "This chunk outlines the conditions under which a data protection impact assessment may be exempted if a legal basis for processing exists and specifies the need for a review of compliance with the assessment when risks change."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 36",
+      "idx": 0,
+      "key": "295f46cfff17e583aed65dc76e9e5f5637bbe912584076f5fe65349d58fafd84",
+      "prefix": "Article 36 of Regulation (EU) 2016/679 mandates that data controllers must consult the supervisory authority before processing data that poses a high risk, as determined by a data protection impact assessment, and outlines the authority's advisory role and the information required from the controller during this consultation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 37",
+      "idx": 0,
+      "key": "044ac34f5d82ab5d3e4301629cbb6cb23eb44638a72cf7a89c5ba99245458a6c",
+      "prefix": "This regulation outlines the circumstances under which a data protection officer must be designated by controllers and processors, the conditions for appointing a single officer for multiple entities, the qualifications required for the role, and the obligation to publish the officer's contact details."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 38",
+      "idx": 0,
+      "key": "131f7b8a5d0b52df269a23d6a4961d6dab9dfa0afe972c1fb27ca7712256db5a",
+      "prefix": "Article 38 of Regulation (EU) 2016/679 outlines the role, responsibilities, and protections of the data protection officer, emphasizing their involvement in data protection matters, independence from instructions, support from the controller and processor, and the ability to communicate with data subjects."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 39",
+      "idx": 0,
+      "key": "1e75a3b42b5a92efa2ec706fb7986b88ced2c8b134eb774bceaa3ab017015bc0",
+      "prefix": "This chunk outlines the responsibilities of the data protection officer, including advising on compliance with data protection laws, monitoring adherence to regulations, assisting with data protection impact assessments, cooperating with supervisory authorities, and serving as a contact point for related issues."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 40",
+      "idx": 0,
+      "key": "1c192043c5757cff5a36a90b750975ffcb8a2bb78f69f435afbf4369a7d16083",
+      "prefix": "Article 40 of Regulation (EU) 2016/679 outlines the encouragement and establishment of codes of conduct by Member States and relevant bodies to ensure the effective application of data protection principles, addressing specific processing contexts and the needs of various enterprises."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 40",
+      "idx": 1,
+      "key": "30b6536a067ddfc61d7e9ebabddf596267022dc621b77929a2cff3d5deb852fd",
+      "prefix": "This chunk outlines the process for the approval and validation of codes of conduct related to data processing across multiple EU Member States, including the roles of supervisory authorities, the Board, and the Commission in ensuring compliance with the General Data Protection Regulation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 41",
+      "idx": 0,
+      "key": "41bc2f667fdddaccb63eb0eb5865191dd42722cbc9e7697ea087c4158c4bde11",
+      "prefix": "Article 41 of Regulation (EU) 2016/679 outlines the requirements and procedures for the accreditation and monitoring of compliance with approved codes of conduct by designated bodies, ensuring they possess the necessary expertise and independence while detailing the role of the competent supervisory authority in this process."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 42",
+      "idx": 0,
+      "key": "0cd28a5d466d78ee928f2f076d2d75012a85cf99217c59093771c8392546a108",
+      "prefix": "Article 42 of Regulation (EU) 2016/679 outlines the establishment and encouragement of voluntary data protection certification mechanisms, seals, and marks to demonstrate compliance with data protection regulations, while considering the needs of small enterprises and ensuring that such certifications do not diminish the responsibilities of data controllers and processors."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 43",
+      "idx": 0,
+      "key": "2fa289079f529ff8a954e5868ba48cd5d07b08c94298012abf5faa94f2040959",
+      "prefix": "Article 43 of Regulation (EU) 2016/679 outlines the accreditation, responsibilities, and operational requirements for certification bodies that issue and renew data protection certifications, ensuring they demonstrate expertise, independence, and compliance with established criteria."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 43",
+      "idx": 1,
+      "key": "2bc7db2f9efd6a1e75e35c2f8474dc4841f4c4a072a54ec8bbb1b9e46e8349ea",
+      "prefix": "This chunk outlines the conditions under which a certification body's accreditation can be revoked and the Commission's authority to establish requirements and technical standards for data protection certification mechanisms."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 44",
+      "idx": 0,
+      "key": "6e8428554ee3e40f7266d139e9aac436c4e0730cc32e314d1f76d9b4388b29f4",
+      "prefix": "This chunk outlines the conditions under which personal data can be transferred to third countries or international organizations, ensuring compliance with the General Data Protection Regulation to protect individuals' rights."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 45",
+      "idx": 0,
+      "key": "d14c97c49b75b04895a427a90b64c33eace8559dea1393125d1f8990072c674b",
+      "prefix": "Article 45 of Regulation (EU) 2016/679 outlines the conditions under which personal data can be transferred to third countries or international organizations based on a Commission adequacy decision, including the assessment of the level of protection provided by those entities."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 45",
+      "idx": 1,
+      "key": "7e090a8e9bbc7ee73f3d65a79287c6acb4ce25877798603fd52e0ce31b6d7d33",
+      "prefix": "This chunk outlines the procedures and conditions under which the European Commission can adopt urgent implementing acts regarding data transfers to third countries deemed to have adequate protection, including consultation processes and the publication of relevant decisions."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 46",
+      "idx": 0,
+      "key": "2ed6062f2f87e9c6b643825911954086989c27b35c0e350792ce8101ab529594",
+      "prefix": "Article 46 of Regulation (EU) 2016/679 outlines the conditions under which personal data may be transferred to third countries or international organizations, requiring appropriate safeguards to ensure enforceable data subject rights and effective legal remedies."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 47",
+      "idx": 0,
+      "key": "e0de7da031f659cd2148d6c5c39428a24f480a5666db6328177a3ee28d9ef68f",
+      "prefix": "Article 47 of Regulation (EU) 2016/679 outlines the requirements and conditions for the approval and implementation of binding corporate rules by supervisory authorities, ensuring they are legally binding, enforceable, and provide rights to data subjects regarding their personal data processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 47",
+      "idx": 1,
+      "key": "3298eb0d4616efd435427621e5f5cd0a20103a85d3b8a51ee674affcb20d9d6f",
+      "prefix": "This chunk outlines the requirements for reporting changes to binding corporate rules, cooperation with supervisory authorities for compliance, notification of legal obligations in third countries, and data protection training for personnel."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 48",
+      "idx": 0,
+      "key": "67b97ca2404c00a3c16bef62d3cb6379920ee8e2dd3fe0bce0134431b029c628",
+      "prefix": "This regulation states that a court or administrative decision from a third country requiring the transfer of personal data can only be recognized if it is based on an existing international agreement with the EU or a Member State."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 49",
+      "idx": 0,
+      "key": "e1d62d43c15c16f6407e0f4da4b71c55e5099857d7c33fce57bc93d2711bfa0d",
+      "prefix": "Article 49 of Regulation (EU) 2016/679 outlines the specific conditions under which personal data can be transferred to a third country or international organization in the absence of an adequacy decision or appropriate safeguards, including explicit consent, contractual necessity, public interest, legal claims, vital interests, and certain conditions related to public registers."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 49",
+      "idx": 1,
+      "key": "9a95ab936b672ee69c54698a9bccce13610bb032f5f6ec736affd6ea88a2bd87",
+      "prefix": "This chunk addresses the conditions under which Union or Member State law can restrict the transfer of certain personal data to third countries for significant public interest reasons, along with the requirement for documentation of assessments and safeguards."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 50",
+      "idx": 0,
+      "key": "7ad5d6acced25e50dbfd125b3797545c29cf7d5f3acd95de329eefb9b5acc2c7",
+      "prefix": "Article 50 of Regulation (EU) 2016/679 outlines the responsibilities of the Commission and supervisory authorities to establish international cooperation mechanisms and mutual assistance for the enforcement of personal data protection laws with third countries and international organizations."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 51",
+      "idx": 0,
+      "key": "a411763c41503a97094cf7f291456db3e1af2034a4b5434f1bdf8faff388e794",
+      "prefix": "This chunk outlines the establishment, responsibilities, and cooperation of independent supervisory authorities in each Member State to ensure the enforcement of the General Data Protection Regulation and the protection of individuals' rights regarding personal data processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 52",
+      "idx": 0,
+      "key": "1b891dc9dcb438d9b9012ac20c75859a877fd3ecabac7151fb90f5bc7e1714e1",
+      "prefix": "This chunk outlines the independence of supervisory authorities in the General Data Protection Regulation, emphasizing their autonomy from external influence, the necessity of adequate resources, and the requirement for them to avoid conflicts of interest."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 53",
+      "idx": 0,
+      "key": "ae06499a6f6fcf31ac614be6cc4d955d19f85c8ed77b21b50f4763064945cf0a",
+      "prefix": "This chunk outlines the appointment process, qualifications, term limits, and dismissal conditions for members of supervisory authorities in the context of data protection under Regulation (EU) 2016/679."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 54",
+      "idx": 0,
+      "key": "dc2b3dcaa8df510ae50fbbb281914bd96c4f09923bae19541f81950260562479",
+      "prefix": "Article 54 of Regulation (EU) 2016/679 outlines the legal requirements for establishing supervisory authorities in Member States, including their appointment, qualifications, term duration, reappointment conditions, and obligations regarding professional secrecy."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 55",
+      "idx": 0,
+      "key": "5666e100adf2b1cd5e1267863beb5e6d4743a4db0594965eb22f879ed97cc3e7",
+      "prefix": "This chunk outlines the competence of supervisory authorities in relation to data processing tasks and powers within their Member State, including exceptions for public authorities and courts."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 56",
+      "idx": 0,
+      "key": "7c73ccdc03b022c1d4eafb6cfa02bf9db047152d9118e89aedc2935a25536272",
+      "prefix": "Article 56 of Regulation (EU) 2016/679 outlines the competence of the lead supervisory authority in cross-border data processing, detailing its role in handling complaints and coordinating with other supervisory authorities."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 57",
+      "idx": 0,
+      "key": "17441e3def3acbfabdcdfebdbe86d26b4776c8f6c1356379f258960378c15bb6",
+      "prefix": "Article 57 of Regulation (EU) 2016/679 outlines the various tasks and responsibilities of supervisory authorities in monitoring, enforcing, and promoting compliance with data protection regulations, as well as providing guidance and support to individuals and organizations regarding their rights and obligations under the law."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 57",
+      "idx": 1,
+      "key": "2c73d0559190f89dad5d55a1a44d8b9cb311f820cb05fa2e19d7e48a2e9c7bc5",
+      "prefix": "This chunk outlines the conditions under which supervisory authorities may charge fees for handling requests from data subjects, emphasizing that tasks are generally free of charge unless requests are deemed manifestly unfounded or excessive."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 58",
+      "idx": 0,
+      "key": "2f9c1f83b19d2af8ab3496282dd3e1cba1803de3b8edacc97cffccaedd2b79fa",
+      "prefix": "This chunk outlines the investigative, corrective, and authorisation powers of supervisory authorities under the General Data Protection Regulation (GDPR)."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 58",
+      "idx": 1,
+      "key": "b86e6b43fb61788267d63f631812779d8d02a79a18afdfe3c9a8d65f1a94d969",
+      "prefix": "This chunk outlines the powers of supervisory authorities under the General Data Protection Regulation, including the authorization of contractual clauses, administrative arrangements, binding corporate rules, and the ability to enforce compliance through legal proceedings."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 59",
+      "idx": 0,
+      "key": "d8dba5028e53192bc64337a4c1a7abf96c7ff50845b226eb6775a2d07dc6538e",
+      "prefix": "Article 59 of Regulation (EU) 2016/679 mandates that each supervisory authority must prepare and publicly share an annual report detailing its activities, including reported infringements and measures taken, and submit it to designated national bodies."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 60",
+      "idx": 0,
+      "key": "1076f32c2c7a73dcb12ecb3a35c23e94970d6d742e0c862a24cc6d0cc3eab013",
+      "prefix": "Article 60 of Regulation (EU) 2016/679 outlines the cooperation process between the lead supervisory authority and other concerned supervisory authorities to reach consensus on decisions regarding data protection matters, including the exchange of information, handling objections, and the adoption of decisions related to complaints."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 60",
+      "idx": 1,
+      "key": "d1efb7b4369043a67f77d76cbd881881cd4632b23a746341c82b8b70f2f60f96",
+      "prefix": "This chunk outlines the obligations of controllers or processors to comply with decisions from the lead supervisory authority and the communication protocols between supervisory authorities in urgent situations regarding data protection."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 61",
+      "idx": 0,
+      "key": "5f92f92c62cee3985fe68fd69d1035c35fec208782685aa01e4d5c335a06b863",
+      "prefix": "Article 61 of Regulation (EU) 2016/679 outlines the obligations of supervisory authorities to provide mutual assistance and relevant information to each other for the consistent implementation of the regulation, including the handling of requests, cooperation measures, and the conditions under which requests may be refused."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 62",
+      "idx": 0,
+      "key": "698ae98b62a3ac2241d574dcd741f32d7e1bb2af0f45d8bd5e8194dd6051b282",
+      "prefix": "Article 62 of Regulation (EU) 2016/679 outlines the framework for joint operations among supervisory authorities, including joint investigations and enforcement measures, particularly when data controllers or processors operate across multiple Member States."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 63",
+      "idx": 0,
+      "key": "e4553c2a674520475dad7e35e6bde5c1d4c70222f62efd4204b8f59c7ccd2fe2",
+      "prefix": "This chunk outlines the requirement for supervisory authorities to collaborate with each other and the Commission to ensure the uniform application of the General Data Protection Regulation across the EU."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 64",
+      "idx": 0,
+      "key": "723d6958e0b3a01166355d5923f445a7983d410cf30b80b16fa28abc2cd5c400",
+      "prefix": "Article 64 of Regulation (EU) 2016/679 outlines the process by which the Board issues opinions on draft decisions from competent supervisory authorities regarding data protection measures, ensuring compliance with the General Data Protection Regulation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 64",
+      "idx": 1,
+      "key": "634b99fa485aa3ec1610897a4357323daf50bca2954dd271570e96683f3ac8cc",
+      "prefix": "This chunk outlines the procedure to be followed when a supervisory authority decides not to adhere to the Board's opinion, including the requirement to provide reasons for this decision."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 65",
+      "idx": 0,
+      "key": "76dea5268a56c63261834d30515aeb5992c3236fcd3f28e66621d70521901d64",
+      "prefix": "Article 65 of Regulation (EU) 2016/679 outlines the procedures for the Board to adopt binding decisions in cases of disputes among supervisory authorities regarding the application of the General Data Protection Regulation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 66",
+      "idx": 0,
+      "key": "dcf2faea795619e4ed4d3ab69b2aa9a0598889802879344385117af2ff15232b",
+      "prefix": "Article 66 of Regulation (EU) 2016/679 outlines the conditions under which a supervisory authority can take urgent provisional measures to protect data subjects' rights and freedoms, including the process for requesting urgent opinions or binding decisions from the Board."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 67",
+      "idx": 0,
+      "key": "0be0ddd9ff757816a41ffd27349cbd53659e52dcf43ec8411eeb9b9e191c091e",
+      "prefix": "Article 67 of Regulation (EU) 2016/679 outlines the Commission's authority to establish implementing acts for the electronic exchange of information between supervisory authorities and the Board, including the specification of a standardized format."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 68",
+      "idx": 0,
+      "key": "4a833685fa721b5d872ce2afd92ccec43fc137ba31a71921165fc0a1e001c487",
+      "prefix": "Article 68 of Regulation (EU) 2016/679 establishes the European Data Protection Board, outlines its composition and representation, and specifies the voting rights of the European Data Protection Supervisor in certain cases."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 69",
+      "idx": 0,
+      "key": "2aaa3d92e632ca85c1e9581f5bb256860313cc766ee25ecb124104cad06e1459",
+      "prefix": "Article 69 of Regulation (EU) 2016/679 establishes that the Board must operate independently in its functions and not seek or accept instructions from external parties."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 70",
+      "idx": 0,
+      "key": "f646b625d00a340229a7190da004244276d4a0f067f760a190f2bb05ccaec68b",
+      "prefix": "Article 70 of Regulation (EU) 2016/679 outlines the tasks of the Board, which include ensuring consistent application of the regulation, advising the Commission on data protection issues, issuing guidelines and best practices, and monitoring compliance among supervisory authorities."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 70",
+      "idx": 1,
+      "key": "e673c4f09cb63d890a2a383f28cc0fa42c8560da4c5120410beba16af14b49b9",
+      "prefix": "Article 70 of Regulation (EU) 2016/679 outlines the tasks of the Board, including providing opinions on certification requirements, promoting cooperation among supervisory authorities, and maintaining a public register of decisions related to data protection."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 71",
+      "idx": 0,
+      "key": "50b0872e6b96f878ec3bfa7a361f21879bf985930b5b1eb95f6801d23dfb7645",
+      "prefix": "Article 71 of Regulation (EU) 2016/679 mandates the Board to prepare and publicly share an annual report on data protection practices within the Union and relevant third countries, including a review of guidelines and binding decisions."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 72",
+      "idx": 0,
+      "key": "63f9ccfcfa60c8da498593681f46c57257157c9b1c798a12af4fa72f2abf9723",
+      "prefix": "Article 72 outlines the decision-making process of the Board, specifying that decisions require a simple majority, while the adoption of rules of procedure necessitates a two-thirds majority."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 73",
+      "idx": 0,
+      "key": "c0faa447c0493f2ee29abc63556f08ac851bd4bd787e3eafb7b4291d77d9e5ef",
+      "prefix": "Article 73 of Regulation (EU) 2016/679 outlines the election process and term limits for the Chair and deputy chairs of the Board."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 74",
+      "idx": 0,
+      "key": "554696880031392057199ce8b46464434785505eca0786849dcfe0ca409d928d",
+      "prefix": "Article 74 outlines the responsibilities of the Chair of the Board, including convening meetings, notifying decisions to relevant authorities, and ensuring timely task performance, while also stating that the Board will define the task distribution between the Chair and deputy chairs."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 75",
+      "idx": 0,
+      "key": "53468d8f807f9f1b904f8e606cae04f79be9bc1002c7f188db1e807960def96b",
+      "prefix": "Article 75 of Regulation (EU) 2016/679 establishes the secretariat for the Board, detailing its responsibilities, reporting structure, and the support it provides to facilitate the Board's operations and communication."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 76",
+      "idx": 0,
+      "key": "f54e580edc17488af3e6ffc398feb0370cad40c1e88905fe5431f8668218344a",
+      "prefix": "Article 76 of Regulation (EU) 2016/679 establishes the confidentiality of Board discussions and outlines the access to documents submitted to Board members and third parties in accordance with Regulation (EC) No 1049/2001."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 77",
+      "idx": 0,
+      "key": "905e6a11a805adbc20c2fbde53f115d24bb26f8f7b116144ea59e6ed9acbe9b5",
+      "prefix": "This regulation grants individuals the right to file a complaint with a supervisory authority if they believe their personal data is being processed in violation of the GDPR, and mandates that the authority keep the complainant informed about the complaint's status and potential judicial remedies."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 78",
+      "idx": 0,
+      "key": "2d1bfa723975e19b025462229c6ae55d90156cf4562f83598bfecc7a2bb3c5d5",
+      "prefix": "Article 78 of Regulation (EU) 2016/679 establishes the right of individuals and legal entities to seek effective judicial remedies against decisions made by supervisory authorities, including cases where complaints are not addressed within a specified timeframe."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 79",
+      "idx": 0,
+      "key": "7be254fe988d51335c89f2ed012d83cad8c5d54ae44f9ef8dc102d654120f260",
+      "prefix": "This regulation grants data subjects the right to seek effective judicial remedies if they believe their data protection rights have been violated, specifying where legal proceedings can be initiated against data controllers or processors."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 80",
+      "idx": 0,
+      "key": "9184ee83a6e158940dbc22f14eddefac5680ebf0974e8d88348f1e33087d4c11",
+      "prefix": "Article 80 of Regulation (EU) 2016/679 allows data subjects to authorize not-for-profit organizations to represent them in lodging complaints and exercising their rights regarding personal data protection, while also permitting these organizations to act independently in certain circumstances."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 81",
+      "idx": 0,
+      "key": "a374cbd15bad6e78f595c15ba292ae05ae385d1cb15c41725285274d77c7d942",
+      "prefix": "Article 81 of Regulation (EU) 2016/679 outlines the procedures for suspending legal proceedings when related cases are pending in different Member States involving the same controller or processor."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 82",
+      "idx": 0,
+      "key": "133260bc21296562361b4d2a36d509c287fd3d157b8ded8583590c45900c06f3",
+      "prefix": "This regulation establishes the right to compensation for individuals who suffer damage due to violations of data protection laws, outlining the liability of controllers and processors, conditions for exemption from liability, and procedures for claiming compensation."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 83",
+      "idx": 0,
+      "key": "0018f243687405a680cc4e0ee9aca445b61712d139dc085ed2262241a06c5724",
+      "prefix": "This chunk outlines the conditions and factors that supervisory authorities must consider when imposing administrative fines for infringements of the General Data Protection Regulation, ensuring that such fines are effective, proportionate, and dissuasive."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 83",
+      "idx": 1,
+      "key": "dd3a48f18063158ab15fe8c6886ab2fdec931492376ec12466b392af230fa092",
+      "prefix": "This chunk outlines the conditions under which administrative fines can be imposed for non-compliance with data protection regulations, including the rights of data subjects, data transfer obligations, and the authority of supervisory bodies."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 84",
+      "idx": 0,
+      "key": "e87830f503035e3f1d7c7cea46be3077dc835b0974ccd5840f25a289022ff9fc",
+      "prefix": "Article 84 of Regulation (EU) 2016/679 mandates that Member States establish and implement effective, proportionate, and dissuasive penalties for infringements of the regulation that do not incur administrative fines, and requires them to notify the Commission of these provisions and any amendments."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 85",
+      "idx": 0,
+      "key": "1638252ad8417f5b89700e95ef75cae83a8ae78e36be17be0509e9dbd4b1646c",
+      "prefix": "This chunk of Regulation (EU) 2016/679, Art. 85, addresses the need for Member States to balance the protection of personal data with the right to freedom of expression and information, particularly in relation to journalistic, academic, artistic, or literary activities, allowing for specific exemptions in data processing."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 86",
+      "idx": 0,
+      "key": "cefa25c34d5d125c13054da7ab76fd6941a76589e58ea662e99ce65a9846dd45",
+      "prefix": "This regulation addresses the conditions under which personal data in official documents can be disclosed by public authorities or bodies while balancing public access to these documents with the protection of personal data."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 87",
+      "idx": 0,
+      "key": "2f379f6479f6f1c53b021c8c5f773586a3dc06aca11bf782bf95d10641557e24",
+      "prefix": "This regulation allows Member States to establish specific conditions for processing national identification numbers or similar identifiers, ensuring that such processing is conducted with appropriate safeguards for data subjects' rights and freedoms."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 88",
+      "idx": 0,
+      "key": "09f7cdf8b1129160600a059be187f51aa7844d56e0add97b3bbc7613b49967d8",
+      "prefix": "Article 88 of Regulation (EU) 2016/679 allows Member States to establish specific rules for the processing of employees' personal data in the employment context to protect their rights and freedoms."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 89",
+      "idx": 0,
+      "key": "f53c7ad437cf621edfac0af216ec0724fa5789a1ea88aaa39ad5f75ea1b21f41",
+      "prefix": "Article 89 of Regulation (EU) 2016/679 outlines the safeguards and potential derogations for processing personal data for archiving, scientific, historical, or statistical purposes, ensuring that such processing respects the rights of data subjects while allowing for necessary exceptions under specific conditions."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 90",
+      "idx": 0,
+      "key": "0cc7fde503f6027b2422beafdf65f5486bfc7123954c5ede18e5824cb4684bc8",
+      "prefix": "Article 90 of Regulation (EU) 2016/679 allows Member States to establish specific rules for supervisory authorities regarding controllers or processors bound by professional secrecy obligations, ensuring a balance between data protection rights and secrecy requirements."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 91",
+      "idx": 0,
+      "key": "575b4dd371a7338d3b4449f28810018ef8552e1fecb597377d808a62c72680eb",
+      "prefix": "Article 91 of Regulation (EU) 2016/679 allows churches and religious associations to continue applying their existing data protection rules if they align with the Regulation, and mandates that those with comprehensive rules are subject to independent supervisory authority oversight."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 92",
+      "idx": 0,
+      "key": "53822007d76456c015d049b32523dc3b37fac00ff38a66f17a69cde06d3107cd",
+      "prefix": "Article 92 of Regulation (EU) 2016/679 outlines the delegation of power to the Commission for adopting delegated acts, the conditions for revocation by the European Parliament or Council, and the notification and objection process for such acts."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 93",
+      "idx": 0,
+      "key": "0f268055b020144097fd2ec967c5ed05b5f85b2c211f2f0e7e1645861ae1fb94",
+      "prefix": "Article 93 of Regulation (EU) 2016/679 outlines the establishment of a committee to assist the Commission, specifying the applicability of certain articles from Regulation (EU) No 182/2011."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 94",
+      "idx": 0,
+      "key": "29f3674aee7e0bab5da55496da86b2d1b8caab6107d7dce8e7a4099c7ad13160",
+      "prefix": "This chunk states that Directive 95/46/EC is repealed as of May 25, 2018, and that references to the old directive and its associated body are to be interpreted as references to the new General Data Protection Regulation and the European Data Protection Board."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 95",
+      "idx": 0,
+      "key": "c8c5e71e46a35db837c4f0811b7d2575913ab952745566aae799a5dede39109d",
+      "prefix": "Article 95 of Regulation (EU) 2016/679 clarifies that it does not impose extra obligations on individuals or entities regarding the processing of publicly available electronic communications services that are already covered by Directive 2002/58/EC."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 96",
+      "idx": 0,
+      "key": "1f1d33b57a8bd6e945d723f59862171f1df1d8670e89b69d19d6c512bce51fd1",
+      "prefix": "This regulation states that international agreements on personal data transfer made by Member States before May 24, 2016, will continue to be valid if they comply with the applicable Union law until they are changed or revoked."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 97",
+      "idx": 0,
+      "key": "5311ddd11ef1abd8a1e626a6554e1335a1159cbc66dc0b5f29862661ef3cf746",
+      "prefix": "Article 97 of Regulation (EU) 2016/679 mandates the Commission to submit a public report every four years on the evaluation and review of the Regulation, focusing on the application of data transfer provisions and cooperation among Member States."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 98",
+      "idx": 0,
+      "key": "eb4d81750d27af514ab39ea93a433288618faf20081629ce844df346272e9b8e",
+      "prefix": "This regulation mandates the Commission to propose amendments to other EU laws on data protection to ensure consistent protection of individuals' personal data, particularly concerning Union institutions and the free movement of data."
+    },
+    {
+      "regulation": "gdpr",
+      "ref": "Art. 99",
+      "idx": 0,
+      "key": "3a25594d8f13c3ff40debd4eed9143966dbb99a5c3b6c6f5c6250ab91b534741",
+      "prefix": "This chunk outlines the entry into force and application date of the General Data Protection Regulation, specifying that it takes effect twenty days after publication and applies from May 25, 2018."
+    }
+  ]
+}

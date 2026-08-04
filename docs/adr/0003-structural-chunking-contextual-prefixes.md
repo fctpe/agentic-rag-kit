@@ -58,3 +58,25 @@ Documents are now fetched from **Cellar** (`publications.europa.eu/resource/cele
 **Formex XML** (`Accept: application/xml;notice=branch`) is available from the same endpoint and is the better long-term target: explicit `ARTICLE` and `ANNEX` elements would make this entire class of loss impossible by construction rather than caught by a coverage check afterwards. It is deferred, not rejected — it is a parser rewrite against a different schema, and the coverage check closes the immediate hole with a guard that also covers whatever the *next* markup surprise turns out to be.
 
 Fixtures are regenerated with `make refresh-fixtures`. Until this ADR, the committed corpus could only be produced by a throwaway script — a reviewer could read the parser and read the fixture with no way to check that one had produced the other.
+
+## Addendum, 2026-08-04 (third): the contextual prefixes are part of the corpus, so they are committed
+
+"An optional LLM pass adds one situating sentence per chunk at ingest" was written as if it were a step in a build. It is not: it is a **sample from a model**. `temperature=0` narrows the distribution, but there is no seed and no provider guarantees one, so the pass returns different sentences on different days. Those sentences are embedded with the chunk text, which means the fixture did not determine the corpus — the ingest did.
+
+Measured on the committed fixture, two ingests apart:
+
+| | hybrid MRR | vector-only MRR | recall |
+|---|---|---|---|
+| ingest A | 0.888 | 0.901 | 0.910 |
+| ingest B | 0.914 | 0.928 | 0.897 |
+
+Same fixture, same parser, same chunker, same SQL. Two things break at once. `evals/thresholds.yaml` reasons that "retrieval is deterministic… floors sit just under baseline, because any real movement is a real change" — a floor 0.003 under its baseline is not a regression guard against a 0.026 spread, it is a coin flip that reds the build. And the previous addendum's own justification for committing the fixtures — that a reviewer should be able to check the corpus rather than take it on trust — did not actually hold, because the reviewer could reproduce the *text* and not the *chunks*.
+
+**Decision: generate the sentences once, commit them next to the text, and read them at fixture ingest.** `data/fixtures/context_prefixes.json`, written by `app/ingestion/refresh_prefixes.py`, read by `app/ingestion/prefix_cache.py`.
+
+- **Keyed by the model call, not by position.** The key is a SHA-256 over the rendered prompt plus the untruncated chunk content. A `(ref, idx)` key would let an edited fixture pair a chunk with a sentence written about its previous text — stale, embeds cleanly, invisible in every count this repo keeps. Content is hashed past the prompt's 4,000-character truncation so two long chunks that diverge late cannot collide, and `CONTEXT_PROMPT` is in the key so rewording it invalidates every entry instead of pairing new prompt semantics with old answers.
+- **A miss refuses the ingest.** It names the chunks and names `make prefix-cache`. It does not generate the missing sentences — that is precisely the non-determinism being removed — and it does not fall back to the deterministic prefix, which would embed a corpus that is part contextual and part not: an unlabelled third corpus, and worse than one that will not load.
+- **`--source network` still generates.** A fresh EUR-Lex parse has no cache by definition; its text may differ from the fixture, so its keys would miss anyway. That arm is irreproducible on purpose, and a corpus ingested through it is not what a committed eval number describes.
+- **Regeneration is its own target and costs money.** One model call per chunk, 284 of them. `make refresh-fixtures` is free and stays free; folding the prefixes into it would bill anyone who re-parses. The link between them is a test, not a dependency: `backend/tests/test_prefix_cache.py` fails offline the moment the committed cache stops covering the committed fixture, which is the only reliable signal that the two have drifted.
+
+Verified the way the property is stated: `make ingest-fixture` twice, then a SHA-256 over every `chunks.context_prefix` in the database ordered by `(regulation, article_ref, idx)` — identical both times. The negative control is the same measurement with the old behaviour restored, which produces a different digest on every run.

@@ -5,6 +5,12 @@ that alone disambiguates most statutory chunks. The optional LLM pass adds a
 one-sentence semantic summary of how the chunk relates to its unit, which
 measurably helps recall on paraphrased queries; it is a flag because it costs
 one model call per chunk at ingest time.
+
+The LLM pass is **not** reproducible: `temperature=0` narrows the distribution
+but no provider guarantees a fixed sample, and there is no seed. Running it
+over the committed fixture therefore produces a different corpus every time,
+so only the live ingest path calls it — the fixture path reads the sentences
+committed by `app.ingestion.prefix_cache`. See that module for the measurement.
 """
 
 import asyncio
@@ -25,6 +31,21 @@ def deterministic_prefix(regulation_title: str, chunk: UnitChunk) -> str:
     return f"{regulation_title}, {chunk.ref}{heading}."
 
 
+def context_prompt(regulation_title: str, chunk: UnitChunk) -> str:
+    """The exact prompt sent for one chunk.
+
+    Shared with `prefix_cache`, which hashes it as the cache key: the cached
+    sentence is a memo of *this call*, so anything that changes the call —
+    the template, the title, the ref, the heading, the text — has to miss.
+    """
+    return CONTEXT_PROMPT.format(
+        regulation_title=regulation_title,
+        ref=chunk.ref,
+        heading=chunk.heading or "no heading",
+        content=chunk.content[:4000],
+    )
+
+
 async def llm_prefixes(
     regulation_title: str,
     chunks: list[UnitChunk],
@@ -35,12 +56,7 @@ async def llm_prefixes(
     semaphore = asyncio.Semaphore(concurrency)
 
     async def describe(chunk: UnitChunk) -> str:
-        prompt = CONTEXT_PROMPT.format(
-            regulation_title=regulation_title,
-            ref=chunk.ref,
-            heading=chunk.heading or "no heading",
-            content=chunk.content[:4000],
-        )
+        prompt = context_prompt(regulation_title, chunk)
         async with semaphore:
             response = await model.ainvoke(prompt)
         return str(response.content).strip()

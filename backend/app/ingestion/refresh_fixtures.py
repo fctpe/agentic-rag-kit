@@ -139,6 +139,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wrote {path}")
 
     print("\nRe-run the eval suites: the corpus these fixtures feed has changed.")
+    print(
+        "The committed context prefixes are keyed by chunk content, so every chunk whose text "
+        "moved now misses. `make ingest-fixture` will refuse until you run `make prefix-cache` "
+        "(one model call per chunk — that is why it is not run from here)."
+    )
     return 0
 
 

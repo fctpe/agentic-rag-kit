@@ -1,4 +1,4 @@
-.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke api dev test lint eval eval-retrieval redteam promote gate require-env
+.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke prefix-cache api dev test lint eval eval-retrieval redteam promote gate require-env
 
 # Every app target runs from backend/, which puts the repo-root .env out of
 # reach of both pydantic-settings (it resolves env_file against the working
@@ -42,7 +42,7 @@ seed:
 ingest: require-env          ## full corpus from live EUR-Lex, contextual prefixes (needs OPENAI_API_KEY)
 	cd backend && $(UV) python -m app.ingestion.pipeline
 
-ingest-fixture: require-env  ## same corpus as `ingest`, read offline (needs OPENAI_API_KEY)
+ingest-fixture: require-env  ## same corpus as `ingest`, read offline; prefixes come from the committed cache (key needed for embeddings)
 	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture
 
 ingest-smoke: require-env    ## 10 units per regulation from data/fixtures/, no LLM prefixes
@@ -51,6 +51,13 @@ ingest-smoke: require-env    ## 10 units per regulation from data/fixtures/, no 
 # No require-env: this only fetches and parses, so it needs no provider key.
 refresh-fixtures:            ## regenerate data/fixtures/ from Cellar (no key needed)
 	cd backend && $(UV_OPTENV) python -m app.ingestion.refresh_fixtures
+
+# Deliberately NOT a dependency of refresh-fixtures, and deliberately not run by
+# anything else. It is one model call per chunk (284), so nobody should reach it
+# by typing a target that sounds free. `make ingest-fixture` fails closed when
+# the committed cache no longer covers the corpus, which is the prompt to run it.
+prefix-cache: require-env    ## regenerate data/fixtures/context_prefixes.json — COSTS MONEY (one model call per chunk)
+	cd backend && $(UV) python -m app.ingestion.refresh_prefixes
 
 api: require-env
 	cd backend && $(UV) uvicorn app.main:app --reload --port 8000
