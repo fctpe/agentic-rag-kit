@@ -11,7 +11,6 @@ graph supersteps. Hitting a bound ends the run with a message that says so;
 none of them truncates an answer and presents it as finished.
 """
 
-import json
 import logging
 from typing import Any, Literal
 
@@ -27,6 +26,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
+from pydantic import BaseModel, ConfigDict, StrictBool, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.prompts import GROUNDING_PROMPT, REFUSAL_MESSAGE, ROUTER_PROMPT, SYSTEM_PROMPT
@@ -53,6 +53,28 @@ from app.security.injection import assess_injection
 from app.security.redaction import redact_pii
 
 logger = logging.getLogger(__name__)
+
+
+class GroundingVerdict(BaseModel):
+    """What the grounding verifier is allowed to have said.
+
+    Every field is required and `grounded` is strict, so the model cannot omit
+    it, answer `"false"`, `0`, or `null`, or bury it under an extra key. Each of
+    those used to be read as grounded — `.get("grounded", True)` supplied the
+    default, and `bool()` supplied the rest. A verifier confident enough to
+    return well-formed JSON and vague enough to leave out the verdict is exactly
+    the run worth failing on.
+
+    `extra="forbid"` is deliberate rather than tidy: an unexpected key usually
+    means the schema drifted or the model answered a different question, and
+    either way the verdict is not the one this code thinks it is reading.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    grounded: StrictBool
+    issues: list[str]
+
 
 TOOL_BUDGET_MESSAGE = (
     "Tool-call budget reached. Answer the user now using only the sources already retrieved; "
@@ -334,32 +356,42 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
         )
         record_model_call(response)
         span.set_attribute(GEN_AI_EVALUATION_NAME, "grounding")
-        grounded, issues = True, []
         try:
             raw = str(response.content).strip().removeprefix("```json").removesuffix("```")
-            verdict = json.loads(raw)
-            grounded = bool(verdict.get("grounded", True))
-            issues = [str(issue) for issue in verdict.get("issues", [])]
-        except (json.JSONDecodeError, AttributeError):
+            verdict = GroundingVerdict.model_validate_json(raw)
+            grounded, issues = verdict.grounded, verdict.issues
+        except (ValidationError, TypeError) as err:
             # Fail CLOSED: if the verifier itself errored, we cannot claim the
             # answer is grounded. Surfacing this beats silently shipping it —
             # the whole point of a governance layer.
-            logger.warning("grounding verifier returned unparseable output")
-            span.set_status(Status(StatusCode.ERROR, "grounding verdict unparseable"))
+            #
+            # Only malformed JSON used to reach this branch. The happy path read
+            # `bool(verdict.get("grounded", True))`, so a verdict that parsed but
+            # said nothing — `{}`, a truncated object, a judge that answered in
+            # prose wrapped in braces — defaulted to grounded, and `"grounded":
+            # "false"` was a non-empty string and therefore true. The two
+            # verdicts most likely to be wrong were the two that passed.
+            logger.warning(
+                "grounding verifier returned an unusable verdict",
+                extra={"fields": error_fields(err)},
+            )
+            span.set_status(Status(StatusCode.ERROR, "grounding verdict unusable"))
             grounded = False
             issues = ["Grounding check could not be completed; treat this answer as unverified."]
         span.set_attribute(GEN_AI_EVALUATION_SCORE_LABEL, "grounded" if grounded else "ungrounded")
-        updates: dict[str, Any] = {
+        # No warning AIMessage. `grounded` and `grounding_issues` are already the
+        # channel this reaches the caller on, and appending a second one made the
+        # warning the last AI message — which is what /chat persists and returns
+        # as the answer. The answer itself was dropped from the transcript and
+        # replaced by a note about it, and RAGAS then scored the note: G11 came
+        # back with answer_relevancy 0.48 for text that was never an answer.
+        # The zero-source branch above already declines to do this, and says why.
+        return {
             "citations": citations,
             "grounded": grounded,
             "grounding_issues": issues,
             "tokens_used": _spend(state, response),
         }
-        if not grounded:
-            updates["messages"] = [
-                AIMessage(content="⚠ Grounding check flagged this answer: " + "; ".join(issues))
-            ]
-        return updates
 
     def after_finalize(state: AgentState) -> Literal["approval_gate", "verify"]:
         return "approval_gate" if state.get("task_type") == "report" else "verify"
