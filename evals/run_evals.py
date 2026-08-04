@@ -22,6 +22,15 @@ langchain-community 0.4.x (required by the backend's langchain 1.x stack)
 removed. _shim_vertexai() below registers a stub module so `import ragas`
 works; the stub class is only ever used by ragas in isinstance() checks.
 
+Note: the judge's max_tokens is set explicitly. ragas defaults its instructor
+judge to 1024 output tokens, and faithfulness' NLI step has to re-emit every
+atomic statement of the answer verbatim, each with a free-text reason — output
+that scales with the ANSWER, which the agent writes and nothing bounds. Long
+answers blew that budget, and the failure landed on exactly the long
+multi-hop questions, so what survived was the easy half. See score_one() for
+the other half of that fix: a judge call that cannot be completed is recorded
+and fails the run, never quietly dropped from a mean.
+
 Prerequisites: backend running on --api-base (default http://localhost:8000)
 with seeded users, Postgres on localhost:5434 with ingested chunks, and
 OPENAI_API_KEY exported (judges + query embedding). Costs money — see README.
@@ -32,6 +41,7 @@ OPENAI_API_KEY exported (judges + query embedding). Costs money — see README.
 import argparse
 import asyncio
 import json
+import math
 import os
 import re
 import sys
@@ -55,6 +65,12 @@ EVAL_EMAIL = os.environ.get("EVAL_EMAIL", "analyst@example.com")
 EVAL_PASSWORD = os.environ.get("EVAL_PASSWORD", "demo1234")
 JUDGE_MODEL = os.environ.get("RAGAS_JUDGE_MODEL", "gpt-4o-mini")
 JUDGE_EMBEDDING_MODEL = os.environ.get("RAGAS_EMBEDDING_MODEL", "text-embedding-3-small")
+# ragas' own default is 1024 and its docstring recommends 4096+ for structured
+# output. The worst golden answer measured here decomposes into 27 statements
+# that the NLI step must re-emit with a reason each; that does not fit in 1024.
+JUDGE_MAX_TOKENS = int(os.environ.get("RAGAS_JUDGE_MAX_TOKENS", "4096"))
+JUDGE_ATTEMPTS = int(os.environ.get("RAGAS_JUDGE_ATTEMPTS", "3"))
+JUDGE_RETRY_BASE_DELAY = float(os.environ.get("RAGAS_JUDGE_RETRY_DELAY", "2.0"))
 
 METRIC_NAMES = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
 
@@ -188,7 +204,7 @@ def build_judges():
     )
 
     client = AsyncOpenAI()
-    judge_llm = llm_factory(JUDGE_MODEL, client=client)
+    judge_llm = llm_factory(JUDGE_MODEL, client=client, max_tokens=JUDGE_MAX_TOKENS)
     judge_embeddings = embedding_factory(
         "openai", model=JUDGE_EMBEDDING_MODEL, client=client, interface="modern"
     )
@@ -200,8 +216,66 @@ def build_judges():
     }
 
 
-async def score_sample(metrics: dict, sample: dict) -> dict:
+def transient_error_types() -> tuple[type[BaseException], ...]:
+    """Judge failures worth a retry: the provider was busy, not the sample.
+
+    Everything else is deterministic for a given sample at a given max_tokens —
+    a truncated structured output or a schema violation will reproduce exactly,
+    so retrying it only spends money to arrive at the same failure. Imported
+    lazily to keep this module importable (and testable) without touching the
+    ragas import chain.
+    """
+    from openai import APIConnectionError, APITimeoutError, InternalServerError, RateLimitError
+
+    return (RateLimitError, APITimeoutError, APIConnectionError, InternalServerError)
+
+
+def is_retryable(err: BaseException) -> bool:
+    return isinstance(err, transient_error_types())
+
+
+async def score_one(metric, sample_id: str, call: dict) -> float:
+    """One metric for one sample, or an exception. Never a substitute value.
+
+    The point of raising is that the caller has to decide what to do about it
+    in the open. Returning 0.0 would drag the mean down for a provider hiccup;
+    returning None used to drop the question out of this metric's denominator
+    while it stayed in the other three, so the run reported a full population
+    and published a mean over whatever happened to survive.
+    """
+    result = None
+    for attempt in range(1, JUDGE_ATTEMPTS + 1):
+        try:
+            result = await metric.ascore(**call)
+            break
+        except Exception as err:
+            if attempt == JUDGE_ATTEMPTS or not is_retryable(err):
+                raise
+            delay = JUDGE_RETRY_BASE_DELAY * 2 ** (attempt - 1)
+            print(
+                f"  [{sample_id}] transient judge error ({type(err).__name__}), "
+                f"retrying in {delay:.0f}s ({attempt}/{JUDGE_ATTEMPTS - 1})",
+                file=sys.stderr,
+            )
+            await asyncio.sleep(delay)
+    value = float(result.value)
+    if math.isnan(value):
+        # ragas returns nan when a metric could not be computed at all (e.g. the
+        # answer decomposed into zero statements). nan is not None, so it used
+        # to pass the aggregator's filter and poison the mean.
+        raise ValueError("judge returned nan — the metric could not be computed")
+    return value
+
+
+async def score_sample(metrics: dict, sample: dict) -> tuple[dict[str, float | None], list[dict]]:
+    """(scores, failures). A metric that could not be scored appears in BOTH.
+
+    The per-sample null stays in the artifact so the table still lines up, but
+    the failure is also returned as a record, because a null nothing counts is
+    how a lost judge call gets mistaken for a good score.
+    """
     scores: dict[str, float | None] = {}
+    failures: list[dict] = []
     calls = {
         "faithfulness": dict(
             user_input=sample["question"],
@@ -222,12 +296,19 @@ async def score_sample(metrics: dict, sample: dict) -> dict:
     }
     for name in METRIC_NAMES:
         try:
-            result = await metrics[name].ascore(**calls[name])
-            scores[name] = float(result.value)
+            scores[name] = await score_one(metrics[name], sample["id"], calls[name])
         except Exception as err:
-            print(f"  [{sample['id']}] {name} failed: {err}", file=sys.stderr)
+            print(f"  [{sample['id']}] {name} failed: {type(err).__name__}: {err}", file=sys.stderr)
             scores[name] = None
-    return scores
+            failures.append(
+                {
+                    "id": sample["id"],
+                    "metric": name,
+                    "error_type": type(err).__name__,
+                    "error": str(err)[:500],
+                }
+            )
+    return scores, failures
 
 
 # ------------------------------------------------------------------- main ---
@@ -328,20 +409,29 @@ async def main() -> int:
     metrics = build_judges()
     judge_semaphore = asyncio.Semaphore(args.concurrency)
 
-    async def guarded_score(sample: dict) -> dict:
+    async def guarded_score(sample: dict) -> tuple[dict, list[dict]]:
         async with judge_semaphore:
             return await score_sample(metrics, sample)
 
+    judge_failures: list[dict] = []
     all_scores = await asyncio.gather(*(guarded_score(s) for s in scorable))
-    for sample, scores in zip(scorable, all_scores, strict=True):
+    for sample, (scores, failures) in zip(scorable, all_scores, strict=True):
         sample["scores"] = scores
+        judge_failures.extend(failures)
 
     # aggregate
+    def contributing(name: str) -> list[float]:
+        return [s["scores"][name] for s in scorable if s["scores"].get(name) is not None]
+
     def mean(name: str) -> float | None:
-        values = [s["scores"][name] for s in scorable if s["scores"].get(name) is not None]
+        values = contributing(name)
         return round(sum(values) / len(values), 4) if values else None
 
     summary = {name: mean(name) for name in METRIC_NAMES}
+    # Every mean states its own denominator. They are not all len(scorable): a
+    # metric whose judge call died loses that question from its mean alone, and
+    # a run-level count cannot see it happen.
+    n_contributing = {name: len(contributing(name)) for name in METRIC_NAMES}
 
     print("\n## RAGAS results\n")
     header = "| id | " + " | ".join(METRIC_NAMES) + " |"
@@ -357,6 +447,24 @@ async def main() -> int:
         f"{summary[name]:.3f}" if summary[name] is not None else "-" for name in METRIC_NAMES
     ]
     print("| **mean** | " + " | ".join(f"**{c}**" for c in mean_cells) + " |")
+    print(
+        "| **scored** | "
+        + " | ".join(f"{n_contributing[name]}/{len(scorable)}" for name in METRIC_NAMES)
+        + " |"
+    )
+
+    if judge_failures:
+        print(
+            f"\n{len(judge_failures)} judge call(s) returned no score — the means above are "
+            f"NOT over all {len(scorable)} questions:",
+            file=sys.stderr,
+        )
+        for failure in judge_failures:
+            print(
+                f"  [{failure['id']}] {failure['metric']}: "
+                f"{failure['error_type']}: {failure['error']}",
+                file=sys.stderr,
+            )
 
     unmarked = [s["id"] for s in scorable if not INLINE_CITATION.search(s["answer"])]
     print(
@@ -371,15 +479,22 @@ async def main() -> int:
     payload = {
         "summary": summary,
         "judge_model": JUDGE_MODEL,
+        "judge_max_tokens": JUDGE_MAX_TOKENS,
         "api_base": args.api_base,
         "n_scored": len(scorable),
+        "n_contributing": n_contributing,
         "n_chat_failures": len(failed_chats),
+        "n_judge_failures": len(judge_failures),
+        "judge_failures": judge_failures,
         "answers_without_inline_citation": unmarked,
         "timestamp": timestamp,
         "partial": partial,
         "samples": samples,
     }
-    out_path.write_text(json.dumps(payload, indent=2))
+    # allow_nan=False: bare NaN is not JSON, and an artifact that no strict
+    # parser will read is not a result. Better to blow up here than to commit
+    # a file whose numbers depend on who parses it.
+    out_path.write_text(json.dumps(payload, indent=2, allow_nan=False))
     print(f"\nwrote {out_path}")
 
     gate = gate_ragas(payload, partial=partial)
@@ -387,9 +502,10 @@ async def main() -> int:
     if partial:
         # A subset run is informational: it cannot be judged against a full-run
         # baseline, so it must not gate — but it must not claim to have gated
-        # either. Only chat failures can fail a subset run.
+        # either. Thresholds are the only thing a subset run gets to skip: a
+        # question that was asked and not scored is broken at any sample size.
         print("\n(subset run — thresholds not applied)")
-        return 1 if failed_chats else 0
+        return 1 if failed_chats or judge_failures else 0
     return 0 if gate.passed else 1
 
 

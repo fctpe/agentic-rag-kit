@@ -10,6 +10,11 @@ Design rules, all learned from the ways a naive gate goes wrong:
 * **Gate the sample size, not just the score.** A run that scores 12 of 38
   questions can post a better mean while covering a third of the ground. Every
   check asserts the expected population first.
+* **Gate it per metric, not just per run.** The run-level count is how many
+  questions got an *answer*. A judge call that dies takes its question out of
+  one metric's mean and leaves it in the other three, so that count never
+  moves — which is exactly how a 23-of-38 faithfulness mean shipped under a
+  run reporting 38. Every published mean has to name its own denominator.
 * **Refuse to judge a subset.** ``--smoke`` runs a handful of questions; scoring
   that against a full-run baseline is meaningless in both directions.
 """
@@ -90,12 +95,52 @@ def gate_ragas(payload: dict[str, Any], *, partial: bool) -> GateResult:
         return result
 
     spec = load_thresholds()["ragas"]
+    expected = spec["expect_n_scored"]
     n_scored = payload.get("n_scored", 0)
     result.add(
         "population",
-        n_scored == spec["expect_n_scored"],
-        f"{n_scored} questions scored, expected {spec['expect_n_scored']}",
+        n_scored == expected,
+        f"{n_scored} questions scored, expected {expected}",
     )
+    # The denominator of each individual mean. `n_scored` above counts questions
+    # that produced an answer, not questions that produced a score, so it stays
+    # at 38 while a metric quietly averages over whatever its judge managed to
+    # return. Absent means the run predates the check — same fail-closed reading
+    # as the inline-citation field below, and for the same reason: defaulting to
+    # "nothing missing" passes every artifact that has the defect.
+    contributing = payload.get("n_contributing")
+    if contributing is None:
+        result.add(
+            "per-metric population",
+            False,
+            "means do not state their denominators — this run predates the check; "
+            "re-run run_evals.py",
+        )
+    else:
+        for metric in spec["metrics"]:
+            n = contributing.get(metric)
+            result.add(
+                f"{metric} population",
+                n == expected,
+                f"{n} of {expected} questions contributed to the mean",
+            )
+    # Belt to that braces: the count above is derived from the scores that
+    # survived, this is the raw incident count. A metric that is scored but not
+    # listed in `metrics` below has no denominator check at all, and would
+    # otherwise fail silently exactly as faithfulness did.
+    judge_failures = payload.get("n_judge_failures")
+    if judge_failures is None:
+        result.add(
+            "judge failures",
+            False,
+            "not measured — this run predates the check; re-run run_evals.py",
+        )
+    else:
+        result.add(
+            "judge failures",
+            judge_failures <= spec["max_judge_failures"],
+            f"{judge_failures}, max {spec['max_judge_failures']}",
+        )
     failures = payload.get("n_chat_failures", 0)
     result.add(
         "chat failures",
