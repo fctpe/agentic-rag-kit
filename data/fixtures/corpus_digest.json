@@ -1,0 +1,9 @@
+{
+  "generated": "2026-08-04",
+  "generated_by": "app.ingestion.corpus_digest",
+  "chunks": 284,
+  "text": "9d3a1677bfe445ef77891a562821f33c16794a13a50b265fcf4b879cee89ad1a",
+  "vector": "f79fb68212e326271ecc5f66675aa2410a222ff3cae9772eab88b2d7d8265c83",
+  "order": "(regulation, article_ref, idx) COLLATE \"C\"",
+  "note": "The corpus every number under evals/results/ was measured against. Two SHA-256 digests over the ingested chunks: one over context_prefix + content, one over chunks.embedding rendered by Postgres as float4 text. Reproduce with `make db migrate ingest-fixture` (no provider key) followed by `make corpus-digest`; `make corpus-digest-check` compares a live ingest against this file and exits non-zero on a mismatch. The text digest alone is not sufficient — it stayed identical across the ingests on which the vector column differed, which is how a false reproducibility claim shipped once already (ADR 0003)."
+}

@@ -43,7 +43,7 @@ never writes `results/retrieval_<mode>.json` — that file is the one the README
 table is read from and only `promote.py` moves it (see *Promotion* below). It
 used to be written in place on every invocation, which is how commit 88131af
 changed the committed hybrid MRR from 0.8912 to 0.875 as a side effect of a run
-nobody had decided to publish, while README.md went on quoting 0.891.
+nobody had decided to publish, while README.md went on quoting the older draw.
 
 **This suite needs no provider key and is reproducible run to run** — both
 statements became true on 2026-08-04 and neither was before. The corpus text,
@@ -86,10 +86,11 @@ model.
 of each regulation, no annexes) questions targeting later articles (e.g. AI
 Act Art. 50, GDPR Art. 33) cannot be hit — low absolute scores are expected.
 Compare modes and filters against each other, not against 1.0. Run the full
-corpus (`make ingest-fixture` — 212 articles + 13 annexes → 280 chunks), which
-the same golden set exercises end to end. The committed results predate the
-annexes and were measured on a 283-chunk corpus that mislabelled them; they
-have not been re-run.
+corpus (`make ingest-fixture` — 212 articles + 13 annexes → 284 chunks, AI Act
+167 and GDPR 117), which the same golden set exercises end to end. Every
+committed result under `results/` was measured on that corpus and promoted from
+it; `make corpus-digest-check` confirms an ingest reproduces it before the
+numbers mean anything.
 
 ## 2. RAGAS eval — `run_evals.py`
 

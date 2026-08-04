@@ -16,7 +16,10 @@
 #
 #                  * the chunk TEXT. One model call per chunk wrote the context
 #                    prefixes at ingest; temperature=0 is not determinism, and
-#                    two ingests of one fixture gave hybrid MRR 0.888 and 0.914.
+#                    two ingests of one fixture moved hybrid MRR by more than
+#                    the floors below allow. Those runs were never promoted, so
+#                    the figures are not repeated here; the property is now
+#                    checked forwards instead, by `make corpus-digest-check`.
 #                    Committed in data/fixtures/context_prefixes.json.
 #                  * the chunk VECTORS. Committing the text fixed the text and
 #                    not the corpus: the embedding endpoint does not return
@@ -62,20 +65,27 @@
 # count that never moves.
 
 ragas:
-  # Baselines are the committed run in evals/results/ragas.json (2026-08-03).
-  # An earlier single run on 2026-07-12 scored faithfulness 0.9644; two runs on
-  # 2026-08-03 scored 0.9176 and 0.9316 with retrieval byte-identical and the
-  # ragas version unchanged. One run is not an estimate of an LLM-judged metric
-  # — the floors below are sized for that spread, not for the best draw.
-  # STALE, deliberately left in place until a full run replaces it: both
-  # 2026-08-03 figures above are means over a SUBSET. The faithfulness judge hit
-  # a 1024-token output limit on the longest answers and lost 15 and 10
-  # questions respectively — questions that stayed in the other three metrics
-  # and in `expect_n_scored`. The spread those floors were sized for is
-  # therefore partly a change of population, not a judge draw, and the dropped
-  # questions were the long cross-regulation ones. Baseline and floor both need
-  # re-deriving from a run that scores all 38; the numbers below are not touched
-  # here because a threshold is only worth what the run behind it measured.
+  # Baselines are the committed run in evals/results/ragas.json (2026-08-04,
+  # promoted from ragas_20260804T144506Z.json). It scores all 38 questions on
+  # all four metrics — `n_contributing` is 38 across the board, judge failures
+  # are 0, and all 37 citable answers carry an inline [n] marker.
+  #
+  # One run is not an estimate of an LLM-judged metric, and n here is 2: the
+  # only other run on this corpus that passes this gate is
+  # ragas_20260804T143425Z.json, at 0.9417 / 0.8688 / 0.8812 / 0.9539. The
+  # floors are sized for that spread, not for the best draw — note that the
+  # promoted run is the newest passing one, not the highest, and it is the lower
+  # of the two on context_recall.
+  #
+  # Five further runs on this corpus are refused and the refusals are the reason
+  # the floors can be trusted. Three from the morning of 2026-08-04 score all 38
+  # but carry 2, 9 and 10 answers with no inline [n] marker, which
+  # max_answers_without_inline_citation refuses below. The two on 2026-08-03
+  # (0.9176 and 0.9316) are means over a SUBSET: the faithfulness judge hit a
+  # 1024-token output limit on the longest answers and silently lost 15 and 10
+  # questions that stayed in the other three metrics and in `expect_n_scored`,
+  # so what looked like a judge draw was partly a change of population. Both
+  # failure modes are now gated rather than described.
   expect_n_scored: 38
   max_chat_failures: 0
   # A judge call that dies used to score its question `None`, and `None` was
@@ -88,7 +98,8 @@ ragas:
   # Not a judged metric and so no headroom: the [n] markers are either there or
   # the answer's sources are unlinked in the UI. Zero, because "most answers
   # cite properly" is not a property you can ship a citation panel on. The
-  # committed run predates the check and does not carry the field — see
+  # committed run carries the field at 0; a run that predates the check does not
+  # carry it at all, and the gate fails that rather than assuming — see
   # backend/tests/test_eval_gate.py.
   max_answers_without_inline_citation: 0
   # An answer the grounding verifier refused is excluded from the check above —

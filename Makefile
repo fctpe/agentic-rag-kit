@@ -1,4 +1,4 @@
-.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke prefix-cache embedding-cache corpus-digest api dev test lint eval eval-retrieval redteam promote gate require-env
+.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke prefix-cache embedding-cache corpus-digest corpus-digest-check api dev test lint eval eval-retrieval redteam promote gate require-env
 
 # Every app target runs from backend/, which puts the repo-root .env out of
 # reach of both pydantic-settings (it resolves env_file against the working
@@ -54,6 +54,9 @@ ingest-smoke:                ## 10 units per regulation from data/fixtures/ (no 
 
 corpus-digest:               ## SHA-256 of the ingested chunk text AND of chunks.embedding
 	cd backend && $(UV_OPTENV) python -m app.ingestion.corpus_digest
+
+corpus-digest-check:         ## same, compared against data/fixtures/corpus_digest.json (exit 1 on drift)
+	cd backend && $(UV_OPTENV) python -m app.ingestion.corpus_digest --check
 
 # No require-env: this only fetches and parses, so it needs no provider key.
 refresh-fixtures:            ## regenerate data/fixtures/ from Cellar (no key needed)
