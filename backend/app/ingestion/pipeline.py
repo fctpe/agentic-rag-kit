@@ -9,10 +9,24 @@ A unit is one citable subdivision: an article ("Art. 6") or an annex
     uv run python -m app.ingestion.pipeline --no-contextual --max-units 10   # fast smoke
 
 Re-running replaces a regulation's document and chunks atomically, so the
-pipeline is idempotent. `--source fixture` is also *reproducible*: it reads its
-contextual prefixes from `data/fixtures/context_prefixes.json` rather than
-generating them, so two ingests of the committed corpus produce byte-identical
-chunks. `--source network` still generates them, and does not.
+pipeline is idempotent. `--source fixture` is also *reproducible*, and that
+means both columns retrieval uses:
+
+* the **text** — `context_prefix` and `content` — because the contextual
+  sentence is read from `data/fixtures/context_prefixes.json` rather than
+  sampled from a model;
+* the **vector** — `chunks.embedding`, the column the vector arm actually ranks
+  on — because it is read from `data/fixtures/chunk_embeddings.json` rather
+  than requested from the embedding endpoint.
+
+The second half was missing until 2026-08-04, and its absence made the first
+half's guarantee false where it counted: this docstring claimed byte-identical
+chunks while 99 to 141 of 284 embedding rows differed on every pair of ingests,
+because the endpoint does not return the same vector twice for the same string.
+`make corpus-digest` prints both digests; ADR 0003 records the measurement.
+
+A fixture ingest therefore needs no provider key at all. `--source network`
+still generates prefixes and calls the endpoint, and is not reproducible.
 """
 
 import argparse
@@ -23,6 +37,11 @@ from sqlalchemy import delete, select
 
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
+from app.ingestion.chunk_embeddings import (
+    cached_chunk_vectors,
+    embedded_text,
+    load_chunk_cache,
+)
 from app.ingestion.chunker import UnitChunk, chunk_unit
 from app.ingestion.contextual import deterministic_prefix, llm_prefixes
 from app.ingestion.eurlex import REGULATIONS, Annex, fetch_html, load_fixture, parse_units
@@ -66,6 +85,41 @@ async def resolve_prefixes(
     return [f"{det} {sem}" for det, sem in zip(prefixes, semantic, strict=True)]
 
 
+async def resolve_embeddings(
+    regulation: str,
+    chunks: list[UnitChunk],
+    prefixes: list[str],
+    source: str,
+    model: str,
+    dimensions: int,
+) -> list[list[float]]:
+    """One vector per chunk, *read* for `--source fixture` and *called* for network.
+
+    The same split as `resolve_prefixes`, one level down and for the same
+    reason. `temperature=0` is not the only thing that fails to be
+    deterministic: the embedding endpoint returns a slightly different vector
+    for the same string on different calls, so a corpus whose text reproduces
+    but whose vectors are re-requested still does not reproduce — and
+    `chunks.embedding` is the column the vector arm ranks on.
+
+    A fixture ingest whose cache does not cover it fails closed rather than
+    falling back to the endpoint — see `app/embedding_cache.py`.
+    """
+    if source == "fixture":
+        print(f"[{regulation}] reading committed embeddings", file=sys.stderr)
+        return cached_chunk_vectors(
+            regulation, chunks, prefixes, load_chunk_cache(), model, dimensions
+        )
+
+    print(f"[{regulation}] embedding {len(chunks)} chunks…", file=sys.stderr)
+    return await embed_texts(
+        [
+            embedded_text(prefix, chunk.content)
+            for prefix, chunk in zip(prefixes, chunks, strict=True)
+        ]
+    )
+
+
 async def ingest_regulation(
     regulation: str,
     contextual: bool,
@@ -103,9 +157,13 @@ async def ingest_regulation(
         regulation, meta["title"], chunks, contextual, source, settings.llm_model
     )
 
-    print(f"[{regulation}] embedding {len(chunks)} chunks…", file=sys.stderr)
-    vectors = await embed_texts(
-        [f"{prefix}\n\n{chunk.content}" for prefix, chunk in zip(prefixes, chunks, strict=True)]
+    vectors = await resolve_embeddings(
+        regulation,
+        chunks,
+        prefixes,
+        source,
+        settings.embedding_model,
+        settings.embedding_dimensions,
     )
 
     factory = get_session_factory()
@@ -154,7 +212,8 @@ async def main() -> None:
         help=(
             "Add a context sentence per chunk. Read from data/fixtures/context_prefixes.json "
             "with --source fixture (free, reproducible, fails closed if it does not cover the "
-            "corpus); generated with one model call per chunk with --source network"
+            "corpus); generated with one model call per chunk with --source network. "
+            "--no-contextual is available only with --source network"
         ),
     )
     parser.add_argument(
@@ -173,6 +232,22 @@ async def main() -> None:
         ),
     )
     args = parser.parse_args()
+
+    if args.source == "fixture" and not args.contextual:
+        # Not a missing feature — a corpus nobody measured. Without the
+        # contextual sentence a different string is embedded, so the committed
+        # vectors do not describe it, and committing a second set for it would
+        # publish an artifact no eval number in this repository is about. The
+        # embedding cache would refuse this anyway; saying so before the parse
+        # is cheaper than 284 named misses.
+        parser.error(
+            "--no-contextual is only available with --source network. The committed "
+            "embeddings under data/fixtures/chunk_embeddings.json are of the contextual "
+            "corpus — the string that gets embedded includes the context sentence — so a "
+            "non-contextual fixture ingest has no committed vectors and would have to call "
+            "the embedding endpoint, which is the non-determinism --source fixture exists "
+            "to remove. For a fast offline smoke, use --source fixture --max-units 10."
+        )
 
     try:
         for regulation in args.regulations:

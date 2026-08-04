@@ -1,4 +1,4 @@
-.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke prefix-cache api dev test lint eval eval-retrieval redteam promote gate require-env
+.PHONY: frontend-deps db up migrate seed ingest ingest-fixture ingest-smoke prefix-cache embedding-cache corpus-digest api dev test lint eval eval-retrieval redteam promote gate require-env
 
 # Every app target runs from backend/, which puts the repo-root .env out of
 # reach of both pydantic-settings (it resolves env_file against the working
@@ -42,11 +42,18 @@ seed:
 ingest: require-env          ## full corpus from live EUR-Lex, contextual prefixes (needs OPENAI_API_KEY)
 	cd backend && $(UV) python -m app.ingestion.pipeline
 
-ingest-fixture: require-env  ## same corpus as `ingest`, read offline; prefixes come from the committed cache (key needed for embeddings)
-	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture
+# No require-env on either: since the embedding vectors are committed alongside
+# the text and the prefixes, a fixture ingest calls no provider at all. It needs
+# a database and nothing else, which is what makes the committed corpus — and so
+# every committed retrieval number — reproducible by someone with no key.
+ingest-fixture:              ## the committed corpus: text, prefixes and vectors all read from data/fixtures/ (no key)
+	cd backend && $(UV_OPTENV) python -m app.ingestion.pipeline --source fixture
 
-ingest-smoke: require-env    ## 10 units per regulation from data/fixtures/, no LLM prefixes
-	cd backend && $(UV) python -m app.ingestion.pipeline --source fixture --no-contextual --max-units 10
+ingest-smoke:                ## 10 units per regulation from data/fixtures/ (no key)
+	cd backend && $(UV_OPTENV) python -m app.ingestion.pipeline --source fixture --max-units 10
+
+corpus-digest:               ## SHA-256 of the ingested chunk text AND of chunks.embedding
+	cd backend && $(UV_OPTENV) python -m app.ingestion.corpus_digest
 
 # No require-env: this only fetches and parses, so it needs no provider key.
 refresh-fixtures:            ## regenerate data/fixtures/ from Cellar (no key needed)
@@ -58,6 +65,16 @@ refresh-fixtures:            ## regenerate data/fixtures/ from Cellar (no key ne
 # the committed cache no longer covers the corpus, which is the prompt to run it.
 prefix-cache: require-env    ## regenerate data/fixtures/context_prefixes.json — COSTS MONEY (one model call per chunk)
 	cd backend && $(UV) python -m app.ingestion.refresh_prefixes
+
+# The vectors, for the same reason and with the same rules. Both regulations and
+# the golden question set, or neither: they are three files describing one
+# measurement, and a corpus embedded with one model against questions embedded
+# with another is not a measurement of anything. Order matters — the embedded
+# string is prefix + content, so this runs AFTER `make prefix-cache`, never
+# before, or it would commit vectors for text that has since been rewritten.
+embedding-cache: require-env ## regenerate the committed embedding vectors (corpus + golden queries) — COSTS MONEY
+	cd backend && $(UV) python -m app.ingestion.refresh_embeddings
+	cd backend && $(UV) --group evals python ../evals/query_embeddings.py
 
 api: require-env
 	cd backend && $(UV) uvicorn app.main:app --reload --port 8000

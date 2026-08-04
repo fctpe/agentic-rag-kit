@@ -28,6 +28,15 @@ The regulation filter ablation (--regulation-filter on|off): "on" passes the
 regulation implied by the expected articles (only when they all share one
 regulation — cross-regulation questions always run unfiltered), "off" always
 searches the full corpus.
+
+Query vectors (--query-embeddings committed|live, default committed): the
+embedding endpoint returns a slightly different vector for the same question on
+different calls, so by default the two arms that need one read it from
+`evals/query_embeddings.json` and the measured number is a function of the
+corpus and the question set alone. `live` embeds through the production path;
+it is the control that shows pinning did not change what is measured. Either
+way the mode is recorded in the results file, because a number whose inputs are
+not stated is not reproducible even when it happens to be reproducible.
 """
 
 import argparse
@@ -47,6 +56,7 @@ RESULTS_DIR = EVALS_DIR / "results"
 
 sys.path.insert(0, str(EVALS_DIR))
 from gate import gate_retrieval  # noqa: E402
+from query_embeddings import cached_query_vectors, load_query_cache  # noqa: E402
 
 # The corpus holds two citable shapes, "Art. 5" and "Annex III", so the golden
 # set can name either. Both sides of the comparison go through unit_key().
@@ -56,30 +66,38 @@ _REGULATION_KEYS = {"ai act": "ai_act", "gdpr": "gdpr"}
 # --- single-arm SQL variants -------------------------------------------------
 # hybrid_search() has no mode switch, so the two ablation arms replicate the
 # corresponding CTE arm of backend/app/retrieval/hybrid.py HYBRID_SQL with the
-# other arm dropped. Keep in sync with that file if the schema changes.
+# other arm dropped. Keep in sync with that file if the schema changes —
+# including the `(regulation, article_ref, idx)` tiebreak, which is what makes
+# each ORDER BY a total order and therefore each ablation a function of the
+# corpus rather than of the query plan. An ablation that is less deterministic
+# than the arm it is ablating measures the wrong thing.
+
+_TIEBREAK = 'd.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx'
 
 VECTOR_ONLY_SQL = text(
-    """
+    f"""
 SELECT c.id, c.article_ref, d.regulation,
-       row_number() OVER (ORDER BY c.embedding <=> CAST(:qvec AS vector)) AS rank
+       row_number() OVER (
+           ORDER BY c.embedding <=> CAST(:qvec AS vector), {_TIEBREAK}
+       ) AS rank
 FROM chunks c
 JOIN documents d ON d.id = c.document_id
 WHERE (CAST(:regulation AS text) IS NULL OR d.regulation = :regulation)
-ORDER BY c.embedding <=> CAST(:qvec AS vector)
+ORDER BY c.embedding <=> CAST(:qvec AS vector), {_TIEBREAK}
 LIMIT :final_k
 """
 )
 
 TEXT_ONLY_SQL = text(
-    """
+    f"""
 SELECT c.id, c.article_ref, d.regulation,
-       row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
+       row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC, {_TIEBREAK}) AS rank
 FROM chunks c
 JOIN documents d ON d.id = c.document_id,
 plainto_tsquery('english', CAST(:query AS text)) query
 WHERE c.tsv @@ query
   AND (CAST(:regulation AS text) IS NULL OR d.regulation = :regulation)
-ORDER BY ts_rank_cd(c.tsv, query) DESC
+ORDER BY ts_rank_cd(c.tsv, query) DESC, {_TIEBREAK}
 LIMIT :final_k
 """
 )
@@ -139,19 +157,33 @@ def score_question(
     }
 
 
-async def retrieve(session, mode: str, query: str, regulation: str | None, k: int):
-    """Return an ordered list of (regulation, article_ref) for the top-k chunks."""
+async def retrieve(
+    session,
+    mode: str,
+    query: str,
+    regulation: str | None,
+    k: int,
+    query_vector: list[float] | None,
+):
+    """Return an ordered list of (regulation, article_ref) for the top-k chunks.
+
+    `query_vector` is None only under `--query-embeddings live`, in which case
+    both vector-using modes embed through the production path.
+    """
     if mode == "hybrid":
         from app.retrieval.hybrid import hybrid_search
 
-        chunks = await hybrid_search(session, query, regulation=regulation, final_k=k)
+        chunks = await hybrid_search(
+            session, query, regulation=regulation, final_k=k, query_vector=query_vector
+        )
         return [(chunk.regulation, chunk.article_ref) for chunk in chunks]
 
     if mode == "vector_only":
         from app.retrieval.embedder import embed_query
         from app.retrieval.hybrid import _to_vector_literal
 
-        query_vector = await embed_query(query)
+        if query_vector is None:
+            query_vector = await embed_query(query)
         # Same index-scan relaxation the production path applies.
         await session.execute(text("SET hnsw.iterative_scan = relaxed_order"))
         rows = await session.execute(
@@ -194,6 +226,16 @@ async def main() -> int:
         default="on",
         help="on: filter by the regulation implied by expected_articles; off: full corpus",
     )
+    parser.add_argument(
+        "--query-embeddings",
+        choices=["committed", "live"],
+        default="committed",
+        help=(
+            "committed: read query vectors from evals/query_embeddings.json, so the run is "
+            "a function of the corpus and the question set (default, needs no key). "
+            "live: embed each question through the production path"
+        ),
+    )
     parser.add_argument("--json", type=Path, default=None, help="output JSON path")
     parser.add_argument("--smoke", action="store_true", help="first 5 questions only")
     parser.add_argument("--questions", nargs="+", default=None, help="run only these ids")
@@ -204,6 +246,29 @@ async def main() -> int:
     questions = load_questions(args.smoke, args.questions)
     use_filter = args.regulation_filter == "on"
 
+    # text_only touches no vector, so it must not require the cache to exist —
+    # that arm is the committed negative result and has to stay runnable on a
+    # clone with nothing configured.
+    vectors: dict[str, list[float]] = {}
+    if args.query_embeddings == "committed" and args.mode != "text_only":
+        from app.config import get_settings
+
+        settings = get_settings()
+        ids = [q["id"] for q in questions]
+        vectors = dict(
+            zip(
+                ids,
+                cached_query_vectors(
+                    ids,
+                    [q["question"] for q in questions],
+                    load_query_cache(),
+                    settings.embedding_model,
+                    settings.embedding_dimensions,
+                ),
+                strict=True,
+            )
+        )
+
     rows: list[dict] = []
     factory = get_session_factory()
     async with factory() as session:
@@ -212,7 +277,12 @@ async def main() -> int:
             regulation = implied_regulation(expected) if use_filter else None
             try:
                 retrieved = await retrieve(
-                    session, args.mode, question["question"], regulation, args.k
+                    session,
+                    args.mode,
+                    question["question"],
+                    regulation,
+                    args.k,
+                    vectors.get(question["id"]),
                 )
             except Exception as err:
                 print(f"[{question['id']}] retrieval failed: {err}", file=sys.stderr)
@@ -235,6 +305,9 @@ async def main() -> int:
         "mode": args.mode,
         "k": args.k,
         "regulation_filter": args.regulation_filter,
+        # Recorded because it is an input to the number. text_only never embeds
+        # anything, so it reports what it did rather than what was asked for.
+        "query_embeddings": "none" if args.mode == "text_only" else args.query_embeddings,
         "smoke": args.smoke,
         "n_questions": n,
         "hit_rate_at_k": round(sum(r["hit"] for r in rows) / n, 4) if n else 0.0,

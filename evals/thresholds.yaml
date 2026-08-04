@@ -8,9 +8,45 @@
 # judge noise is a gate that gets switched off, and then nothing is gated at all.
 # So the headroom is sized to how much each number can actually move:
 #
-#   retrieval  — deterministic. Same corpus, same embeddings, same SQL, same
-#                answer every time. Floors sit just under baseline, because any
-#                real movement is a real change.
+#   retrieval  — deterministic, and only since 2026-08-04. Floors sit just
+#                under baseline, which is only a regression guard if a re-run
+#                cannot move the number on its own. Three things had to be
+#                pinned before that was true, and each was found by measuring
+#                rather than by reasoning:
+#
+#                  * the chunk TEXT. One model call per chunk wrote the context
+#                    prefixes at ingest; temperature=0 is not determinism, and
+#                    two ingests of one fixture gave hybrid MRR 0.888 and 0.914.
+#                    Committed in data/fixtures/context_prefixes.json.
+#                  * the chunk VECTORS. Committing the text fixed the text and
+#                    not the corpus: the embedding endpoint does not return
+#                    bit-identical vectors for identical input, and 99-141 of
+#                    284 rows of chunks.embedding — the column the vector arm
+#                    ranks on — differed on every pair of ingests. Committed in
+#                    data/fixtures/chunk_embeddings.json. The QUERY vectors move
+#                    the same way and are pinned in evals/query_embeddings.json;
+#                    that side is ~20x smaller (|Δd(q,c)| mean 1.31e-06 against
+#                    2.92e-05) and moved no ranking, but a floor sized on "the
+#                    number cannot move by itself" cannot leave an input free.
+#                  * the SQL ORDER. RRF scores are sums of 1/(k+rank), so exact
+#                    ties are arithmetic, not accident. With `ORDER BY f.score
+#                    DESC` alone, question A07's rank 1 depended on the LIMIT
+#                    (final_k=2 -> Art. 4, final_k=3 -> Art. 66) and hybrid MRR
+#                    moved 0.0132 between ingests with the data unchanged. Every
+#                    ORDER BY now ends in (regulation, article_ref, idx).
+#
+#                Verified the way the property is stated: three consecutive
+#                `make ingest-fixture` runs produce the same SHA-256 over the
+#                chunk text AND over chunks.embedding (`make corpus-digest`),
+#                and repeated eval runs are byte-identical per question.
+#                backend/tests/test_embedding_cache.py and
+#                backend/tests/test_retrieval_total_order.py hold the pieces
+#                offline; the two-ingest check runs in CI, which needs no
+#                provider key now that a fixture ingest calls nothing.
+#
+#                What is NOT pinned, deliberately: the live /chat path embeds
+#                every user question as it arrives, because it must. These
+#                floors gate the eval, and the eval's inputs are fixed.
 #   ragas      — judged by an LLM over 38 questions. One question flipping shifts
 #                a mean by ~0.026, so floors allow a few questions of drift but
 #                not a systematic collapse.

@@ -64,11 +64,16 @@ jobs:
         # corpus (212 articles / 283 chunks, annexes mislabelled under the last
         # article) and are stale until this workflow re-runs them.
         #
-        # Contextual prefixes come from data/fixtures/context_prefixes.json, not
-        # from a model call: generating them here would make every scored run
+        # Contextual prefixes come from data/fixtures/context_prefixes.json and
+        # embedding vectors from data/fixtures/chunk_embeddings.json, not from
+        # provider calls: generating either here would make every scored run
         # measure a slightly different corpus, which is what a weekly regression
-        # run cannot afford. A cache that does not cover the fixture fails this
-        # step rather than degrading the corpus — see app/ingestion/prefix_cache.py.
+        # run cannot afford. The prefixes alone were not enough — the endpoint
+        # returns different vectors for identical text, and 99-141 of 284 rows
+        # of chunks.embedding moved on every ingest. Either cache failing to
+        # cover the fixture fails this step rather than degrading the corpus.
+        # This step therefore needs no provider key at all; the scored suites
+        # below still do.
         run: uv run python -m app.ingestion.pipeline --source fixture
 
       - name: Start the API

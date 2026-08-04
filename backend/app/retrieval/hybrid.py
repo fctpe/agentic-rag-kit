@@ -4,6 +4,27 @@ Legal queries split into two shapes — lexical ("Article 6(1)(f)") and
 semantic ("can I process data without consent") — so both arms always run
 and Reciprocal Rank Fusion (k=60) merges them without score calibration.
 Both arms over-fetch (default 20) before fusion keeps the final k.
+
+Every ordering here is **total**, and that is load-bearing rather than tidy.
+RRF scores are sums of `1/(k + rank)` over small integers, so exact ties are not
+a rare accident — they are arithmetic. Golden question A07 produced two chunks
+with bit-identical fused scores (AI Act Art. 4 at vector rank 1 and Art. 66 at
+text rank 1, `0x1.0c9714fbcda3bp-6` both), and with `ORDER BY f.score DESC`
+alone the winner was chosen by the query plan: `final_k=2` returned Art. 4 as
+rank 1, `final_k=3` returned Art. 66, `final_k=6` Art. 66, `final_k=8` Art. 4.
+That is a production defect — the citation the user sees depends on how many
+results were asked for — and it was worth 0.0132 of hybrid MRR across ingests,
+the only committed retrieval number still moving after the corpus was pinned.
+
+The tiebreak is `(regulation, article_ref, idx)`: unique per chunk (checked in
+`tests/test_retrieval_total_order.py`) and derived from the fixture, so it is
+the same on every ingest — unlike `chunks.id`, which is a fresh uuid4 each time
+and would be a total order that still moved. `COLLATE "C"` because the default
+collation is an environment property and a tiebreak that depends on the ICU
+version is not reproducible across machines.
+
+It costs nothing: the window functions already force a full sort of the
+filtered set (verified with EXPLAIN), so the extra sort keys ride along.
 """
 
 from dataclasses import dataclass
@@ -31,11 +52,16 @@ WITH params AS (
     SELECT CAST(:regulation AS text) AS regulation
 ),
 vector_arm AS (
-    SELECT c.id, row_number() OVER (ORDER BY c.embedding <=> CAST(:qvec AS vector)) AS rank
+    SELECT c.id,
+           row_number() OVER (
+               ORDER BY c.embedding <=> CAST(:qvec AS vector),
+                        d.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx
+           ) AS rank
     FROM chunks c
     JOIN documents d ON d.id = c.document_id, params p
     WHERE (p.regulation IS NULL OR d.regulation = p.regulation)
-    ORDER BY c.embedding <=> CAST(:qvec AS vector)
+    ORDER BY c.embedding <=> CAST(:qvec AS vector),
+             d.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx
     LIMIT :arm_size
 ),
 text_arm AS (
@@ -46,12 +72,21 @@ text_arm AS (
     -- legal vocabulary matches everywhere and the noise leaks through RRF
     -- (hybrid MRR fell 0.891 -> 0.772 on the golden set; see the README
     -- Results section for the committed hybrid/vector/text ablation numbers).
-    SELECT c.id, row_number() OVER (ORDER BY ts_rank_cd(c.tsv, query) DESC) AS rank
+    --
+    -- ts_rank_cd ties are common (many chunks share a rank of 0.1), so this
+    -- arm needs the total order at least as much as fusion does.
+    SELECT c.id,
+           row_number() OVER (
+               ORDER BY ts_rank_cd(c.tsv, query) DESC,
+                        d.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx
+           ) AS rank
     FROM chunks c
     JOIN documents d ON d.id = c.document_id,
     plainto_tsquery('english', CAST(:query AS text)) query, params p
     WHERE c.tsv @@ query
       AND (p.regulation IS NULL OR d.regulation = p.regulation)
+    ORDER BY ts_rank_cd(c.tsv, query) DESC,
+             d.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx
     LIMIT :arm_size
 ),
 fused AS (
@@ -68,7 +103,7 @@ SELECT c.id, c.article_ref, c.heading, c.idx, c.content,
 FROM fused f
 JOIN chunks c ON c.id = f.id
 JOIN documents d ON d.id = c.document_id
-ORDER BY f.score DESC
+ORDER BY f.score DESC, d.regulation COLLATE "C", c.article_ref COLLATE "C", c.idx
 LIMIT :final_k
 """
 )
@@ -97,7 +132,18 @@ async def hybrid_search(
     query: str,
     regulation: str | None = None,
     final_k: int | None = None,
+    query_vector: list[float] | None = None,
 ) -> list[RetrievedChunk]:
+    """Retrieve for `query`. Pass `query_vector` to supply the embedding.
+
+    The application never passes it — a user's question has to be embedded when
+    it arrives. `evals/run_retrieval_eval.py` does, from the vectors committed
+    under `evals/query_embeddings.json`, because the embedding endpoint returns
+    a slightly different vector for the same string on different calls and a
+    committed eval number should be a function of the corpus and the question
+    set, not of which draw the API happened to return. See that file for the
+    measurement of how large the difference is and what it moves.
+    """
     settings = get_settings()
     with tracer.start_as_current_span(
         "retrieval hybrid",
@@ -108,7 +154,8 @@ async def hybrid_search(
             RETRIEVAL_REGULATION: regulation or "all",
         },
     ) as span:
-        query_vector = await embed_query(query)
+        if query_vector is None:
+            query_vector = await embed_query(query)
 
         # pgvector >= 0.8: relax the index scan so metadata filters cannot
         # silently empty the vector arm (the classic overfiltering failure).

@@ -45,6 +45,48 @@ jobs:
         run: uv run alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://rag:rag@localhost:5434/ragkit
+
+      - name: The committed corpus reproduces — text AND vectors, no provider key
+        # The check whose absence let a false guarantee ship. A previous round
+        # committed the contextual prefixes, hashed chunks.context_prefix twice,
+        # and published "two ingests produce byte-identical chunks" while
+        # chunks.embedding — the column the vector arm ranks on — differed in
+        # 99-141 of 284 rows every time. corpus_digest hashes both columns.
+        #
+        # This step can exist at all only because a fixture ingest now calls no
+        # provider: text, contextual prefixes and embedding vectors are all read
+        # from data/fixtures/. No key, no cost, every push.
+        #
+        # The second half re-runs the retrieval eval against the unchanged
+        # corpus and diffs it. That is the SQL half of the same property: with
+        # `ORDER BY f.score DESC` and no tiebreak, question A07's rank-1 result
+        # depended on the query plan and hybrid MRR moved 0.0132 with the data
+        # identical. Compared to itself, not to a committed baseline, so this
+        # gates determinism without going red on a number someone re-measured.
+        run: |
+          set -euo pipefail
+          uv run python -m app.ingestion.pipeline --source fixture
+          uv run python -m app.ingestion.corpus_digest | tee digest-1.txt
+          uv run --group evals python ../evals/run_retrieval_eval.py \
+            --mode hybrid --json eval-1.json > /dev/null
+          uv run python -m app.ingestion.pipeline --source fixture
+          uv run python -m app.ingestion.corpus_digest | tee digest-2.txt
+          uv run --group evals python ../evals/run_retrieval_eval.py \
+            --mode hybrid --json eval-2.json > /dev/null
+          diff digest-1.txt digest-2.txt
+          uv run python - <<'PY'
+          import json, sys
+          def load(path):
+              payload = json.load(open(path))
+              payload["summary"].pop("timestamp")
+              return payload
+          a, b = load("eval-1.json"), load("eval-2.json")
+          if a != b:
+              sys.exit("retrieval differs across two runs of one corpus")
+          print("retrieval identical across ingests:", a["summary"])
+          PY
+        env:
+          DATABASE_URL: postgresql+asyncpg://rag:rag@localhost:5434/ragkit
       - name: Eval suites validate and compile (no provider key needed)
         run: |
           uv run --group evals python -m py_compile \

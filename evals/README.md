@@ -31,10 +31,27 @@ uv run --group evals python ../evals/run_retrieval_eval.py --mode text_only # FT
 uv run --group evals python ../evals/run_retrieval_eval.py --mode vector_only
 uv run --group evals python ../evals/run_retrieval_eval.py --regulation-filter off
 uv run --group evals python ../evals/run_retrieval_eval.py --smoke          # first 5 questions
+uv run --group evals python ../evals/run_retrieval_eval.py --query-embeddings live
 ```
 
 Flags: `--k` (default 6), `--mode hybrid|vector_only|text_only`,
-`--regulation-filter on|off`, `--json <path>`, `--smoke`, `--questions <ids>`.
+`--regulation-filter on|off`, `--query-embeddings committed|live`,
+`--json <path>`, `--smoke`, `--questions <ids>`.
+
+**This suite needs no provider key and is reproducible run to run** — both
+statements became true on 2026-08-04 and neither was before. The corpus text,
+its context prefixes and its embedding vectors are all committed under
+`data/fixtures/`, and the golden questions' vectors under
+`query_embeddings.json`, because the embedding endpoint does not return
+bit-identical vectors for identical input: 99–141 of 284 chunk rows differed on
+every pair of ingests, and 2–4 of 38 questions differ between passes. Every
+`ORDER BY` in the retrieval SQL now carries a `(regulation, article_ref, idx)`
+tiebreak for the same reason — RRF ties are arithmetic, and an untied
+`ORDER BY f.score DESC` made question A07's rank-1 result a function of the
+`LIMIT`. `--query-embeddings live` embeds each question through the production
+path instead; it is the control that pinning did not change what is measured,
+and the mode is recorded in every results file. The application always embeds
+live, because a user's question arrives as text.
 
 Metrics:
 

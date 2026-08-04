@@ -32,3 +32,7 @@ data/corpus/
 .DS_Store
 *.log
 .claude/
+
+# scratch from the CI reproducibility step (two ingests + two eval runs, diffed)
+backend/digest-*.txt
+backend/eval-*.json
