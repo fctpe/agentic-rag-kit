@@ -607,9 +607,5 @@
       "matched_articles": [],
       "retrieved": []
     }
-  ],
-  "promoted_from": "retrieval_text_only_20260804T142256Z.json",
-  "promoted_at": "2026-08-04T14:46:48+00:00",
-  "promoted_git_sha": "33c200143f4372c245e23133110561de9cdde575",
-  "promoted_git_ref": "main"
+  ]
 }

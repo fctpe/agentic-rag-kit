@@ -86,17 +86,8 @@ def _complete_ragas_payload() -> dict:
 
 
 class TestCommittedBaselinesPass:
-    def test_ragas_is_no_longer_among_them(self):
-        """The committed ragas run does not pass its own gate, and should not.
-
-        Its faithfulness figure is a mean over 23 of the 38 questions — the
-        judge could not complete the other 15 — while the file reports
-        `n_scored: 38`. It stays in the repo as the artifact the new checks are
-        proven against (`TestPerMetricPopulation` below) until a full run
-        replaces it. The retrieval and redteam baselines are unaffected: no LLM
-        judge sits between those runs and their numbers.
-        """
-        assert not gate_ragas(_load("ragas.json"), partial=False).passed
+    def test_ragas(self):
+        assert gate_ragas(_load("ragas.json"), partial=False).passed
 
     @pytest.mark.parametrize("name", RETRIEVAL_ARTIFACTS)
     def test_retrieval(self, name):
@@ -315,15 +306,25 @@ class TestPerMetricPopulation:
         payload["n_judge_failures"] = 1
         assert _failed(gate_ragas(payload, partial=False)) == ["judge failures"]
 
-    def test_the_committed_artifact_is_caught_by_these_checks_specifically(self):
-        """These checks are not hypothetical — run them against the real
-        23-of-38 file and it fails.
+    def test_the_real_contaminated_run_is_caught_by_these_checks_specifically(self):
+        """These checks are not hypothetical.
 
-        Naming the two checks matters. `ragas.json` predates the inline-citation
-        field as well, so a bare `not .passed` here would stay green with the
+        `ragas_run_23of38.json` is the run that shipped: it reports
+        `n_scored: 38` and publishes a faithfulness averaged over 23, because
+        the judge ran out of output tokens on the fifteen longest answers. It is
+        kept in the repo for the same reason `redteam_run1_13of14.json` is —
+        as the artifact these checks are proven against, not as a result.
+
+        Naming the two checks matters. That file predates the inline-citation
+        field as well, so a bare `not .passed` would stay green with the
         population checks deleted, and would be measuring the wrong defect.
         """
-        failed = _failed(gate_ragas(_load("ragas.json"), partial=False))
+        payload = _load("ragas_run_23of38.json")
+        assert payload["n_scored"] == 38
+        scored = sum(1 for s in payload["samples"] if s["scores"].get("faithfulness") is not None)
+        assert scored == 23, "the fixture stopped being the contaminated run"
+
+        failed = _failed(gate_ragas(payload, partial=False))
         assert "per-metric population" in failed
         assert "judge failures" in failed
 

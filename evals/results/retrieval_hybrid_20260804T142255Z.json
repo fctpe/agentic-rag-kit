@@ -1,6 +1,6 @@
 {
   "summary": {
-    "mode": "vector_only",
+    "mode": "hybrid",
     "k": 6,
     "regulation_filter": "on",
     "query_embeddings": "committed",
@@ -8,9 +8,9 @@
     "subset": false,
     "n_questions": 38,
     "hit_rate_at_k": 1.0,
-    "mrr": 0.9189,
+    "mrr": 0.9057,
     "mean_article_recall": 0.9101,
-    "timestamp": "2026-08-04T14:22:56.190047+00:00"
+    "timestamp": "2026-08-04T14:22:55.355079+00:00"
   },
   "questions": [
     {
@@ -30,11 +30,11 @@
       ],
       "retrieved": [
         "ai_act:3",
+        "ai_act:3",
         "ai_act:Annex III",
         "ai_act:Annex III",
         "ai_act:1",
-        "ai_act:8",
-        "ai_act:3"
+        "ai_act:8"
       ]
     },
     {
@@ -174,11 +174,11 @@
       ],
       "retrieved": [
         "ai_act:4",
+        "ai_act:66",
         "ai_act:50",
         "ai_act:50",
         "ai_act:61",
-        "ai_act:64",
-        "ai_act:95"
+        "ai_act:64"
       ]
     },
     {
@@ -239,16 +239,16 @@
       ],
       "hit": 1,
       "article_recall": 1.0,
-      "mrr": 1.0,
-      "first_hit_rank": 1,
+      "mrr": 0.5,
+      "first_hit_rank": 2,
       "matched_articles": [
         "ai_act:10"
       ],
       "retrieved": [
+        "ai_act:26",
         "ai_act:10",
         "ai_act:10",
         "ai_act:15",
-        "ai_act:26",
         "ai_act:42",
         "ai_act:Annex III"
       ]
@@ -947,9 +947,5 @@
         "ai_act:71"
       ]
     }
-  ],
-  "promoted_from": "retrieval_vector_only_20260804T142256Z.json",
-  "promoted_at": "2026-08-04T14:46:48+00:00",
-  "promoted_git_sha": "33c200143f4372c245e23133110561de9cdde575",
-  "promoted_git_ref": "main"
+  ]
 }
