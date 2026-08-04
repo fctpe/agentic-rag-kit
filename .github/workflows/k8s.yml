@@ -21,7 +21,7 @@ jobs:
   kind:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build the images the cluster will run
         # Same two commands as docs/deployment.md. NEXT_PUBLIC_API_BASE is a
@@ -32,7 +32,7 @@ jobs:
           docker build --build-arg NEXT_PUBLIC_API_BASE=http://api.ragkit.localtest.me \
             -t ragkit-frontend:dev frontend
 
-      - uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+      - uses: azure/setup-kubectl@829323503d1be3d00ca8346e5391ca0b07a9ab0d # v5.1.0
         with:
           # `apply -k` renders with the kustomize built into kubectl, so the
           # version is part of what this job reproduces.
@@ -171,8 +171,8 @@ jobs:
       run:
         working-directory: deploy/terraform
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.14.4
       - run: terraform fmt -check -recursive
