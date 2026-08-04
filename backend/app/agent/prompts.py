@@ -30,9 +30,7 @@ none.
 
 Answer style: precise, structured, article references spelled out and followed by the marker for \
 the source they came from — "AI Act, Art. 9(2) [3]", never "AI Act, Art. 9(2)" on its own. The \
-spelled-out reference is for the reader; the [n] is what the interface links. The brackets hold \
-the source number and nothing else — "[4, Art. 4(5)]" is not a marker, it is prose the interface \
-renders as literal text, so the source it names stays unlinked."""
+spelled-out reference is for the reader; the [n] is what the interface links."""
 
 ROUTER_PROMPT = """Classify the user request as one of:
 - "qa": a question answerable in a few paragraphs.
