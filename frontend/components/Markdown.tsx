@@ -1,59 +1,9 @@
 "use client";
 
-import type { Element, ElementContent, Root, Text } from "hast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const CITE_PATTERN = /\[(\d{1,3})\]/g;
-
-/** Rehype plugin: turn inline [n] markers into <sup data-cite="n"> elements. */
-function rehypeCitationRefs() {
-  return (tree: Root) => visit(tree);
-}
-
-function visit(node: Root | Element): void {
-  if (
-    node.type === "element" &&
-    (node.tagName === "code" || node.tagName === "pre" || node.tagName === "a")
-  ) {
-    return;
-  }
-  const next: ElementContent[] = [];
-  let changed = false;
-  for (const child of node.children as ElementContent[]) {
-    if (child.type === "text" && CITE_PATTERN.test(child.value)) {
-      changed = true;
-      next.push(...splitTextNode(child));
-    } else {
-      if (child.type === "element") visit(child);
-      next.push(child);
-    }
-    CITE_PATTERN.lastIndex = 0;
-  }
-  if (changed) node.children = next as typeof node.children;
-}
-
-function splitTextNode(child: Text): ElementContent[] {
-  const parts: ElementContent[] = [];
-  let cursor = 0;
-  CITE_PATTERN.lastIndex = 0;
-  for (const match of child.value.matchAll(CITE_PATTERN)) {
-    if (match.index > cursor) {
-      parts.push({ type: "text", value: child.value.slice(cursor, match.index) });
-    }
-    parts.push({
-      type: "element",
-      tagName: "sup",
-      properties: { dataCite: match[1] },
-      children: [{ type: "text", value: match[1] }],
-    });
-    cursor = match.index + match[0].length;
-  }
-  if (cursor < child.value.length) {
-    parts.push({ type: "text", value: child.value.slice(cursor) });
-  }
-  return parts;
-}
+import { rehypeCitationRefs } from "@/lib/citationMarkers";
 
 interface MarkdownProps {
   content: string;

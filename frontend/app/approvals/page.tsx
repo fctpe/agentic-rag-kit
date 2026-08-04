@@ -143,6 +143,13 @@ export default function ApprovalsPage() {
                 ))}
               </div>
             )}
+            {(approval.payload.citation_issues?.length ?? 0) > 0 && (
+              <ul className="mt-2 list-disc space-y-0.5 rounded-md border border-amber-200 bg-amber-50 px-5 py-2 text-xs text-amber-900">
+                {approval.payload.citation_issues?.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            )}
             <div className="mt-3 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
               <Markdown content={approval.payload.draft ?? ""} />
             </div>

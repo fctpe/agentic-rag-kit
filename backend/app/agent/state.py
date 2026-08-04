@@ -23,6 +23,13 @@ class AgentState(TypedDict, total=False):
     # which is the same run.
     tokens_used: int
     citations: list[dict[str, Any]]
+    # Brackets the resolve_citations node refused to turn into links, with the
+    # reason. Deliberately NOT merged into grounding_issues: that channel is the
+    # factual-faithfulness verdict operators alert on via ragkit.grounded=false,
+    # and a bracket naming the wrong article is a citation-resolution defect, not
+    # an unsupported claim. Overloading the two would make the grounding alert
+    # fire on formatting.
+    citation_issues: list[str]
     # False until a grounding check actually passes. guard_input seeds it so a
     # run that never reaches verify() — refused, rejected, out of budget — cannot
     # report a verdict nobody produced; grounding_issues says which case it was.

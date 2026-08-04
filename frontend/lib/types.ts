@@ -36,6 +36,12 @@ export interface Grounding {
 export interface ApprovalRequest {
   draft: string;
   citations: Citation[];
+  /**
+   * Brackets the backend refused to turn into links, with the reason. The
+   * reviewer decides on the text the user will receive, so the defects in that
+   * text travel with it.
+   */
+  citationIssues: string[];
 }
 
 export interface ChatMessageData {
@@ -47,6 +53,13 @@ export interface ChatMessageData {
   grounding?: Grounding;
   /** Report run: tokens are suppressed server-side until the approval decision. */
   drafting?: boolean;
+  /**
+   * From `done.citation_issues`. Not folded into `grounding.issues`: that is the
+   * factual-faithfulness verdict, and a bracket naming the wrong article is a
+   * citation-resolution defect. Rendering them together would make an answer
+   * with a formatting problem look factually unsound, and vice versa.
+   */
+  citationIssues?: string[];
 }
 
 export interface Session {
@@ -58,6 +71,11 @@ export interface Session {
 export interface PendingApproval {
   id: string;
   thread_id: string;
-  payload: { draft?: string; citations?: Citation[] };
+  payload: {
+    draft?: string;
+    citations?: Citation[];
+    /** Wire shape (snake_case): this payload is the interrupt value, stored verbatim. */
+    citation_issues?: string[];
+  };
   requested_at: string;
 }

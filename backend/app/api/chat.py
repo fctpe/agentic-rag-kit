@@ -3,10 +3,10 @@
 Events emitted:
   token              {"text": "..."}                 model output as it streams (qa only)
   drafting           {"reason": "awaiting_approval"}  report run; tokens suppressed
-  approval_required  {"draft": ..., "citations": []} graph interrupted at the gate
+  approval_required  {"draft": ..., "citations": [], "citation_issues": []}
   citations          {"citations": [...]}
   grounding          {"grounded": bool, "issues": []}
-  done               {"thread_id": ..., "content": ...}
+  done               {"thread_id": ..., "content": ..., "citation_issues": []}
   error              {"message": ..., "request_id": ...}   no exception text, ever
 
 Ordering guarantee, stated exactly: a *report* never reaches the user before
@@ -15,6 +15,16 @@ carried in `approval_required`. A *qa* answer does stream, and its grounding
 verdict lands afterwards, so until `grounding` arrives the answer is unverified
 and the UI says so. "Verified before it is shown" holds for reports; for qa the
 honest claim is "shown unverified, then verified before the run completes".
+
+`citation_issues` rides on the two events that carry the finished text, and on
+nothing else: they describe that text, so they must not arrive without it. No
+event was added and no ordering changed. What DID change for qa: the tokens on
+screen are the model's raw output, and `done.content` is the resolved answer the
+resolve_citations node checkpointed. The frontend already replaces the bubble
+with `done.content`, so a bracket the model merged is visible as raw text for
+the window between the last token and `done`, then corrected. Buffering qa
+tokens to hide that flicker would delete the streaming guarantee stated above
+and the "Checking sources…" window the UI is built on, which is a worse trade.
 """
 
 import json
@@ -119,6 +129,17 @@ async def _stream_graph(
             # reaches the user in the approval payload or not at all.
             streaming_suppressed = False
             try:
+                # Seed the source-id space from what this thread already
+                # retrieved. The collector is per-request, so without this every
+                # turn restarted at [1] while the model still had the previous
+                # turn's answer — and its [1] — in history. Reusing an earlier
+                # marker then produced a working button pointing at a different
+                # regulation, silently, with grounded=true. The collector is
+                # mutable and the tools close over it, so seeding after
+                # build_graph is enough. Inside the try because a checkpointer
+                # that cannot be read is a failed run, not a fresh thread.
+                prior = await graph.aget_state(config)
+                collector.seed(prior.values.get("retrieved_sources", []))
                 async for mode, payload in graph.astream(
                     graph_input, config, stream_mode=["messages", "updates"]
                 ):
@@ -239,7 +260,19 @@ async def _stream_graph(
                         }
                     },
                 )
-                yield _sse("done", {"thread_id": thread_id, "content": final})
+                yield _sse(
+                    "done",
+                    {
+                        "thread_id": thread_id,
+                        "content": final,
+                        # Read from state, not from an update seen during this
+                        # stream: on the report path resolve_citations ran in
+                        # the request BEFORE this one, so the resume request
+                        # never sees its update. State is where the answer's
+                        # citation defects actually live.
+                        "citation_issues": values.get("citation_issues", []),
+                    },
+                )
 
 
 @router.post("/chat")

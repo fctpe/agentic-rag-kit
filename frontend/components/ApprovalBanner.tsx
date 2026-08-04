@@ -30,6 +30,13 @@ export default function ApprovalBanner({
         The assistant drafted a compliance report. Review it before it is
         released.
       </p>
+      {approval.citationIssues.length > 0 && (
+        <ul className="mt-2 list-disc space-y-0.5 rounded-md border border-amber-200 bg-white px-5 py-2 text-xs text-amber-900">
+          {approval.citationIssues.map((issue) => (
+            <li key={issue}>{issue}</li>
+          ))}
+        </ul>
+      )}
       <div className="mt-3 max-h-64 overflow-y-auto rounded-md border border-amber-200 bg-white p-3 text-sm">
         <Markdown content={approval.draft} />
       </div>

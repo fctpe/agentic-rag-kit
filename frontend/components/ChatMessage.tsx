@@ -63,6 +63,13 @@ export default function ChatMessage({
               : "Thinking…"}
           </span>
         )}
+        {message.citationIssues && message.citationIssues.length > 0 && (
+          <ul className="mt-2 list-disc space-y-0.5 rounded-md border border-slate-300 bg-slate-50 px-5 py-2 text-xs text-slate-600">
+            {message.citationIssues.map((issue) => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        )}
         {message.streaming && message.content && (
           <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-slate-400 align-baseline" />
         )}

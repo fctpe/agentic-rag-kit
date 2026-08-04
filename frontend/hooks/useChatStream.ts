@@ -71,6 +71,7 @@ export function useChatStream({ token, onUnauthorized }: ChatStreamOptions) {
             setApproval({
               draft: (data.draft as string) ?? "",
               citations: (data.citations as Citation[]) ?? [],
+              citationIssues: (data.citation_issues as string[]) ?? [],
             });
             return;
           case "citations":
@@ -88,8 +89,13 @@ export function useChatStream({ token, onUnauthorized }: ChatStreamOptions) {
             break;
           case "done":
             setThreadId(data.thread_id as string);
+            // `done.content` is the resolved answer, not the concatenated
+            // tokens: resolve_citations rewrites merged brackets after the last
+            // token has already been sent, so this replacement is what makes the
+            // markers on screen linkable.
             patchMessage(assistantId, {
               content: data.content as string,
+              citationIssues: (data.citation_issues as string[]) ?? [],
               streaming: false,
             });
             return;

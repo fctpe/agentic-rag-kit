@@ -29,6 +29,7 @@ from opentelemetry.trace import Status, StatusCode
 from pydantic import BaseModel, ConfigDict, StrictBool, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.markers import resolve_markers
 from app.agent.prompts import GROUNDING_PROMPT, REFUSAL_MESSAGE, ROUTER_PROMPT, SYSTEM_PROMPT
 from app.agent.state import AgentState
 from app.agent.tools import (
@@ -102,12 +103,12 @@ MAX_TOOL_ROUNDS = 6
 MAX_TOTAL_TOKENS = 80_000
 
 # The longest single invocation is a maximal qa run: start, guard, router,
-# MAX_TOOL_ROUNDS × (agent, tools), a last agent turn, finalize, verify. A
-# report run splits at the approval interrupt and needs fewer. The count is
-# measured, not derived on paper —
+# MAX_TOOL_ROUNDS × (agent, tools), a last agent turn, finalize,
+# resolve_citations, verify. A report run splits at the approval interrupt and
+# needs fewer. The count is measured, not derived on paper —
 # tests/test_agent_budget.py::test_a_maximal_qa_run_needs_the_supersteps_claimed
 # runs one at exactly this limit and one superstep short of it.
-MAX_QA_SUPERSTEPS = 2 * MAX_TOOL_ROUNDS + 6
+MAX_QA_SUPERSTEPS = 2 * MAX_TOOL_ROUNDS + 7
 
 # A backstop, not a working limit: the measured need plus headroom. Exceeding it
 # raises GraphRecursionError, which the chat route surfaces as an SSE error event
@@ -208,7 +209,7 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
 
     def after_agent(
         state: AgentState,
-    ) -> Literal["tools", "finalize", "budget_exceeded", "approval_gate", "verify"]:
+    ) -> Literal["tools", "finalize", "budget_exceeded", "resolve_citations"]:
         last = state["messages"][-1]
         if isinstance(last, AIMessage) and last.tool_calls:
             # The token budget is checked before the tool-round budget because
@@ -223,7 +224,7 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             # dangling tool_use (it corrupts the next turn on the thread). Force
             # a clean tool-free answer via the finalize node instead.
             return "tools" if tool_rounds < MAX_TOOL_ROUNDS else "finalize"
-        return "approval_gate" if state.get("task_type") == "report" else "verify"
+        return "resolve_citations"
 
     @traced_node("tools")
     async def tools_node(state: AgentState) -> dict[str, Any]:
@@ -301,6 +302,42 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
         # precisely because no answer was produced, so it owns the verdict.
         return {"messages": [*stubs, stop], "grounded": False}
 
+    @traced_node("resolve_citations")
+    async def resolve_citations(state: AgentState) -> dict[str, Any]:
+        """Make every surviving [n] resolve to a retrieved source, or remove it.
+
+        One node, on the single path every answer takes, and it writes the
+        result back into the message. That placement is the whole point: the
+        approval gate reads `messages[-1]`, verify() reads `messages[-1]`, and
+        /chat persists the last AIMessage. Normalising in any one of them would
+        have shipped the reviewer one string and the user another — the exact
+        failure the approval gate exists to prevent. Rewriting the checkpointed
+        message means all three reads see the same text.
+
+        No model call: this is a deterministic string pass, so it costs nothing
+        and cannot itself hallucinate a citation. Brackets it cannot resolve
+        safely are left as literal text and reported, never guessed at.
+        """
+        last = state["messages"][-1]
+        original = str(last.content)
+        resolved = resolve_markers(
+            original, sources_to_citations(state.get("retrieved_sources", []))
+        )
+        updates: dict[str, Any] = {"citation_issues": resolved.issues}
+        if resolved.issues:
+            logger.info(
+                "citation markers could not all be linked",
+                extra={"fields": {"citation_issues": len(resolved.issues)}},
+            )
+        if resolved.text != original:
+            # Same id, so add_messages REPLACES rather than appends: the answer
+            # stays the last AIMessage and the raw text is gone from state.
+            updates["messages"] = [last.model_copy(update={"content": resolved.text})]
+        return updates
+
+    def after_resolve(state: AgentState) -> Literal["approval_gate", "verify"]:
+        return "approval_gate" if state.get("task_type") == "report" else "verify"
+
     @traced_node("approval_gate")
     async def approval_gate(state: AgentState) -> dict[str, Any]:
         draft = str(state["messages"][-1].content)
@@ -309,6 +346,11 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
                 "type": "approval_required",
                 "draft": draft,
                 "citations": sources_to_citations(state.get("retrieved_sources", [])),
+                # The reviewer approves the text the user will get, including
+                # what could not be linked in it. Deciding on a draft whose
+                # citation defects are invisible is deciding on a different
+                # document.
+                "citation_issues": state.get("citation_issues", []),
             }
         )
         status = decision.get("status", "rejected") if isinstance(decision, dict) else "rejected"
@@ -393,9 +435,6 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             "tokens_used": _spend(state, response),
         }
 
-    def after_finalize(state: AgentState) -> Literal["approval_gate", "verify"]:
-        return "approval_gate" if state.get("task_type") == "report" else "verify"
-
     builder = StateGraph(AgentState)
     builder.add_node("guard_input", guard_input)
     builder.add_node("router", router)
@@ -403,6 +442,7 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
     builder.add_node("tools", tools_node)
     builder.add_node("finalize", finalize)
     builder.add_node("budget_exceeded", budget_exceeded)
+    builder.add_node("resolve_citations", resolve_citations)
     builder.add_node("approval_gate", approval_gate)
     builder.add_node("verify", verify)
 
@@ -416,14 +456,17 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
             "tools": "tools",
             "finalize": "finalize",
             "budget_exceeded": "budget_exceeded",
-            "approval_gate": "approval_gate",
-            "verify": "verify",
+            "resolve_citations": "resolve_citations",
         },
     )
     builder.add_edge("tools", "agent")
     builder.add_edge("budget_exceeded", END)
+    # finalize produces an answer the same way agent does, so it takes the same
+    # path: there is exactly one route from "the model has answered" to the user,
+    # and resolve_citations is on it.
+    builder.add_edge("finalize", "resolve_citations")
     builder.add_conditional_edges(
-        "finalize", after_finalize, {"approval_gate": "approval_gate", "verify": "verify"}
+        "resolve_citations", after_resolve, {"approval_gate": "approval_gate", "verify": "verify"}
     )
     builder.add_conditional_edges(
         "approval_gate", after_approval, {"verify": "verify", "__end__": END}

@@ -74,12 +74,19 @@ JUDGE_RETRY_BASE_DELAY = float(os.environ.get("RAGAS_JUDGE_RETRY_DELAY", "2.0"))
 
 METRIC_NAMES = ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]
 
-# The inline source marker the system prompt requires. The frontend turns each
-# [n] into the link between a sentence and the source panel entry it came from,
-# so an answer that cites in prose instead ("(AI Act, Art. 50(1))") ships its
-# sources unlinked. None of the RAGAS metrics can see that: faithfulness judges
-# whether the claim is supported, not whether the answer said where from — which
-# is how free-form answers drifted to prose with four green metrics above them.
+# The inline source marker. The frontend turns each [n] into the link between a
+# sentence and the source panel entry it came from, so an answer that cites in
+# prose instead ("(AI Act, Art. 50(1))") ships its sources unlinked. None of the
+# RAGAS metrics can see that: faithfulness judges whether the claim is
+# supported, not whether the answer said where from — which is how free-form
+# answers drifted to prose with four green metrics above them.
+#
+# The marker is no longer a request to the model: app/agent/markers.py resolves
+# merged brackets and strips indices that resolve to nothing before the text
+# leaves the backend, and backend/tests/test_citation_markers.py holds it to
+# that offline and free. This check stays as the end-to-end backstop, because a
+# guarantee that is only ever asserted against fixtures is a guarantee about
+# fixtures.
 INLINE_CITATION = re.compile(r"\[\d+\]")
 
 
@@ -141,6 +148,9 @@ def digest_events(events: list[tuple[str, dict]]) -> dict:
         "citations": [],
         "grounded": None,
         "grounding_issues": [],
+        # Brackets the backend refused to turn into links, with the reason.
+        # Separate from grounding_issues on the wire and separate here.
+        "citation_issues": [],
         "approval_interrupted": False,
         "error": None,
     }
@@ -154,10 +164,12 @@ def digest_events(events: list[tuple[str, dict]]) -> dict:
             out["grounding_issues"] = data.get("issues", [])
         elif name == "done":
             out["answer"] = data.get("content", "")
+            out["citation_issues"] = data.get("citation_issues", [])
         elif name == "approval_required":
             out["approval_interrupted"] = True
             if not out["answer"]:
                 out["answer"] = data.get("draft", "")
+                out["citation_issues"] = data.get("citation_issues", [])
         elif name == "error":
             out["error"] = data.get("message", "unknown SSE error")
     if not out["answer"]:
@@ -356,6 +368,7 @@ async def collect_sample(
             "reference": question["reference_answer"],
             "citations": chat["citations"],
             "grounded": chat["grounded"],
+            "citation_issues": chat["citation_issues"],
             "approval_interrupted": chat["approval_interrupted"],
             "chat_error": chat["error"],
         }
@@ -488,6 +501,28 @@ async def main() -> int:
             f"refused them, so they cite nothing: {', '.join(ungrounded)})"
         )
 
+    # Per BRACKET, not per answer. The line above is satisfied by one good
+    # marker anywhere, so an answer could ship ten unlinkable `[2(a)]…[2(j)]`
+    # brackets and still count as marked — G09 in run 075206 did exactly that.
+    # The measured denominator was answers; the thing that breaks is brackets.
+    #
+    # Additive: `answers_without_inline_citation` keeps its meaning and its
+    # gate, so no committed number changes shape. This is the finer-grained
+    # observation the gate did not have.
+    from app.agent.markers import unlinkable_brackets
+
+    unlinked = [
+        {"id": s["id"], "bracket": bracket}
+        for s in citable
+        for bracket in unlinkable_brackets(
+            s["answer"], {c["index"]: c for c in s.get("citations") or []}
+        )
+    ]
+    print(
+        f"unlinkable brackets: {len(unlinked)}"
+        + (f" — {', '.join(f'{u["id"]} {u["bracket"]}' for u in unlinked)}" if unlinked else "")
+    )
+
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     out_path = RESULTS_DIR / f"ragas_{timestamp}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -503,6 +538,12 @@ async def main() -> int:
         "n_judge_failures": len(judge_failures),
         "judge_failures": judge_failures,
         "answers_without_inline_citation": unmarked,
+        # Every citation-shaped bracket the frontend will not turn into a link,
+        # named individually. Observed, not gated: the guarantee is enforced in
+        # app/agent/markers.py and tested offline, and adding a gate key here
+        # would mean editing thresholds.yaml against a baseline that has not
+        # been re-measured.
+        "unlinkable_citation_brackets": unlinked,
         # Denominator for the line above, and the ids it excluded. Without both,
         # "0 answers missing a marker" cannot be told apart from "0 answers".
         "n_citable": len(citable),

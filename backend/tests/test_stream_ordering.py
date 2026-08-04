@@ -180,13 +180,20 @@ class _ExplodingGraph:
 
     def __init__(self, err: Exception):
         self._err = err
+        self._started = False
 
     async def astream(self, *_args: Any, **_kwargs: Any):
+        self._started = True
         yield ("updates", {"router": {"task_type": "qa"}})
         raise self._err
 
     async def aget_state(self, *_args: Any, **_kwargs: Any):
-        raise AssertionError("the run failed; state must not be read")
+        # One read is legitimate and happens before the run: seeding the
+        # citation collector from the thread's existing sources. Reading state
+        # AFTER the failure is the thing this stub exists to catch.
+        if self._started:
+            raise AssertionError("the run failed; state must not be read")
+        return _Snapshot({}, [])
 
 
 # The bound query text a DBAPIError carries in `str(err)` — the exact thing
@@ -240,3 +247,169 @@ async def test_the_failure_is_still_findable_by_request_id(collect, monkeypatch)
     payload = json.loads(_events_named(frames, "error")[0].split("data: ", 1)[1])
     assert payload["request_id"] == request_id
     assert payload["message"]
+
+
+# --------------------------------------------------------- citation issues ---
+#
+# Brackets the resolve_citations node refused to link ride on the two events
+# that carry the finished text — `done` and `approval_required` — and on nothing
+# else. No event was added and no ordering changed; what follows pins that, and
+# pins the delivery hole the report path would otherwise have.
+
+ISSUE = 'Left "[5, Art. 4(7)]" unlinked: it spells out a different provision than source 5.'
+
+
+async def test_done_carries_the_brackets_that_could_not_be_linked(collect):
+    frames = await collect(
+        _qa_events(),
+        _Snapshot(
+            {
+                "messages": [AIMessage(content="Article 6 sets the conditions [1].")],
+                "citation_issues": [ISSUE],
+            },
+            [],
+        ),
+    )
+    done = _events_named(frames, "done")
+    assert done
+    assert json.loads(done[0].split("data: ", 1)[1])["citation_issues"] == [ISSUE]
+
+
+async def test_done_reports_an_empty_list_when_every_bracket_resolved(collect):
+    """Negative control: the field must distinguish 'nothing wrong' from
+    'nobody looked', so a clean run has to emit it and emit it empty."""
+    frames = await collect(
+        _qa_events(),
+        _Snapshot({"messages": [AIMessage(content="Article 6 sets the conditions [1].")]}, []),
+    )
+    done = _events_named(frames, "done")
+    assert done
+    assert json.loads(done[0].split("data: ", 1)[1])["citation_issues"] == []
+
+
+async def test_the_resumed_report_still_reports_its_citation_issues(collect):
+    """The trap this placement avoids: resolve_citations ran in the request
+    BEFORE the resume, so its update is never seen on this stream. Reading state
+    is what makes the field survive the approval split — sourcing it from the
+    stream's updates would silently ship an empty list on every report."""
+    resumed = [
+        ("updates", {"approval_gate": {"approval_decision": "approved"}}),
+        ("updates", {"verify": {"citations": [], "grounded": True, "grounding_issues": []}}),
+    ]
+    frames = await collect(
+        resumed,
+        _Snapshot(
+            {
+                "messages": [AIMessage(content="Approved report text [1].")],
+                "citation_issues": [ISSUE],
+            },
+            [],
+        ),
+    )
+    assert not any(
+        "citation_issues" in frame for frame in frames if frame.startswith("event: citations")
+    )
+    done = _events_named(frames, "done")
+    assert done
+    assert json.loads(done[0].split("data: ", 1)[1])["citation_issues"] == [ISSUE]
+
+
+async def test_citation_issues_are_not_reported_as_grounding_issues(collect):
+    """`grounding.issues` stays the factual-faithfulness channel operators alert
+    on via ragkit.grounded=false. A bracket naming the wrong article is not an
+    unsupported claim, and must not fire that alert."""
+    frames = await collect(
+        _qa_events(),
+        _Snapshot(
+            {
+                "messages": [AIMessage(content="Article 6 sets the conditions [1].")],
+                "citation_issues": [ISSUE],
+            },
+            [],
+        ),
+    )
+    grounding = _events_named(frames, "grounding")
+    assert grounding
+    payload = json.loads(grounding[0].split("data: ", 1)[1])
+    assert payload["issues"] == []
+    assert payload["grounded"] is True
+
+
+class TestTheSourceNumbersContinueAcrossTurns:
+    """The seeding line in `_stream_graph`, driven through the route.
+
+    `CitationCollector` is built per request, so without seeding every turn
+    restarts at [1] while the model still has the previous turn's answer — and
+    its [1] — in history. Reusing an earlier marker then produced a working
+    button pointing at a different regulation, with `grounded: true`. Measured:
+    turn 3 of a three-turn thread cited [1] for an AI Act claim and shipped GDPR
+    Art. 13 as source 1.
+
+    These tests go through `_stream_graph` rather than constructing a seeded
+    collector, because the defect is the missing call, not the collector. A test
+    that hand-builds `CitationCollector(seed=...)` stays green with the line
+    deleted — which is what it did.
+    """
+
+    @staticmethod
+    def _source(index: int, regulation: str, article: str) -> dict[str, Any]:
+        return {
+            "index": index,
+            "regulation": regulation,
+            "document": regulation,
+            "article": article,
+            "heading": "",
+            "url": "",
+            "snippet": "",
+            "score": 1.0,
+        }
+
+    def _seen_seed(self, monkeypatch: pytest.MonkeyPatch) -> list[list[dict[str, Any]]]:
+        """Records what the route hands to `collector.seed`."""
+        seen: list[list[dict[str, Any]]] = []
+        original = chat_api.CitationCollector
+
+        class _Recording(original):  # type: ignore[misc, valid-type]
+            def seed(self, sources: Any) -> None:
+                seen.append(list(sources))
+                super().seed(sources)
+
+        monkeypatch.setattr(chat_api, "CitationCollector", _Recording)
+        return seen
+
+    async def test_a_later_turn_is_seeded_from_what_the_thread_retrieved(
+        self, collect, monkeypatch
+    ):
+        seen = self._seen_seed(monkeypatch)
+        prior = [
+            self._source(1, "ai_act", "Art. 50"),
+            self._source(2, "ai_act", "Art. 13"),
+        ]
+        await collect(
+            _qa_events(),
+            _Snapshot(
+                {
+                    "messages": [AIMessage(content="Article 50 sets the obligations [1].")],
+                    "retrieved_sources": prior,
+                },
+                [],
+            ),
+        )
+        # The constructor seeds itself with an empty list; the route's call is
+        # the last one. Asserting the whole list would pin an implementation
+        # detail of CitationCollector rather than the route's behaviour.
+        assert seen[-1] == prior, (
+            "the turn was not seeded from the thread's earlier sources — "
+            "its [1] will collide with the previous turn's [1]"
+        )
+
+    async def test_a_first_turn_is_seeded_with_nothing(self, collect, monkeypatch):
+        """Negative control. An assertion that only checks `seed` was called is
+        satisfied by a route that seeds garbage on every turn, and a fresh thread
+        must still start at [1]."""
+        seen = self._seen_seed(monkeypatch)
+        await collect(
+            _qa_events(),
+            _Snapshot({"messages": [AIMessage(content="Article 6 sets the conditions.")]}, []),
+        )
+        assert seen[-1] == []

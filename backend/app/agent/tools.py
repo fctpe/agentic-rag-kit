@@ -6,6 +6,7 @@ collector accumulates every chunk retrieved during a run; citations shown to
 the user come from it, never from the model's memory.
 """
 
+from collections.abc import Sequence
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
@@ -45,17 +46,70 @@ def sources_to_excerpts(sources: list[dict[str, Any]], max_chars: int = 4000) ->
     )
 
 
-class CitationCollector:
-    """Assigns stable 1-based source ids across all tool calls in one run."""
+def _source_dict(chunk: RetrievedChunk, index: int) -> dict[str, Any]:
+    return {
+        "index": index,
+        # Not in _CITATION_KEYS, so it never reaches the UI payload: it exists
+        # so a later turn on the same thread can recognise a chunk it has
+        # already numbered instead of numbering it twice.
+        "chunk_id": chunk.chunk_id,
+        "regulation": chunk.regulation,
+        "document": chunk.document_title,
+        "article": chunk.article_ref,
+        "heading": chunk.heading,
+        "url": citation_url(chunk.regulation, chunk.article_ref),
+        "snippet": chunk.content[:300],
+        "content": chunk.content,
+        "score": round(chunk.score, 5),
+    }
 
-    def __init__(self) -> None:
-        self._chunks: dict[str, RetrievedChunk] = {}
+
+class CitationCollector:
+    """Assigns 1-based source ids that are stable for the whole THREAD.
+
+    Per-run numbering was the older behaviour and it was wrong in a way nothing
+    could see: the collector was rebuilt on every HTTP request, so turn 2 handed
+    out [1] again, while the model still had turn 1's answer — with turn 1's [1]
+    — in its message history. Ask it to summarise both answers and it reuses the
+    earlier markers against the later source list, and every one of them renders
+    as a working button pointing at a different regulation. It failed silently,
+    with grounded=true, because the grounding prompt is explicitly told to ignore
+    numbering.
+
+    Seeding from the checkpointed `retrieved_sources` fixes it at the source of
+    the numbers: an id, once handed out on a thread, means that chunk forever.
+    The channel then grows monotonically across a thread, which is the intended
+    trade — sources_to_excerpts already bounds what the verifier sees.
+    """
+
+    def __init__(self, seed: Sequence[dict[str, Any]] | None = None) -> None:
+        self._sources: dict[str, dict[str, Any]] = {}
         self._index: dict[str, int] = {}
+        self._next_index = 1
+        self.seed(seed or [])
+
+    def seed(self, sources: Sequence[dict[str, Any]]) -> None:
+        """Adopt the ids a previous turn on this thread already handed out."""
+        for source in sources:
+            index = source.get("index")
+            if not isinstance(index, int):
+                continue
+            # Checkpoints written before chunk_id was exported still have to
+            # keep their numbers: key them by index so the id is occupied and
+            # can never be re-issued to a different chunk. They simply never
+            # de-duplicate against a re-retrieval, which costs a duplicate card,
+            # not a wrong link.
+            key = str(source.get("chunk_id") or f"index:{index}")
+            self._index[key] = index
+            self._sources[key] = dict(source)
+        self._next_index = max(self._index.values(), default=0) + 1
 
     def _register(self, chunk: RetrievedChunk) -> int:
         if chunk.chunk_id not in self._index:
-            self._index[chunk.chunk_id] = len(self._index) + 1
-            self._chunks[chunk.chunk_id] = chunk
+            index = self._next_index
+            self._next_index += 1
+            self._index[chunk.chunk_id] = index
+            self._sources[chunk.chunk_id] = _source_dict(chunk, index)
         return self._index[chunk.chunk_id]
 
     def numbered(self, chunks: list[RetrievedChunk]) -> str:
@@ -69,24 +123,10 @@ class CitationCollector:
         return "\n\n".join(blocks)
 
     def export_sources(self) -> list[dict[str, Any]]:
-        """JSON-serializable snapshot of everything retrieved so far, written
-        into graph state so it survives checkpointing (and a resumed
-        approval, which never re-runs the tools node)."""
-        ordered = sorted(self._chunks.values(), key=lambda chunk: self._index[chunk.chunk_id])
-        return [
-            {
-                "index": self._index[chunk.chunk_id],
-                "regulation": chunk.regulation,
-                "document": chunk.document_title,
-                "article": chunk.article_ref,
-                "heading": chunk.heading,
-                "url": citation_url(chunk.regulation, chunk.article_ref),
-                "snippet": chunk.content[:300],
-                "content": chunk.content,
-                "score": round(chunk.score, 5),
-            }
-            for chunk in ordered
-        ]
+        """JSON-serializable snapshot of everything retrieved on this thread so
+        far, written into graph state so it survives checkpointing (and a
+        resumed approval, which never re-runs the tools node)."""
+        return sorted(self._sources.values(), key=lambda source: source["index"])
 
 
 def build_tools(session: AsyncSession, collector: CitationCollector) -> list[BaseTool]:
