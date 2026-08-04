@@ -17,6 +17,29 @@ Design rules, all learned from the ways a naive gate goes wrong:
   run reporting 38. Every published mean has to name its own denominator.
 * **Refuse to judge a subset.** ``--smoke`` runs a handful of questions; scoring
   that against a full-run baseline is meaningless in both directions.
+* **A baseline nothing compares against is decoration.** Every check printed the
+  baseline next to the floor and then compared against the floor alone. That is
+  how the committed hybrid MRR moved 0.8912 -> 0.875 in commit 88131af — a side
+  effect of a run nobody promoted, still above the 0.87 floor, so nothing said a
+  word while the README went on quoting 0.891. A metric spec may now carry
+  ``max_drift``, and the measured value has to sit within that of the declared
+  baseline.
+
+  Only the retrieval metrics carry it, and they carry ``0.0``. That split is not
+  timidity, it is what the two suites can actually promise. Retrieval is
+  deterministic — pinned chunk text, pinned chunk vectors, pinned query vectors,
+  every ``ORDER BY`` totally ordered — so a re-run cannot move the number on its
+  own, and a number that moved is a change somebody made. RAGAS is judged by an
+  LLM: two runs of one corpus scored faithfulness 0.9176 and 0.9316, so a
+  two-sided band there is either wide enough to pass anything or narrow enough
+  to red the build on a draw. Its baseline is held instead by the fact that
+  ``promote.py`` is the only thing that can move the committed artifact.
+
+  There is no deadlock in ``max_drift: 0.0``, which is the objection to a hard
+  equality check. Improving retrieval means editing ``thresholds.yaml`` to
+  declare the new number and then promoting the run that measured it. That is
+  one extra deliberate line in the diff, and it is exactly the line whose
+  absence let the committed number and the published number disagree.
 """
 
 from __future__ import annotations
@@ -85,6 +108,24 @@ def _check_metric(
             f"{name} (ceiling)",
             value <= ceiling,
             f"{value:.4f} vs ceiling {ceiling} (baseline {spec.get('baseline')})",
+        )
+    if "max_drift" in spec:
+        baseline = spec.get("baseline")
+        if baseline is None:
+            # A tolerance around nothing. Refusing is the only reading that does
+            # not silently drop the check the key was added to switch on.
+            result.add(f"{name} (drift)", False, "max_drift is set but no baseline is declared")
+            return
+        drift = abs(value - baseline)
+        max_drift = spec["max_drift"]
+        result.add(
+            f"{name} (drift)",
+            drift <= max_drift,
+            f"{value:.4f} vs declared baseline {baseline} "
+            f"(drift {drift:.4f}, max {max_drift}) — a deterministic suite that "
+            "moved changed something; declare the new baseline, then promote"
+            if drift > max_drift
+            else f"{value:.4f} matches declared baseline {baseline}",
         )
 
 
@@ -203,8 +244,14 @@ def gate_ragas(payload: dict[str, Any], *, partial: bool) -> GateResult:
 def gate_retrieval(summary: dict[str, Any]) -> GateResult:
     mode = summary.get("mode", "unknown")
     result = GateResult(f"retrieval:{mode}")
-    if summary.get("smoke"):
-        result.add("population", False, "smoke run cannot be gated against a full-run baseline")
+    # `--smoke` and `--questions` are the two ways to score fewer than the full
+    # set. Both are refused outright rather than scored short, so neither can be
+    # promoted over a full run. `subset` absent means the run predates the field;
+    # that is safe to read as "full run" only because the population check below
+    # catches a short run on its own — there are 38 scorable questions and any
+    # strict subset of them lands under 38.
+    if summary.get("smoke") or summary.get("subset"):
+        result.add("population", False, "subset run cannot be gated against a full-run baseline")
         return result
 
     spec = load_thresholds()["retrieval"]

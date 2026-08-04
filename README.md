@@ -93,7 +93,7 @@ An OR-semantics variant was measured and rejected — generic legal vocabulary m
 The three-question delta comes straight out of the committed runs:
 
 ```bash
-jq -n --slurpfile h evals/results/retrieval_hybrid.json --slurpfile v evals/results/retrieval_vector.json \
+jq -n --slurpfile h evals/results/retrieval_hybrid.json --slurpfile v evals/results/retrieval_vector_only.json \
   '($v[0].questions | map({(.id): .mrr}) | add) as $vm
    | $h[0].questions | map(select(.mrr != $vm[.id]) | {id, hybrid: .mrr, vector: $vm[.id]})'
 ```

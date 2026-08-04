@@ -105,7 +105,7 @@ eval-retrieval: require-env  ## retrieval ablation: hybrid vs vector-only vs tex
 redteam: require-env         ## prompt-injection / PII / refusal suite
 	cd backend && $(UV) --group evals python ../evals/run_redteam.py
 
-promote:         ## promote the newest passing run to the committed baseline (SUITE=ragas|redteam)
+promote:         ## promote the newest passing run to the committed baseline (SUITE=ragas|redteam|retrieval_hybrid|retrieval_vector_only|retrieval_text_only)
 	cd backend && uv run --group evals python ../evals/promote.py $(SUITE)
 
 gate:            ## check the committed baselines against evals/thresholds.yaml (offline, free)

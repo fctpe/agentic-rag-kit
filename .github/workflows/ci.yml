@@ -63,16 +63,20 @@ jobs:
         # depended on the query plan and hybrid MRR moved 0.0132 with the data
         # identical. Compared to itself, not to a committed baseline, so this
         # gates determinism without going red on a number someone re-measured.
+        # `--no-gate` is what keeps that true now that the gate compares each
+        # metric against the baseline thresholds.yaml declares: a PR that moves
+        # retrieval deliberately fails at promote.py, which is where it should,
+        # and not here, where the question is only whether two runs agree.
         run: |
           set -euo pipefail
           uv run python -m app.ingestion.pipeline --source fixture
           uv run python -m app.ingestion.corpus_digest | tee digest-1.txt
           uv run --group evals python ../evals/run_retrieval_eval.py \
-            --mode hybrid --json eval-1.json > /dev/null
+            --mode hybrid --json eval-1.json --no-gate > /dev/null
           uv run python -m app.ingestion.pipeline --source fixture
           uv run python -m app.ingestion.corpus_digest | tee digest-2.txt
           uv run --group evals python ../evals/run_retrieval_eval.py \
-            --mode hybrid --json eval-2.json > /dev/null
+            --mode hybrid --json eval-2.json --no-gate > /dev/null
           diff digest-1.txt digest-2.txt
           uv run python - <<'PY'
           import json, sys

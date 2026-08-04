@@ -38,6 +38,13 @@ Flags: `--k` (default 6), `--mode hybrid|vector_only|text_only`,
 `--regulation-filter on|off`, `--query-embeddings committed|live`,
 `--json <path>`, `--smoke`, `--questions <ids>`.
 
+Every run writes `results/retrieval_<mode>[_nofilter]_<timestamp>.json`. It
+never writes `results/retrieval_<mode>.json` — that file is the one the README
+table is read from and only `promote.py` moves it (see *Promotion* below). It
+used to be written in place on every invocation, which is how commit 88131af
+changed the committed hybrid MRR from 0.8912 to 0.875 as a side effect of a run
+nobody had decided to publish, while README.md went on quoting 0.891.
+
 **This suite needs no provider key and is reproducible run to run** — both
 statements became true on 2026-08-04 and neither was before. The corpus text,
 its context prefixes and its embedding vectors are all committed under
@@ -174,6 +181,37 @@ Cost: guard-refused injections short-circuit before the model (free); the
 remaining ~9 cases are one agent run each — well under $0.05 total with
 `gpt-4o-mini`.
 
+## Promotion — `promote.py`
+
+Every suite writes timestamped runs. The files README.md quotes —
+`results/ragas.json`, `results/redteam.json`, `results/retrieval_<mode>.json` —
+are written by nothing but this script, on four rules:
+
+1. **Only the newest run.** If the latest run is worse, that is the number.
+2. **Only a run that passes the gate**, including its declared baseline: a
+   retrieval run that does not reproduce `thresholds.yaml` to the last digit is
+   refused. Publishing a genuinely new number therefore means declaring it in
+   `thresholds.yaml` first and then promoting the run that measured it.
+3. **Only from a clean worktree**, ignoring other files under `results/` — those
+   are outputs of other runs, not inputs to this one, and blocking on them would
+   make promoting the three retrieval modes in sequence impossible.
+4. **Stamped** with the source filename, the promotion time, and the full 40-char
+   commit sha. `backend/tests/test_eval_gate.py` fails if a stamp stops being
+   reachable from `HEAD`, which is what a rebase once did to one of them.
+
+```bash
+uv run --group evals python ../evals/promote.py retrieval_hybrid
+uv run --group evals python ../evals/promote.py retrieval_vector_only
+uv run --group evals python ../evals/promote.py retrieval_text_only
+uv run --group evals python ../evals/promote.py ragas
+uv run --group evals python ../evals/promote.py redteam
+```
+
+Subset runs (`--smoke`, `--questions`), unfiltered ablations
+(`--regulation-filter off`) and runs measured at a different `--k` are not
+promotable — the first two are refused by the gate, the last two cannot even be
+candidates.
+
 ## Files
 
 ```
@@ -183,5 +221,10 @@ evals/
 ├── run_evals.py             RAGAS 0.4.x over the live chat API
 ├── run_redteam.py           adversarial suite, exit 1 on failure
 ├── redteam/cases.yaml       14 red-team cases
-└── results/                 JSON outputs (retrieval_<mode>.json, ragas_<ts>.json, redteam_<ts>.json)
+├── promote.py               the only writer of the committed results
+├── gate.py                  thresholds, floors, ceilings, baseline drift
+└── results/                 timestamped runs (retrieval_<mode>_<ts>.json,
+                             ragas_<ts>.json, redteam_<ts>.json) plus the
+                             promoted retrieval_<mode>.json / ragas.json /
+                             redteam.json the README cites
 ```

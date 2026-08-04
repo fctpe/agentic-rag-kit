@@ -6,9 +6,9 @@
     "smoke": false,
     "n_questions": 38,
     "hit_rate_at_k": 1.0,
-    "mrr": 0.875,
-    "mean_article_recall": 0.9101,
-    "timestamp": "2026-08-03T22:12:59.918799+00:00"
+    "mrr": 0.9145,
+    "mean_article_recall": 0.8969,
+    "timestamp": "2026-08-04T07:58:28.365332+00:00"
   },
   "questions": [
     {
@@ -29,10 +29,10 @@
       "retrieved": [
         "ai_act:3",
         "ai_act:3",
+        "ai_act:Annex III",
+        "ai_act:Annex III",
         "ai_act:1",
-        "ai_act:8",
-        "ai_act:71",
-        "ai_act:7"
+        "ai_act:8"
       ]
     },
     {
@@ -56,7 +56,7 @@
         "ai_act:1",
         "ai_act:50",
         "ai_act:59",
-        "ai_act:5"
+        "ai_act:88"
       ]
     },
     {
@@ -103,8 +103,8 @@
         "ai_act:5",
         "ai_act:5",
         "ai_act:3",
-        "ai_act:26",
-        "ai_act:5"
+        "ai_act:Annex III",
+        "ai_act:26"
       ]
     },
     {
@@ -149,10 +149,10 @@
       "retrieved": [
         "ai_act:6",
         "ai_act:9",
+        "ai_act:Annex III",
         "ai_act:51",
         "ai_act:9",
-        "ai_act:8",
-        "ai_act:49"
+        "ai_act:8"
       ]
     },
     {
@@ -165,14 +165,14 @@
       ],
       "hit": 1,
       "article_recall": 1.0,
-      "mrr": 0.5,
-      "first_hit_rank": 2,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
       "matched_articles": [
         "ai_act:4"
       ],
       "retrieved": [
-        "ai_act:66",
         "ai_act:4",
+        "ai_act:66",
         "ai_act:50",
         "ai_act:50",
         "ai_act:64",
@@ -223,8 +223,8 @@
         "ai_act:9",
         "ai_act:8",
         "ai_act:16",
-        "ai_act:15",
-        "ai_act:17"
+        "ai_act:17",
+        "ai_act:15"
       ]
     },
     {
@@ -247,8 +247,8 @@
         "ai_act:10",
         "ai_act:10",
         "ai_act:15",
-        "ai_act:13",
-        "ai_act:42"
+        "ai_act:42",
+        "ai_act:13"
       ]
     },
     {
@@ -270,9 +270,9 @@
         "ai_act:14",
         "ai_act:9",
         "ai_act:26",
-        "ai_act:9",
         "ai_act:82",
-        "ai_act:8"
+        "ai_act:8",
+        "ai_act:9"
       ]
     },
     {
@@ -293,10 +293,10 @@
       "retrieved": [
         "ai_act:50",
         "ai_act:4",
-        "ai_act:50",
         "ai_act:26",
+        "ai_act:50",
         "ai_act:5",
-        "ai_act:61"
+        "ai_act:21"
       ]
     },
     {
@@ -319,10 +319,10 @@
       "retrieved": [
         "ai_act:51",
         "ai_act:55",
+        "ai_act:Annex XIII",
         "ai_act:52",
         "ai_act:90",
-        "ai_act:93",
-        "ai_act:9"
+        "ai_act:93"
       ]
     },
     {
@@ -343,10 +343,10 @@
       "retrieved": [
         "ai_act:2",
         "ai_act:5",
+        "ai_act:Annex III",
+        "ai_act:Annex III",
         "ai_act:2",
-        "ai_act:59",
-        "ai_act:50",
-        "ai_act:3"
+        "ai_act:59"
       ]
     },
     {
@@ -359,14 +359,14 @@
       ],
       "hit": 1,
       "article_recall": 1.0,
-      "mrr": 0.5,
-      "first_hit_rank": 2,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
       "matched_articles": [
         "ai_act:99"
       ],
       "retrieved": [
-        "ai_act:101",
         "ai_act:99",
+        "ai_act:101",
         "ai_act:100",
         "ai_act:5",
         "ai_act:99",
@@ -393,8 +393,8 @@
         "gdpr:9",
         "gdpr:4",
         "gdpr:5",
-        "gdpr:2",
-        "gdpr:6"
+        "gdpr:6",
+        "gdpr:2"
       ]
     },
     {
@@ -418,7 +418,7 @@
         "gdpr:28",
         "gdpr:4",
         "gdpr:31",
-        "gdpr:30"
+        "gdpr:32"
       ]
     },
     {
@@ -490,9 +490,9 @@
         "gdpr:3",
         "gdpr:4",
         "gdpr:4",
-        "gdpr:96",
         "gdpr:99",
-        "gdpr:49"
+        "gdpr:49",
+        "gdpr:96"
       ]
     },
     {
@@ -537,8 +537,8 @@
       "retrieved": [
         "gdpr:8",
         "gdpr:7",
-        "gdpr:49",
         "gdpr:96",
+        "gdpr:49",
         "gdpr:22",
         "gdpr:46"
       ]
@@ -559,8 +559,8 @@
         "gdpr:4"
       ],
       "retrieved": [
-        "gdpr:6",
         "gdpr:25",
+        "gdpr:6",
         "gdpr:4",
         "gdpr:32",
         "gdpr:9",
@@ -609,10 +609,10 @@
       "retrieved": [
         "gdpr:15",
         "gdpr:77",
-        "gdpr:14",
         "gdpr:13",
+        "gdpr:14",
         "gdpr:20",
-        "gdpr:17"
+        "gdpr:12"
       ]
     },
     {
@@ -657,8 +657,8 @@
       "retrieved": [
         "gdpr:22",
         "gdpr:21",
-        "gdpr:77",
         "gdpr:18",
+        "gdpr:77",
         "gdpr:15",
         "gdpr:79"
       ]
@@ -732,8 +732,8 @@
         "gdpr:83",
         "gdpr:83",
         "gdpr:84",
-        "gdpr:57",
         "gdpr:58",
+        "gdpr:57",
         "gdpr:58"
       ]
     },
@@ -749,18 +749,18 @@
       ],
       "hit": 1,
       "article_recall": 0.3333333333333333,
-      "mrr": 0.5,
-      "first_hit_rank": 2,
+      "mrr": 0.3333333333333333,
+      "first_hit_rank": 3,
       "matched_articles": [
         "gdpr:22"
       ],
       "retrieved": [
         "ai_act:86",
-        "gdpr:22",
-        "ai_act:7",
         "ai_act:5",
+        "gdpr:22",
         "ai_act:1",
-        "ai_act:26"
+        "ai_act:26",
+        "ai_act:7"
       ]
     },
     {
@@ -783,12 +783,12 @@
         "ai_act:5"
       ],
       "retrieved": [
-        "ai_act:5",
         "ai_act:3",
         "ai_act:5",
         "ai_act:10",
+        "ai_act:5",
         "ai_act:10",
-        "ai_act:26"
+        "ai_act:Annex III"
       ]
     },
     {
@@ -809,9 +809,9 @@
       ],
       "retrieved": [
         "ai_act:10",
-        "ai_act:59",
         "ai_act:42",
         "ai_act:53",
+        "ai_act:59",
         "ai_act:10",
         "ai_act:55"
       ]
@@ -838,9 +838,9 @@
         "ai_act:50",
         "ai_act:50",
         "ai_act:53",
-        "ai_act:78",
+        "ai_act:21",
         "ai_act:75",
-        "ai_act:21"
+        "ai_act:78"
       ]
     },
     {
@@ -862,10 +862,10 @@
       "retrieved": [
         "ai_act:5",
         "ai_act:50",
+        "ai_act:Annex XIII",
         "ai_act:1",
         "ai_act:59",
-        "ai_act:55",
-        "ai_act:10"
+        "ai_act:55"
       ]
     },
     {
@@ -890,7 +890,7 @@
         "ai_act:59",
         "ai_act:77",
         "ai_act:86",
-        "ai_act:7"
+        "ai_act:26"
       ]
     },
     {
@@ -904,16 +904,16 @@
       ],
       "hit": 1,
       "article_recall": 1.0,
-      "mrr": 0.3333333333333333,
-      "first_hit_rank": 3,
+      "mrr": 1.0,
+      "first_hit_rank": 1,
       "matched_articles": [
         "ai_act:99",
         "gdpr:83"
       ],
       "retrieved": [
+        "ai_act:99",
         "ai_act:101",
         "ai_act:100",
-        "ai_act:99",
         "ai_act:99",
         "gdpr:83",
         "gdpr:83"
@@ -929,20 +929,19 @@
         "gdpr:3"
       ],
       "hit": 1,
-      "article_recall": 1.0,
+      "article_recall": 0.5,
       "mrr": 1.0,
       "first_hit_rank": 1,
       "matched_articles": [
-        "ai_act:2",
-        "gdpr:3"
+        "ai_act:2"
       ],
       "retrieved": [
         "ai_act:2",
+        "ai_act:26",
         "ai_act:2",
         "ai_act:59",
         "ai_act:100",
-        "ai_act:71",
-        "gdpr:3"
+        "ai_act:71"
       ]
     }
   ]

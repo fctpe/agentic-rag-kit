@@ -29,6 +29,15 @@ regulation implied by the expected articles (only when they all share one
 regulation — cross-regulation questions always run unfiltered), "off" always
 searches the full corpus.
 
+Output: every run writes `results/retrieval_<mode>[_nofilter]_<timestamp>.json`
+and never the canonical `results/retrieval_<mode>.json` the README cites. It
+used to write the canonical file in place, unconditionally, which is how commit
+88131af moved the committed hybrid MRR from 0.8912 to 0.875 as a side effect of
+a run nobody had decided to publish, while the README went on quoting 0.891.
+The canonical file now moves only through `evals/promote.py`, on the same three
+rules RAGAS and the red team already promote under: newest run only, gate must
+pass, stamped with the commit that produced it.
+
 Query vectors (--query-embeddings committed|live, default committed): the
 embedding endpoint returns a slightly different vector for the same question on
 different calls, so by default the two arms that need one read it from
@@ -202,6 +211,20 @@ async def retrieve(
     raise ValueError(f"Unknown mode: {mode}")
 
 
+def output_path(mode: str, use_filter: bool, stamp: str, override: Path | None = None) -> Path:
+    """Where a run writes. Never `results/retrieval_<mode>.json`.
+
+    That file is the one the README's table is read from, and this script used
+    to overwrite it on every invocation. `--json` still redirects, because CI's
+    two-ingest determinism diff needs a scratch path, but nothing here can name
+    the canonical file: only evals/promote.py writes it.
+    """
+    if override is not None:
+        return override
+    suffix = "" if use_filter else "_nofilter"
+    return RESULTS_DIR / f"retrieval_{mode}{suffix}_{stamp}.json"
+
+
 def load_questions(smoke: bool, only_ids: list[str] | None) -> list[dict]:
     data = yaml.safe_load(GOLDEN_PATH.read_text())
     questions = [q for q in data["questions"] if q["query_type"] != "out_of_scope"]
@@ -216,7 +239,7 @@ def load_questions(smoke: bool, only_ids: list[str] | None) -> list[dict]:
     return questions
 
 
-async def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--k", type=int, default=6, help="top-k chunks to score (default 6)")
     parser.add_argument("--mode", choices=["hybrid", "vector_only", "text_only"], default="hybrid")
@@ -237,9 +260,24 @@ async def main() -> int:
         ),
     )
     parser.add_argument("--json", type=Path, default=None, help="output JSON path")
+    parser.add_argument(
+        "--no-gate",
+        action="store_true",
+        help=(
+            "report the thresholds but do not let them decide the exit code. For "
+            "the determinism check in CI, which runs this twice over one corpus and "
+            "diffs the two payloads — it compares a run to itself, deliberately not "
+            "to a committed baseline, so a number somebody re-measured must not red "
+            "it. Nothing about promotion changes: promote.py runs the gate itself."
+        ),
+    )
     parser.add_argument("--smoke", action="store_true", help="first 5 questions only")
     parser.add_argument("--questions", nargs="+", default=None, help="run only these ids")
-    args = parser.parse_args()
+    return parser
+
+
+async def main() -> int:
+    args = build_parser().parse_args()
 
     from app.db import dispose_engine, get_session_factory
 
@@ -309,6 +347,14 @@ async def main() -> int:
         # anything, so it reports what it did rather than what was asked for.
         "query_embeddings": "none" if args.mode == "text_only" else args.query_embeddings,
         "smoke": args.smoke,
+        # `--questions` is the other way to score fewer than the full set. The
+        # population check below already catches it (there are only 38 scorable
+        # questions, so any strict subset lands short), which is why an absent
+        # field is read as "full run" here rather than fail-closed — unlike the
+        # RAGAS fields, nothing is left unguarded by the absence. It is recorded
+        # because a results file should say what it ran, not leave the reader to
+        # infer it from a count.
+        "subset": bool(args.questions),
         "n_questions": n,
         "hit_rate_at_k": round(sum(r["hit"] for r in rows) / n, 4) if n else 0.0,
         "mrr": round(sum(r["mrr"] for r in rows) / n, 4) if n else 0.0,
@@ -335,17 +381,27 @@ async def main() -> int:
         f"**mean article recall: {summary['mean_article_recall']:.3f}**"
     )
 
-    suffix = "" if use_filter else "_nofilter"
-    out_path = args.json or RESULTS_DIR / f"retrieval_{args.mode}{suffix}.json"
+    # A timestamped run, never the canonical file. Same shape run_evals.py and
+    # run_redteam.py use, so promote.py can find all three the same way.
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    out_path = output_path(args.mode, use_filter, stamp, args.json)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps({"summary": summary, "questions": rows}, indent=2))
     print(f"\nwrote {out_path}")
 
     gate = gate_retrieval(summary)
     gate.report()
-    if summary.get("smoke"):
-        print("\n(smoke run — thresholds not applied)")
+    if summary.get("smoke") or summary.get("subset"):
+        print("\n(subset run — thresholds not applied)")
         return 0
+    if args.no_gate:
+        print("\n(--no-gate — thresholds reported, not enforced)")
+        return 0
+    if gate.passed and use_filter and args.json is None:
+        print(
+            f"\nto publish this run: "
+            f"uv run --group evals python ../evals/promote.py retrieval_{args.mode}"
+        )
     return 0 if gate.passed else 1
 
 

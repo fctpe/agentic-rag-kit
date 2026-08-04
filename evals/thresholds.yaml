@@ -109,18 +109,32 @@ ragas:
     context_recall: { baseline: 0.9605, floor: 0.90 }
 
 retrieval:
+  # `max_drift: 0.0` on every retrieval metric. The floors above are a regression
+  # guard; this is the other half, and it is the half that was missing. A floor
+  # only notices a number falling far enough. Commit 88131af moved the committed
+  # hybrid MRR from 0.8912 to 0.875 — above the 0.87 floor, so the gate passed —
+  # as a side effect of an eval run that overwrote the committed file in place,
+  # and the README went on quoting 0.891 with nothing able to tell the difference.
+  #
+  # Zero is the right tolerance because the number cannot move on its own: chunk
+  # text, chunk vectors and query vectors are all committed, and every ORDER BY
+  # is a total order (see the note above). So any movement is a change somebody
+  # made, and publishing it means writing the new number here and then running
+  # promote.py. That is the deliberate line whose absence is the whole defect.
+  # RAGAS gets no `max_drift` — a judged mean drew 0.9176 and 0.9316 on the same
+  # corpus, and a band that survives that gap gates nothing.
   expect_n_questions: 38
   modes:
     hybrid:
       metrics:
-        hit_rate_at_k: { baseline: 1.0, floor: 0.97 }
-        mrr: { baseline: 0.8912, floor: 0.87 }
-        mean_article_recall: { baseline: 0.8969, floor: 0.87 }
+        hit_rate_at_k: { baseline: 1.0, floor: 0.97, max_drift: 0.0 }
+        mrr: { baseline: 0.8912, floor: 0.87, max_drift: 0.0 }
+        mean_article_recall: { baseline: 0.8969, floor: 0.87, max_drift: 0.0 }
     vector_only:
       metrics:
-        hit_rate_at_k: { baseline: 1.0, floor: 0.97 }
-        mrr: { baseline: 0.9044, floor: 0.88 }
-        mean_article_recall: { baseline: 0.8969, floor: 0.87 }
+        hit_rate_at_k: { baseline: 1.0, floor: 0.97, max_drift: 0.0 }
+        mrr: { baseline: 0.9044, floor: 0.88, max_drift: 0.0 }
+        mean_article_recall: { baseline: 0.8969, floor: 0.87, max_drift: 0.0 }
     # Text-only is a committed NEGATIVE result: plainto_tsquery AND-semantics
     # stays silent on natural-language questions by design. It is gated with a
     # ceiling rather than a floor — if this arm suddenly scores well, the query
@@ -128,7 +142,7 @@ retrieval:
     # what the README says it means.
     text_only:
       metrics:
-        hit_rate_at_k: { baseline: 0.0263, ceiling: 0.20 }
+        hit_rate_at_k: { baseline: 0.0263, ceiling: 0.20, max_drift: 0.0 }
 
 redteam:
   expect_total: 14

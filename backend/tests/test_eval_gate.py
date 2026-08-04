@@ -21,9 +21,46 @@ from gate import gate_ragas, gate_redteam, gate_retrieval  # noqa: E402
 
 RESULTS = _EVALS / "results"
 
+# The canonical artifacts the README's tables are read from. Every one of them is
+# now written only by evals/promote.py, so every one of them carries provenance —
+# `retrieval_vector.json` is gone, a 12 July file that no table was built from
+# and that the README's own reproduction command nonetheless pointed at.
+RETRIEVAL_ARTIFACTS = [
+    "retrieval_hybrid.json",
+    "retrieval_vector_only.json",
+    "retrieval_text_only.json",
+]
+PROMOTED_ARTIFACTS = ["ragas.json", *RETRIEVAL_ARTIFACTS]
+
 
 def _load(name: str) -> dict:
     return json.loads((RESULTS / name).read_text())
+
+
+def _thresholds() -> dict:
+    from gate import load_thresholds  # noqa: PLC0415
+
+    return load_thresholds()
+
+
+def _summary_at_declared_baseline(mode: str) -> dict:
+    """A synthetic run that measured exactly what thresholds.yaml declares.
+
+    Built from the threshold file rather than from a committed artifact on
+    purpose: it is the payload every drift test below mutates away from, so it
+    has to be clean by construction, not clean by luck.
+    """
+    spec = _thresholds()["retrieval"]["modes"][mode]["metrics"]
+    summary = {
+        "mode": mode,
+        "k": 6,
+        "regulation_filter": "on",
+        "smoke": False,
+        "subset": False,
+        "n_questions": _thresholds()["retrieval"]["expect_n_questions"],
+    }
+    summary.update({metric: mspec["baseline"] for metric, mspec in spec.items()})
+    return summary
 
 
 def _failed(result) -> list[str]:
@@ -61,11 +98,18 @@ class TestCommittedBaselinesPass:
         """
         assert not gate_ragas(_load("ragas.json"), partial=False).passed
 
-    @pytest.mark.parametrize(
-        "name", ["retrieval_hybrid.json", "retrieval_vector.json", "retrieval_text_only.json"]
-    )
+    @pytest.mark.parametrize("name", RETRIEVAL_ARTIFACTS)
     def test_retrieval(self, name):
-        assert gate_retrieval(_load(name)["summary"]).passed
+        """Floors, ceilings, population — and now the declared baseline.
+
+        A `(drift)` failure here does not mean retrieval got worse. It means the
+        number in `evals/results/` and the number `thresholds.yaml` declares are
+        not the same number, which is the state commit 88131af left the hybrid
+        MRR in and which nothing could see. Clearing it is two deliberate steps:
+        write the measured value into `thresholds.yaml`, then promote the run
+        that measured it.
+        """
+        assert _failed(gate_retrieval(_load(name)["summary"])) == []
 
     def test_redteam(self):
         assert gate_redteam(_load("redteam_final_14of14.json")["summary"], partial=False).passed
@@ -121,6 +165,74 @@ class TestRegressionsFail:
 
     def test_one_lost_refusal_fails(self):
         assert not gate_redteam({"passed": 13, "failed": 1, "total": 14}, partial=False).passed
+
+
+class TestTheDeclaredBaselineIsActuallyChecked:
+    """The baseline was printed next to the floor and compared against nothing.
+
+    Commit 88131af moved the committed hybrid MRR from 0.8912 to 0.875 — a side
+    effect of an eval run that overwrote the committed file in place, never
+    promoted, never noticed, while README.md went on quoting 0.891. It cleared
+    the 0.87 floor comfortably, so the gate said PASS and printed the baseline it
+    had just walked past.
+
+    Retrieval can carry `max_drift: 0.0` because it is deterministic: chunk text,
+    chunk vectors and query vectors are all committed and every ORDER BY is a
+    total order, so the number cannot move on its own. RAGAS cannot — two runs of
+    one corpus scored faithfulness 0.9176 and 0.9316 — and deliberately has no
+    drift check at all.
+    """
+
+    def test_a_run_that_reproduces_the_declared_baseline_passes(self):
+        """Negative control. A drift check that reds a faithful re-run is a check
+        that gets deleted, and then the baseline is decoration again."""
+        result = gate_retrieval(_summary_at_declared_baseline("hybrid"))
+        assert _failed(result) == []
+        # And it really did run: a check that silently vanished would also pass.
+        assert any(c.name.endswith("(drift)") for c in result.checks)
+
+    def test_the_move_that_shipped_is_caught_and_the_floor_could_not_catch_it(self):
+        """0.8912 -> 0.875, exactly as committed. Naming the check matters: the
+        floor is 0.87, so `not .passed` alone would not prove which rule fired,
+        and the whole point is that the floor did not."""
+        summary = _summary_at_declared_baseline("hybrid")
+        summary["mrr"] = 0.875
+        result = gate_retrieval(summary)
+        assert _failed(result) == ["mrr (drift)"]
+        assert (
+            summary["mrr"]
+            >= _thresholds()["retrieval"]["modes"]["hybrid"]["metrics"]["mrr"]["floor"]
+        ), "if the floor now catches this, the test is no longer about the drift check"
+
+    def test_an_unexplained_improvement_fails_too(self):
+        """Two-sided, because a deterministic number that got better on its own
+        is the same event as one that got worse: something changed and nobody
+        said so. The answer is to declare it and promote, not to absorb it."""
+        summary = _summary_at_declared_baseline("vector_only")
+        summary["mrr"] = summary["mrr"] + 0.05
+        assert _failed(gate_retrieval(summary)) == ["mrr (drift)"]
+
+    def test_the_negative_result_is_pinned_the_same_way(self):
+        """text_only is gated by a ceiling, and a ceiling has the same hole: the
+        arm could halve its score without tripping 0.20."""
+        summary = _summary_at_declared_baseline("text_only")
+        summary["hit_rate_at_k"] = 0.0
+        assert _failed(gate_retrieval(summary)) == ["hit_rate_at_k (drift)"]
+
+    def test_ragas_deliberately_carries_no_drift_check(self):
+        """Not an oversight. A band wide enough to survive 0.9176 vs 0.9316 on
+        one corpus gates nothing; a narrow one reds the build on a judge draw."""
+        result = gate_ragas(_complete_ragas_payload(), partial=False)
+        assert [c.name for c in result.checks if c.name.endswith("(drift)")] == []
+
+    def test_a_drift_tolerance_with_nothing_to_compare_against_fails_closed(self):
+        """`max_drift` with no `baseline` is a check switched on over an empty
+        slot. Skipping it would be indistinguishable from it passing."""
+        from gate import GateResult, _check_metric  # noqa: PLC0415
+
+        result = GateResult("t")
+        _check_metric(result, "mrr", 0.9, {"floor": 0.5, "max_drift": 0.0})
+        assert _failed(result) == ["mrr (drift)"]
 
 
 class TestInlineCitationMarkers:
@@ -266,12 +378,24 @@ class TestSubsetRunsCannotClaimAGate:
         assert not gate_ragas(_load("ragas.json"), partial=True).passed
 
     def test_retrieval_smoke(self):
-        summary = copy.deepcopy(_load("retrieval_hybrid.json")["summary"])
+        summary = _summary_at_declared_baseline("hybrid")
         summary["smoke"] = True
         assert not gate_retrieval(summary).passed
 
+    def test_retrieval_question_subset(self):
+        """`--questions A01 G03` is the other way to score fewer than the set.
+        The population count catches it on its own; this refuses it by name so a
+        subset can never reach promote.py's gate at all."""
+        summary = _summary_at_declared_baseline("hybrid")
+        summary["subset"] = True
+        assert not gate_retrieval(summary).passed
+
+    def test_a_full_run_is_not_mistaken_for_a_subset(self):
+        """Negative control for both refusals above."""
+        assert gate_retrieval(_summary_at_declared_baseline("hybrid")).passed
+
     def test_unknown_retrieval_mode_fails_closed(self):
-        summary = copy.deepcopy(_load("retrieval_hybrid.json")["summary"])
+        summary = _summary_at_declared_baseline("hybrid")
         summary["mode"] = "some_new_backend"
         assert not gate_retrieval(summary).passed
 
@@ -284,15 +408,26 @@ class TestProvenanceStampsStillResolve:
 
     This looks. It fails on an orphaned stamp and skips (loudly) when the
     checkout genuinely cannot answer, which is what a shallow CI clone is.
+
+    It covers the retrieval artifacts too, and did not used to. They had no
+    stamps to check because nothing stamped them: `run_retrieval_eval.py` wrote
+    `retrieval_<mode>.json` in place on every run, so the file the README quotes
+    could not say which run produced it or from what commit. Both halves of that
+    are fixed — the runner writes a timestamped file, `promote.py` writes the
+    canonical one — and this is the half that stays honest afterwards.
     """
 
-    @pytest.mark.parametrize("name", ["ragas.json"])
+    @pytest.mark.parametrize("name", PROMOTED_ARTIFACTS)
     def test_stamp_is_reachable_from_head(self, name: str) -> None:
         from promote import stamp_status  # noqa: PLC0415
 
         payload = _load(name)
         sha = payload.get("promoted_git_sha")
-        assert sha, f"{name} carries no promoted_git_sha"
+        assert sha, (
+            f"{name} carries no promoted_git_sha — it was written in place by a "
+            f"run rather than promoted. Re-run the suite and "
+            f"`promote.py {name.removesuffix('.json')}`."
+        )
 
         verdict, detail = stamp_status(sha)
         if verdict == "unverifiable":
@@ -309,8 +444,9 @@ class TestProvenanceStampsStillResolve:
         if verdict == "unverifiable":
             pytest.skip("no git worktree available to prove the negative case")
 
-    def test_short_shas_are_no_longer_written(self) -> None:
+    @pytest.mark.parametrize("name", PROMOTED_ARTIFACTS)
+    def test_short_shas_are_no_longer_written(self, name: str) -> None:
         """A 7-char stamp is the shape the orphaned one had; full shas also stay
         unambiguous as the repo grows."""
-        sha = _load("ragas.json").get("promoted_git_sha")
-        assert sha and len(sha) == 40, f"expected a full 40-char sha, got {sha!r}"
+        sha = _load(name).get("promoted_git_sha")
+        assert sha and len(sha) == 40, f"{name}: expected a full 40-char sha, got {sha!r}"
