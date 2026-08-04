@@ -7,7 +7,7 @@ Events emitted:
   citations          {"citations": [...]}
   grounding          {"grounded": bool, "issues": []}
   done               {"thread_id": ..., "content": ...}
-  error              {"message": ...}
+  error              {"message": ..., "request_id": ...}   no exception text, ever
 
 Ordering guarantee, stated exactly: a *report* never reaches the user before
 its approval decision — no tokens are streamed for one, and the draft is
@@ -165,7 +165,20 @@ async def _stream_graph(
                 )
                 run_span.add_event("exception", failure)
                 run_span.set_status(Status(StatusCode.ERROR, failure["exception.type"]))
-                yield _sse("error", {"message": f"Agent run failed: {err}"})
+                # The same `str(err)` the log line goes out of its way to omit
+                # was interpolated straight into the response body, so the bound
+                # query text ADR 0006 keeps out of the logs went to the browser
+                # instead. The request id is the join: it is on the root span
+                # and on every log line for this run, so an operator can find
+                # the failure from what the user quotes without the user ever
+                # holding it.
+                yield _sse(
+                    "error",
+                    {
+                        "message": "Agent run failed. Quote this request id when reporting it.",
+                        "request_id": get_request_id(),
+                    },
+                )
                 return
 
             snapshot = await graph.aget_state(config)

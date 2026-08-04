@@ -13,6 +13,7 @@ report assertion is not passing because nothing streamed at all.
 
 from __future__ import annotations
 
+import json
 import os
 from contextlib import asynccontextmanager
 from typing import Any
@@ -24,6 +25,7 @@ os.environ.setdefault("JWT_SECRET", "test-secret-long-enough-to-pass-startup-che
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 from app.api import chat as chat_api  # noqa: E402
+from app.observability import request_context  # noqa: E402
 
 DRAFT = "CONFIDENTIAL DRAFT: prohibited practices gap analysis"
 
@@ -171,3 +173,70 @@ async def test_the_user_is_told_a_report_is_being_drafted(collect):
     )
     drafting = _events_named(frames, "drafting")
     assert drafting and "awaiting_approval" in drafting[0]
+
+
+class _ExplodingGraph:
+    """Fails partway through the stream, the way a dropped connection does."""
+
+    def __init__(self, err: Exception):
+        self._err = err
+
+    async def astream(self, *_args: Any, **_kwargs: Any):
+        yield ("updates", {"router": {"task_type": "qa"}})
+        raise self._err
+
+    async def aget_state(self, *_args: Any, **_kwargs: Any):
+        raise AssertionError("the run failed; state must not be read")
+
+
+# The bound query text a DBAPIError carries in `str(err)` — the exact thing
+# error_fields exists to keep out of the logs (ADR 0006).
+LEAKY = (
+    "(psycopg.errors.UndefinedColumn) column chunks.embedding does not exist\n"
+    "[SQL: SELECT chunks.content FROM chunks WHERE chunks.tenant = 'acme-legal' "
+    "AND chunks.author_email = 'priya.shah@example.invalid']"
+)
+
+
+async def test_a_failed_run_does_not_ship_the_exception_to_the_browser(collect, monkeypatch):
+    """The log line goes out of its way to omit `str(err)`, then the SSE error
+    event interpolated it. Everything ADR 0006 keeps out of the logs — bound
+    query text, and any personal data inside it — went to the client instead."""
+    monkeypatch.setattr(
+        chat_api, "build_graph", lambda *a, **k: _ExplodingGraph(RuntimeError(LEAKY))
+    )
+
+    class _User:
+        id = "00000000-0000-0000-0000-000000000001"
+
+    frames = [frame async for frame in chat_api._stream_graph({}, "thread-1", _User(), None)]
+    body = "".join(frames)
+
+    errors = _events_named(frames, "error")
+    assert len(errors) == 1
+    # Assert on the whole stream, not just the error frame: the point is that
+    # this text is nowhere on the wire.
+    assert "psycopg" not in body
+    assert "priya.shah@example.invalid" not in body
+    assert "acme-legal" not in body
+    assert "SELECT" not in body
+    assert "RuntimeError" not in body
+
+
+async def test_the_failure_is_still_findable_by_request_id(collect, monkeypatch):
+    """Control for the test above. Redacting the error into a blank message
+    would satisfy every assertion there while leaving the user with nothing to
+    quote and the operator with nothing to search."""
+    monkeypatch.setattr(
+        chat_api, "build_graph", lambda *a, **k: _ExplodingGraph(RuntimeError(LEAKY))
+    )
+
+    class _User:
+        id = "00000000-0000-0000-0000-000000000001"
+
+    with request_context("req-abc123") as request_id:
+        frames = [frame async for frame in chat_api._stream_graph({}, "thread-1", _User(), None)]
+
+    payload = json.loads(_events_named(frames, "error")[0].split("data: ", 1)[1])
+    assert payload["request_id"] == request_id
+    assert payload["message"]

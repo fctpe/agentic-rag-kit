@@ -73,8 +73,14 @@ export default function ApprovalsPage() {
       // Drain the continuation stream so the run completes server-side.
       for await (const event of parseSSEStream(response.body)) {
         if (event.event === "error") {
-          const data = JSON.parse(event.data) as { message: string };
-          throw new Error(data.message);
+          // The server deliberately no longer sends exception text — it can
+          // carry bound query text and personal data. The request id is what
+          // makes the failure findable in the logs, so it has to survive to
+          // the surface or the generic message is a dead end.
+          const data = JSON.parse(event.data) as { message: string; request_id?: string };
+          throw new Error(
+            data.request_id ? `${data.message} (${data.request_id})` : data.message,
+          );
         }
       }
       setPending((prev) =>
