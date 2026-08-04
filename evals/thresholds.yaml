@@ -103,10 +103,10 @@ ragas:
   # more; beyond it, answers are getting worse, not the gate stricter.
   max_answers_refused_as_ungrounded: 2
   metrics:
-    faithfulness: { baseline: 0.9316, floor: 0.90 }
-    answer_relevancy: { baseline: 0.8805, floor: 0.78 }
-    context_precision: { baseline: 0.8490, floor: 0.78 }
-    context_recall: { baseline: 0.9605, floor: 0.90 }
+    faithfulness: { baseline: 0.9453, floor: 0.90 }
+    answer_relevancy: { baseline: 0.8700, floor: 0.78 }
+    context_precision: { baseline: 0.8825, floor: 0.78 }
+    context_recall: { baseline: 0.9368, floor: 0.90 }
 
 retrieval:
   # `max_drift: 0.0` on every retrieval metric. The floors above are a regression
@@ -128,13 +128,13 @@ retrieval:
     hybrid:
       metrics:
         hit_rate_at_k: { baseline: 1.0, floor: 0.97, max_drift: 0.0 }
-        mrr: { baseline: 0.8912, floor: 0.87, max_drift: 0.0 }
-        mean_article_recall: { baseline: 0.8969, floor: 0.87, max_drift: 0.0 }
+        mrr: { baseline: 0.9057, floor: 0.87, max_drift: 0.0 }
+        mean_article_recall: { baseline: 0.9101, floor: 0.87, max_drift: 0.0 }
     vector_only:
       metrics:
         hit_rate_at_k: { baseline: 1.0, floor: 0.97, max_drift: 0.0 }
-        mrr: { baseline: 0.9044, floor: 0.88, max_drift: 0.0 }
-        mean_article_recall: { baseline: 0.8969, floor: 0.87, max_drift: 0.0 }
+        mrr: { baseline: 0.9189, floor: 0.88, max_drift: 0.0 }
+        mean_article_recall: { baseline: 0.9101, floor: 0.87, max_drift: 0.0 }
     # Text-only is a committed NEGATIVE result: plainto_tsquery AND-semantics
     # stays silent on natural-language questions by design. It is gated with a
     # ceiling rather than a floor — if this arm suddenly scores well, the query
