@@ -79,9 +79,7 @@ async def corpus_digests() -> tuple[int, str, str]:
     return rows, text_hash.hexdigest(), vector_hash.hexdigest()
 
 
-COMMITTED_DIGEST = (
-    Path(__file__).resolve().parents[3] / "data" / "fixtures" / "corpus_digest.json"
-)
+COMMITTED_DIGEST = Path(__file__).resolve().parents[3] / "data" / "fixtures" / "corpus_digest.json"
 
 
 def load_committed(path: Path = COMMITTED_DIGEST) -> dict:
@@ -89,9 +87,7 @@ def load_committed(path: Path = COMMITTED_DIGEST) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def compare(
-    measured: tuple[int, str, str], committed: dict | None = None
-) -> list[str]:
+def compare(measured: tuple[int, str, str], committed: dict | None = None) -> list[str]:
     """Field-by-field mismatches between a measured corpus and the committed one.
 
     Returns an empty list when they agree. Every field is reported, not just the

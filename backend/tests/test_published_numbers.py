@@ -85,9 +85,7 @@ def test_published_chunk_counts_are_current(path: Path) -> None:
     """
     counts = _corpus_counts()
     legal = {counts["total"], counts["ai_act"], counts["gdpr"]}
-    stated = {
-        int(m) for m in re.findall(r"(?:→|->)\s*\*{0,2}(\d{2,4})\s*chunks", _read(path))
-    }
+    stated = {int(m) for m in re.findall(r"(?:→|->)\s*\*{0,2}(\d{2,4})\s*chunks", _read(path))}
     assert stated, f"{path} states no chunk count at all"
     assert stated <= legal, f"{path} states chunk counts {sorted(stated - legal)}"
 
@@ -182,8 +180,15 @@ def _gate_passing_ragas_runs() -> dict[str, float]:
 
 
 _NUMBER_WORDS = {
-    2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six",
-    7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten",
+    2: "Two",
+    3: "Three",
+    4: "Four",
+    5: "Five",
+    6: "Six",
+    7: "Seven",
+    8: "Eight",
+    9: "Nine",
+    10: "Ten",
 }
 
 
@@ -211,9 +216,9 @@ def test_the_quoted_spread_is_every_run_the_gate_accepts() -> None:
 
     refused = len(list((EVALS / "results").glob("ragas_2*.json"))) - len(passing)
     readme = _read(ROOT / "README.md")
-    assert f"**{_spell(refused)} other runs" in readme or f"{_spell(refused)} other runs" in readme, (
-        f"the gate refuses {refused} runs; the README states a different count"
-    )
+    # The README writes the count as a word and may bold it.
+    stated = f"{_spell(refused)} other runs"
+    assert stated in readme, f"the gate refuses {refused} runs; the README states a different count"
     assert promoted["promoted_from"] in passing
     for name, faithfulness in passing.items():
         if name != promoted["promoted_from"]:
