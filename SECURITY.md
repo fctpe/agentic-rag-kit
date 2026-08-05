@@ -18,10 +18,12 @@ The full threat model — OWASP LLM Top 10 (2025) mapping, EU AI Act Art. 12/14 
 
 `audit_log` is append-only — the application exposes no update or delete path — and hash-chained: every row stores the previous row's hash alongside its own. `GET /audit/verify` (admin) walks the chain in the order the database assigned (`seq`, a bigserial) and names the first row that failed its own hash or its link. Appends are serialized on a Postgres advisory lock, because two writers reading the same tail would fork the chain, and a fork is indistinguishable from tampering.
 
-It is tamper-*evidence*, not tamper-proofing. Two gaps are worth stating here rather than leaving to a reader's optimism:
+It is tamper-*evidence*, not tamper-proofing:
 
-- **Truncation is undetectable.** The chain links backwards, so deleting the newest N rows leaves a shorter chain that still walks clean. The only signal is the entry count falling between two polls of `/audit/verify`, which is why the deployment checklist says to poll it and keep the count.
-- **The hash is unkeyed.** It is a plain sha256 over public columns and the algorithm is in this repo, so anyone with `UPDATE` on `audit_log` can edit a row and recompute the whole chain consistently. Closing that requires something an attacker with write access to one table cannot reach — an HMAC or KMS key, or writing each head hash and count to an append-only store outside the database. [docs/security.md](docs/security.md#audit-trail-eu-ai-act-art-12-framing) records why neither is built here.
+- **Truncation is undetectable** — the chain links backwards, so deleting the newest N rows still walks clean. Poll `/audit/verify` and keep the `checked` count between polls; that is the only signal.
+- **The hash is unkeyed**, so anyone with `UPDATE` on `audit_log` can edit a row and recompute the chain consistently.
+
+The full table of what it does and does not catch, and why neither an HMAC nor an external append-only head store is built here: [docs/security.md](docs/security.md#audit-trail-eu-ai-act-art-12-framing).
 
 ## Abuse guards
 

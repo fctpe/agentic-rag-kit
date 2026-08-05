@@ -40,25 +40,18 @@ Flags: `--k` (default 6), `--mode hybrid|vector_only|text_only`,
 
 Every run writes `results/retrieval_<mode>[_nofilter]_<timestamp>.json`. It
 never writes `results/retrieval_<mode>.json` — that file is the one the README
-table is read from and only `promote.py` moves it (see *Promotion* below). It
-used to be written in place on every invocation, which is how commit 88131af
-changed the committed hybrid MRR from 0.8912 to 0.875 as a side effect of a run
-nobody had decided to publish, while README.md went on quoting the older draw.
+table is read from, and only `promote.py` moves it (see *Promotion* below).
 
-**This suite needs no provider key and is reproducible run to run** — both
-statements became true on 2026-08-04 and neither was before. The corpus text,
-its context prefixes and its embedding vectors are all committed under
-`data/fixtures/`, and the golden questions' vectors under
-`query_embeddings.json`, because the embedding endpoint does not return
-bit-identical vectors for identical input: 99–141 of 284 chunk rows differed on
-every pair of ingests, and 2–4 of 38 questions differ between passes. Every
-`ORDER BY` in the retrieval SQL now carries a `(regulation, article_ref, idx)`
-tiebreak for the same reason — RRF ties are arithmetic, and an untied
-`ORDER BY f.score DESC` made question A07's rank-1 result a function of the
-`LIMIT`. `--query-embeddings live` embeds each question through the production
-path instead; it is the control that pinning did not change what is measured,
-and the mode is recorded in every results file. The application always embeds
-live, because a user's question arrives as text.
+**This suite needs no provider key and is reproducible run to run.** The corpus
+text, its context prefixes and its embedding vectors are all committed under
+`data/fixtures/`, the golden questions' vectors under `query_embeddings.json`,
+and every `ORDER BY` in the retrieval SQL carries a
+`(regulation, article_ref, idx)` tiebreak. `--query-embeddings live` embeds each
+question through the production path instead; it is the control that pinning did
+not change what is measured, and the mode is recorded in every results file. The
+application always embeds live, because a user's question arrives as text. What
+was measured on the way to each of those three decisions is in
+[ADR 0003](../docs/adr/0003-structural-chunking-contextual-prefixes.md).
 
 Metrics:
 
@@ -123,6 +116,13 @@ Metrics (all 0–1, higher is better):
   irrelevant ones, judged against the reference answer? (retrieval ranking)
 - **context_recall** — is everything the reference answer needs present in
   the retrieved contexts? (retrieval coverage)
+
+> **All four are self-evaluation, not an audit.** The default judge is
+> `gpt-4o-mini`, which is also the application model, so it grades leniently on
+> exactly the failure it shares — an answer that *sounds* supported. Read the
+> committed numbers as the author's own instrumentation. `RAGAS_JUDGE_MODEL`
+> takes any OpenAI-compatible model if you want a cross-family judge; no
+> committed run uses one yet.
 
 Also recorded, and gated at zero: **answers carrying no inline `[n]` marker**.
 Not a judged metric — a format check the four metrics above are blind to. An
@@ -212,6 +212,20 @@ Subset runs (`--smoke`, `--questions`), unfiltered ablations
 (`--regulation-filter off`) and runs measured at a different `--k` are not
 promotable — the first two are refused by the gate, the last two cannot even be
 candidates.
+
+**What the gate refuses, and why the README's n=2 is not a selection anyone
+made.** Ten timestamped RAGAS runs are committed; two pass. The eight refusals
+fall into three groups:
+
+| refused | reason |
+|---|---|
+| 2 runs | every one of the 38 questions failed to reach the API — no mean exists |
+| 3 runs | predate the per-metric population check: they report `n_scored: 38` while faithfulness was averaged over 23, 27 and 28 questions, because the judge hit a 1024-token output limit on the longest answers and the questions it dropped were the hardest |
+| 3 runs | fully and correctly scored, but carry 2, 9 and 10 answers with no inline `[n]` marker, which `max_answers_without_inline_citation: 0` refuses |
+
+`backend/tests/test_published_numbers.py -k spread` replays the real gate over
+every committed run and asserts both the two it accepts and the eight it does
+not, offline and free.
 
 ## Files
 

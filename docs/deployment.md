@@ -86,10 +86,10 @@ up against the old schema. A pod stuck in `Init:0/1` means the Job has not finis
 | readiness | `/health` | `SELECT 1` | removes the pod from the Service |
 
 Wire liveness to `/health` and a Postgres failover restart-loops every replica at once, exactly
-when the pods were fine and the database was not. `/health` used to return `{"status": "ok"}`
-without opening a connection, which made any readiness probe pointed at it a test that the HTTP
-server could answer itself; it now fails closed with 503, and `backend/tests/test_health.py`
-plus the outage step in `.github/workflows/k8s.yml` hold the split.
+when the pods were fine and the database was not. `/health` opens a connection and fails closed
+with 503 — a readiness probe that only proves the HTTP server can answer itself is not a
+readiness probe. `backend/tests/test_health.py` plus the outage step in
+`.github/workflows/k8s.yml` hold the split.
 
 **Two hostnames, not one.** `NEXT_PUBLIC_API_BASE` is inlined into the browser bundle at build
 time, so the frontend image has to be built with the same `api.` hostname the Ingress serves —

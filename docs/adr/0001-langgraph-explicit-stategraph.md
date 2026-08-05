@@ -26,3 +26,10 @@ Splitting the promise in two is what made it fixable, because the two halves hav
 - **QA answers stream, and say they are unverified.** Buffering every answer until `verify` returns would trade the product's core interaction for a wording fix. The honest claim is the one now in `chat.py`'s docstring: shown unverified, then verified before the run completes — and the UI renders that intermediate state ("Checking sources…", then "Unverified" if no verdict ever lands) rather than letting an unchecked answer look identical to a checked one.
 
 `backend/tests/test_stream_ordering.py` pins the report half against the real SSE assembly, including a negative control that fails if qa stops streaming — otherwise "no tokens before approval" is satisfied by a stream that emits nothing at all.
+
+## Addendum: two node behaviours that came out of eval failures, not design
+
+Both were found by running the golden set, and both are decisions rather than fixes, so they are recorded here rather than narrated in the README.
+
+- **`read_article` exists because top-k search returns *fragments*.** "List all prohibited practices" was systematically incomplete: the retriever returns the parts of a long article that match, and an enumeration needs the whole thing. The agent now calls `read_article` on the controlling article before enumerating. The before/after RAGAS runs that motivated it predate the committed results and no artifact survives them, so no delta is quoted for it.
+- **The grounding judge audits full chunk content, not the citation snippets.** It originally judged against the 300-character excerpts the citation panel shows, and flagged *correct* enumerations as unsupported whenever the list ran past the cutoff. It now sees full chunk text and judges factual support. The related observation is why the check is worth its latency at all: with only part of the corpus ingested, the model padded enumerations from parametric memory and the audit caught exactly that.
