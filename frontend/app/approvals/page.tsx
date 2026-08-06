@@ -145,8 +145,11 @@ export default function ApprovalsPage() {
             )}
             {(approval.payload.citation_issues?.length ?? 0) > 0 && (
               <ul className="mt-2 list-disc space-y-0.5 rounded-md border border-amber-200 bg-amber-50 px-5 py-2 text-xs text-amber-900">
-                {approval.payload.citation_issues?.map((issue) => (
-                  <li key={issue}>{issue}</li>
+                {/* Position, not text: one answer can carry the same
+                    unresolvable marker twice, and duplicate keys make React
+                    drop or duplicate a row. */}
+                {approval.payload.citation_issues?.map((issue, i) => (
+                  <li key={i}>{issue}</li>
                 ))}
               </ul>
             )}

@@ -32,8 +32,13 @@ export default function ApprovalBanner({
       </p>
       {approval.citationIssues.length > 0 && (
         <ul className="mt-2 list-disc space-y-0.5 rounded-md border border-amber-200 bg-white px-5 py-2 text-xs text-amber-900">
-          {approval.citationIssues.map((issue) => (
-            <li key={issue}>{issue}</li>
+          {/* Keyed by position, not by text: the same issue legitimately
+              repeats when one answer carries the same unresolvable marker
+              twice, and two identical keys make React drop or duplicate a
+              row. The list is rendered once per approval and never reordered,
+              so the index is stable for its lifetime. */}
+          {approval.citationIssues.map((issue, i) => (
+            <li key={i}>{issue}</li>
           ))}
         </ul>
       )}
