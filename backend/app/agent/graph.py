@@ -336,7 +336,34 @@ def build_graph(session: AsyncSession, collector: CitationCollector, checkpointe
         return updates
 
     def after_resolve(state: AgentState) -> Literal["approval_gate", "verify"]:
-        return "approval_gate" if state.get("task_type") == "report" else "verify"
+        if state.get("task_type") != "report":
+            return "verify"
+        # task_type is settled by the router from the REQUEST, before the agent
+        # has run — that ordering is what lets /chat suppress streaming for a
+        # report (ADR 0001 addendum). The cost is that an out-of-corpus request
+        # *phrased* as a report ("write a compliance report on NIS2") is
+        # classified `report`, then correctly refused by the agent, and the
+        # refusal was still gated. Observed on a demo instance: three of the
+        # four entries waiting in the reviewer's queue were declines.
+        #
+        # That is not cosmetic. A queue that is mostly noise gets clicked
+        # through, and the thing that erodes is the Art. 14 human-oversight
+        # control the gate implements — the same reasoning that keeps
+        # citation_issues out of the grounded=false alert.
+        #
+        # A draft built on zero retrieved sources is not a report: there is no
+        # corpus text to review it against, and verify() already reports it as
+        # ungrounded with NO_SOURCES_ISSUE. Send it down the ordinary answer
+        # path instead of into the queue.
+        #
+        # Deliberately narrow. The predicate is "nothing was retrieved", not
+        # "the answer looks like a refusal": an agent that searches, gets rows,
+        # and then declines still stops at the gate. Every error this can make
+        # is toward MORE review, never toward releasing an unreviewed report —
+        # which is the only direction a governance control may fail in.
+        if not state.get("retrieved_sources"):
+            return "verify"
+        return "approval_gate"
 
     @traced_node("approval_gate")
     async def approval_gate(state: AgentState) -> dict[str, Any]:
