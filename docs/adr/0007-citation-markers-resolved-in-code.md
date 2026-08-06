@@ -38,7 +38,9 @@ and fails closed on everything else, where *closed* means **not linked**:
 * a bracket whose spelled-out reference contradicts the source it numbers — `[5, Art. 4(7)]` where source 5 is GDPR Art. 28 — is **left exactly as written**, so it stays visible as text rather than becoming a confidently wrong link;
 * an unrecognised shape is left alone.
 
-All three are reported in a new `citation_issues` state channel, so a bracket that does not link is never silently swallowed. Answers that genuinely cite nothing — refusals, out-of-scope declines — contain no brackets and pass through untouched; nothing here can invent a citation.
+All three are reported in a new `citation_issues` state channel, so a bracket that does not link is never silently swallowed. Nothing here can invent a citation.
+
+**Correction, 2026-08-06: refusals are not bracket-free.** This paragraph originally continued *"Answers that genuinely cite nothing — refusals, out-of-scope declines — contain no brackets and pass through untouched"*. Observed on a running instance: an out-of-scope decline about the NIS2 Directive was emitted with `[2]` in it, twice, on a thread that had retrieved **zero** sources. The mechanism did the right thing — both markers removed, both removals reported — so the decision stands unchanged; the sentence describing it was wrong. A model that has been told to cite writes brackets on the way out whether or not anything was retrieved, and "the model does not do X" is exactly the kind of claim this ADR elsewhere refuses to rest on. The fail-closed branch is not a formality for the refusal path, it is load-bearing there.
 
 Source ids are also now stable for a **thread**: `CitationCollector` is seeded from the checkpointed `retrieved_sources`, so an id, once issued, means that chunk forever.
 
